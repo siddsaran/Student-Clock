@@ -16,6 +16,7 @@ public class ExampleView1 extends BorderPane {
 
         switchButton = new Button("Switch Views");
         headerBox.getChildren().addAll(switchButton);
+        this.setCenter(headerBox);
     }
 
     public Button getSwitchButton() {
