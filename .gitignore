@@ -1,0 +1,22 @@
+# Maven
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# VS Code (optional; remove if you want to commit shared settings)
+# .vscode/
+
+# macOS
+.DS_Store
+
+# Compiled class files (backup if any outside target)
+*.class
