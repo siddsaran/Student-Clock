@@ -1,4 +1,0 @@
---patch-module
-edu.ucsd.studentclock=_
---add-reads
-edu.ucsd.studentclock=ALL-UNNAMED
