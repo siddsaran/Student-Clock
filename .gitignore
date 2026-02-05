@@ -1,0 +1,21 @@
+# Maven
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+.vscode/
+
+# macOS
+.DS_Store
+
+# Compiled class files (backup if any outside target)
+*.class
