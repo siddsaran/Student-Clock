@@ -10,6 +10,13 @@ public abstract class AbstractPresenter<V extends Region> {
     protected Scene scene;
 
     public AbstractPresenter(Model model, V view) {
+        if (model == null) {
+            throw new NullPointerException("model must not be null");
+        }
+        if (view == null) {
+            throw new NullPointerException("view must not be null");
+        }
+        
         this.model = model;
         this.view = view;
         this.scene = new Scene(view, 500, 600);
