@@ -114,6 +114,7 @@ class AssignmentTest {
         String s = assignment.toString();
         Assertions.assertTrue(s.contains("Quiz 2 Study"));
         Assertions.assertTrue(s.contains("CSE 110"));
+        System.out.println("Passed");
     }
 
     @Test
