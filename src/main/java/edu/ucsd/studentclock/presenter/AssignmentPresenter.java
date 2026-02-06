@@ -14,7 +14,7 @@ import edu.ucsd.studentclock.view.AssignmentView;
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
 
     private final AssignmentRepository repository;
-
+    private Runnable onBack;
     /**
      * Creates an AssignmentPresenter.
      *
@@ -28,6 +28,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         super(model, view);
         this.repository = repository;
         view.setPresenter(this);
+        updateView();
     }
 
     /**
@@ -46,7 +47,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     @Override
     public void updateView() {
-        // For now, no-op
+        view.showAssignments(repository.getAssignmentsForCourse("CSE 110"));
     }
 
     /**
@@ -72,7 +73,27 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 lateDays,
                 0
         );
-
         repository.addAssignment(assignment);
+        updateView();
     }
+
+    /**
+     * Registers callback for back navigation.
+     *
+     * @param onBack runnable executed when back is pressed
+     */
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+    }
+
+    /**
+     * Invoked by view when back button is pressed.
+     */
+    public void back() {
+        if (onBack != null) {
+            onBack.run();
+        }
+    }
+
+
 }

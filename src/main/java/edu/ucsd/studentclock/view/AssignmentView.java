@@ -75,6 +75,12 @@ public class AssignmentView extends VBox {
         );
 
         addButton.setOnAction(e -> handleCreate());
+        backButton.setOnAction(e -> {
+            if (presenter != null) {
+                presenter.back();
+            }
+        });
+
     }
 
     /**

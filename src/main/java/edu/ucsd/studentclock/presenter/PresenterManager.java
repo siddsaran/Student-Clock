@@ -2,20 +2,30 @@ package edu.ucsd.studentclock.presenter;
 
 import javafx.stage.Stage;
 
+/**
+ * Manages navigation between presenters.
+ */
 public class PresenterManager {
-    public void defineInteractions(Stage stage, String appName,
-            AbstractPresenter coursePresenter,
-            AssignmentPresenter assignmentPresenter) {
+
+    /**
+     * Defines navigation interactions between Course and Assignment presenters.
+     *
+     * @param stage application stage
+     * @param appName application name
+     * @param coursePresenter presenter for course screen
+     * @param assignmentPresenter presenter for assignment screen
+     */
+    public void defineInteractions(Stage stage,
+                                   String appName,
+                                   AbstractPresenter<?> coursePresenter,
+                                   AssignmentPresenter assignmentPresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
-        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
-
-        // When assignment screen presses back → go to courses
+        // Navigate from assignment back to courses
         assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
         // Initial screen
         switcher.switchTo(coursePresenter);
     }
 }
-
