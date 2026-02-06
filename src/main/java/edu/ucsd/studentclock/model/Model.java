@@ -54,4 +54,20 @@ public class Model {
     public List<Course> getAllCourses() {
         return repository.getAllCourses();
     }
+
+    /**
+     * Removes the course with the given id. No-op if id is null or blank after trim.
+     *
+     * @param id the course id to delete
+     */
+    public void deleteCourse(String id) {
+        if (id == null) {
+            return;
+        }
+        String trimmedId = id.trim();
+        if (trimmedId.isEmpty()) {
+            return;
+        }
+        repository.deleteCourse(trimmedId);
+    }
 }
