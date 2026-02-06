@@ -4,12 +4,12 @@ import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
-import edu.ucsd.studentclock.presenter.ExamplePresenter1;
+import edu.ucsd.studentclock.presenter.CoursePresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
-import edu.ucsd.studentclock.view.ExampleView1;
+import edu.ucsd.studentclock.view.CourseView;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -47,12 +47,12 @@ public class App extends Application {
         Model sharedModel = new Model(courseRepository);
 
         // Views
-        ExampleView1 courseView = new ExampleView1();
+        CourseView courseView = new CourseView();
         AssignmentView assignmentView = new AssignmentView();
 
         // Presenters
-        ExamplePresenter1 coursePresenter =
-                new ExamplePresenter1(sharedModel, courseView);
+        CoursePresenter coursePresenter =
+                new CoursePresenter(sharedModel, courseView);
 
         AssignmentPresenter assignmentPresenter =
                 new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);

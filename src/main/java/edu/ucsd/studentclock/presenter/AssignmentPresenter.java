@@ -1,8 +1,11 @@
 package edu.ucsd.studentclock.presenter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
@@ -47,7 +50,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     @Override
     public void updateView() {
-        view.showAssignments(repository.getAssignmentsForCourse("CSE 110"));
+        List<String> courseIds = model.getAllCourses().stream()
+                .map(Course::getId)
+                .collect(Collectors.toList());
+        view.setCourses(courseIds);
+        view.showAssignments(repository.getAllAssignments());
     }
 
     /**

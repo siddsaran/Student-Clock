@@ -24,6 +24,8 @@ public class CourseRepository {
             "SELECT id, name FROM courses WHERE id = ?";
     private static final String SELECT_ALL_SQL =
             "SELECT id, name FROM courses";
+    private static final String DELETE_SQL =
+            "DELETE FROM courses WHERE id = ?";
 
     private final Connection connection;
 
@@ -109,6 +111,23 @@ public class CourseRepository {
             return List.copyOf(courseList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get all courses", e);
+        }
+    }
+
+    /**
+     * Removes the course with the given id. No-op if id is null or not found.
+     *
+     * @param id the course id to delete
+     */
+    public void deleteCourse(String id) {
+        if (id == null) {
+            return;
+        }
+        try (PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
+            statement.setString(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete course", e);
         }
     }
 }

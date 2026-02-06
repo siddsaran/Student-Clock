@@ -17,10 +17,13 @@ public class PresenterManager {
      */
     public void defineInteractions(Stage stage,
                                    String appName,
-                                   AbstractPresenter<?> coursePresenter,
+                                   CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
+
+        // Navigate from courses to assignments
+        coursePresenter.setOnNavigateToAssignments(() -> switcher.switchTo(assignmentPresenter));
 
         // Navigate from assignment back to courses
         assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));

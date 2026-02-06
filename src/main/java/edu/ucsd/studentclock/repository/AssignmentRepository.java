@@ -30,6 +30,8 @@ public class AssignmentRepository {
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
+    private static final String SELECT_ALL_SQL =
+            "SELECT * FROM assignments";
 
     private final Connection connection;
 
@@ -110,6 +112,33 @@ public class AssignmentRepository {
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get assignments for course", e);
+        }
+    }
+
+    /**
+     * Returns all assignments from all courses.
+     *
+     * @return list of all assignments (never null)
+     */
+    public List<Assignment> getAllAssignments() {
+        List<Assignment> assignmentList = new ArrayList<>();
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
+            while (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String cid = resultSet.getString("courseID");
+                LocalDateTime start =
+                        LocalDateTime.parse(resultSet.getString("start"));
+                LocalDateTime deadline =
+                        LocalDateTime.parse(resultSet.getString("deadline"));
+                int lateDays = resultSet.getInt("lateDaysAllowed");
+                assignmentList.add(
+                        new Assignment(name, cid, start, deadline, lateDays, 0)
+                );
+            }
+            return List.copyOf(assignmentList);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get all assignments", e);
         }
     }
 
