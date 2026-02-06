@@ -1,34 +1,45 @@
 package edu.ucsd.studentclock;
 
+import edu.ucsd.studentclock.datasource.IDataSource;
+import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.presenter.ExamplePresenter1;
-import edu.ucsd.studentclock.presenter.ExamplePresenter2;
-import edu.ucsd.studentclock.presenter.PresenterManager;
-import edu.ucsd.studentclock.repository.ExampleRepository;
-import edu.ucsd.studentclock.view.ExampleView1;
-import edu.ucsd.studentclock.view.ExampleView2;
+import edu.ucsd.studentclock.presenter.AssignmentPresenter;
+import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.view.AssignmentView;
 import javafx.application.Application;
 import javafx.stage.Stage;
-
+/**
+ * Entry point for Student Clock.
+ */
 public class App extends Application {
+
     @Override
     public void start(Stage primaryStage) {
-        ExampleRepository repository = new ExampleRepository();
 
+        // SQLite Data Source
+        IDataSource dataSource =
+                new SqlDataSource("jdbc:sqlite:studentclock.db");
+
+        // Repositories
+        AssignmentRepository assignmentRepository =
+                new AssignmentRepository(dataSource);
+
+        // Shared Model
         Model sharedModel = new Model();
 
-        ExampleView1 view1 = new ExampleView1();
-        ExampleView2 view2 = new ExampleView2();
+        // Views 
+        AssignmentView assignmentView = new AssignmentView();
 
-        ExamplePresenter1 presenter1 = new ExamplePresenter1(sharedModel, view1);
-        ExamplePresenter2 presenter2 = new ExamplePresenter2(sharedModel, view2);
+        // Presenters
+        AssignmentPresenter assignmentPresenter =
+                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);
 
-        PresenterManager manager = new PresenterManager();
-        manager.defineInteractions(primaryStage, "Student Clock", presenter1, presenter2);
+        primaryStage.setTitle("Student Clock: Assignments");
+        primaryStage.setScene(assignmentPresenter.getView());
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
-
