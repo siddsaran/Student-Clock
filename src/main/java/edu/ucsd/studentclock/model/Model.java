@@ -30,8 +30,14 @@ public class Model {
      * @throws IllegalArgumentException if id or name is blank after trimming
      */
     public void addCourse(String id, String name) {
-        String trimmedId = id != null ? id.trim() : null;
-        String trimmedName = name != null ? name.trim() : null;
+        String trimmedId = null;
+        String trimmedName = null;
+        if (id != null) {
+            trimmedId = id.trim();
+        }
+        if (name != null) {
+            trimmedName = name.trim();
+        }
         if (trimmedId != null && trimmedId.isEmpty()) {
             throw new IllegalArgumentException("id must not be blank");
         }
