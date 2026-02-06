@@ -4,21 +4,18 @@ import javafx.stage.Stage;
 
 public class PresenterManager {
     public void defineInteractions(Stage stage, String appName,
-            ExamplePresenter1 example1,
-            ExamplePresenter2 example2) {
+            AbstractPresenter coursePresenter,
+            AssignmentPresenter assignmentPresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
-        example1.setOnSwitch(() -> {
-            example2.updateView();
-            switcher.switchTo(example2);
-        });
+        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
-        example2.setOnBack(() -> {
-            switcher.switchTo(example1);
-        });
+        // When assignment screen presses back → go to courses
+        assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
-        switcher.switchTo(example1);
+        // Initial screen
+        switcher.switchTo(coursePresenter);
     }
 }
 
