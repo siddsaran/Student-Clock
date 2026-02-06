@@ -73,4 +73,62 @@ class ModelTest {
     void modelWithNullRepositoryThrows() {
         assertThrows(NullPointerException.class, () -> new Model(null));
     }
+
+    @Test
+    void addCourseWithValidIdAndNameStoresAndRetrieves() {
+        model.addCourse("CSE 110", "Software Engineering");
+
+        Optional<Course> retrieved = model.getCourse("CSE 110");
+        assertTrue(retrieved.isPresent());
+        assertEquals("CSE 110", retrieved.get().getId());
+        assertEquals("Software Engineering", retrieved.get().getName());
+    }
+
+    @Test
+    void addCourseWithTrimmedInputStoresTrimmedValues() {
+        model.addCourse("  CSE 110  ", "  Software Engineering  ");
+
+        Optional<Course> retrieved = model.getCourse("CSE 110");
+        assertTrue(retrieved.isPresent());
+        assertEquals("CSE 110", retrieved.get().getId());
+        assertEquals("Software Engineering", retrieved.get().getName());
+    }
+
+    @Test
+    void addCourseWithNullIdThrows() {
+        assertThrows(NullPointerException.class, () -> model.addCourse(null, "Name"));
+    }
+
+    @Test
+    void addCourseWithNullNameThrows() {
+        assertThrows(NullPointerException.class, () -> model.addCourse("CSE 110", null));
+    }
+
+    @Test
+    void addCourseWithBlankIdThrows() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> model.addCourse("", "Software Engineering"));
+        assertTrue(e.getMessage().contains("id"));
+    }
+
+    @Test
+    void addCourseWithWhitespaceOnlyIdThrows() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> model.addCourse("   ", "Software Engineering"));
+        assertTrue(e.getMessage().contains("id"));
+    }
+
+    @Test
+    void addCourseWithBlankNameThrows() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> model.addCourse("CSE 110", ""));
+        assertTrue(e.getMessage().contains("name"));
+    }
+
+    @Test
+    void addCourseWithWhitespaceOnlyNameThrows() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> model.addCourse("CSE 110", "   "));
+        assertTrue(e.getMessage().contains("name"));
+    }
 }
