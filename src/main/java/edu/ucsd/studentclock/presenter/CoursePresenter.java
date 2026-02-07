@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 public class CoursePresenter extends AbstractPresenter<CourseView> {
 
     private Runnable onNavigateToAssignments;
+    private Runnable onNavigateToStudyAvailability; 
 
     public CoursePresenter(Model model, CourseView view) {
         super(model, view);
@@ -19,6 +20,12 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
         view.getAssignmentsButton().setOnAction(e -> {
             if (onNavigateToAssignments != null) {
                 onNavigateToAssignments.run();
+            }
+        });
+
+        view.getStudyAvailabilityButton().setOnAction(e -> {
+            if (onNavigateToStudyAvailability != null) {
+                onNavigateToStudyAvailability.run();
             }
         });
 
@@ -40,6 +47,10 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
      */
     public void setOnNavigateToAssignments(Runnable runnable) {
         this.onNavigateToAssignments = runnable;
+    }
+
+    public void setOnNavigateToStudyAvailability(Runnable runnable) {
+        this.onNavigateToStudyAvailability = runnable;
     }
 
     private void handleAdd() {

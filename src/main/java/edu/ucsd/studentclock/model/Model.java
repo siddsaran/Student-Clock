@@ -8,6 +8,7 @@ import java.util.Optional;
 public class Model {
 
     private final CourseRepository repository;
+    private final StudyAvailability studyAvailability = new StudyAvailability();
 
     public Model(CourseRepository repository) {
         if (repository == null) {
@@ -53,6 +54,10 @@ public class Model {
 
     public List<Course> getAllCourses() {
         return repository.getAllCourses();
+    }
+
+    public StudyAvailability getStudyAvailability() {
+        return studyAvailability;
     }
 
     /**

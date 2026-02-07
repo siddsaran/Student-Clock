@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+
+
 /**
  * Stores a student's weekly study availability.
  *
@@ -18,6 +20,7 @@ public final class StudyAvailability {
     private int totalWeeklyHours;
     private final Set<DayOfWeek> availableDays;
     private final Map<DayOfWeek, Integer> dailyLimits;
+
 
     public StudyAvailability() {
         this.totalWeeklyHours = 0;
@@ -90,4 +93,7 @@ public final class StudyAvailability {
         }
         return null;
     }
+
+    
+
 }
