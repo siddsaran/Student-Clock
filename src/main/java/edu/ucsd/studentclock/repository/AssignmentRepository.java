@@ -33,6 +33,9 @@ public class AssignmentRepository {
     private static final String SELECT_ALL_SQL =
             "SELECT * FROM assignments";
 
+    private static final String DELETE_BY_ID_SQL =
+        "DELETE FROM assignments WHERE id = ?";
+
     private final Connection connection;
 
     /**
@@ -80,6 +83,28 @@ public class AssignmentRepository {
     }
 
     /**
+     * Deletes the assignment with the given id. No-op if id is null/blank.
+     *
+     * @param id assignment id to delete
+     */
+    public void deleteAssignment(String id) {
+        if (id == null) {
+            return;
+        }
+        String trimmed = id.trim();
+        if (trimmed.isEmpty()) {
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID_SQL)) {
+            statement.setString(1, trimmed);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete assignment", e);
+        }
+    }
+
+    /**
      * Returns all assignments for the given course id.
      *
      * @param courseID the course id
@@ -88,6 +113,8 @@ public class AssignmentRepository {
     public List<Assignment> getAssignmentsForCourse(String courseID) {
         List<Assignment> assignmentList = new ArrayList<>();
 
+        if (courseID == null) return List.of();
+
         try (PreparedStatement statement =
                      connection.prepareStatement(SELECT_BY_COURSE_SQL)) {
 
@@ -95,6 +122,7 @@ public class AssignmentRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
+                    String id = resultSet.getString("id");
                     String name = resultSet.getString("name");
                     String cid = resultSet.getString("courseID");
                     LocalDateTime start =
@@ -102,9 +130,18 @@ public class AssignmentRepository {
                     LocalDateTime deadline =
                             LocalDateTime.parse(resultSet.getString("deadline"));
                     int lateDays = resultSet.getInt("lateDaysAllowed");
+                    //double estimatedHours = resultSet.getDouble("estimatedHours");
+                    //double remainingHours = resultSet.getDouble("remainingHours");
+                    //boolean done = resultSet.getBoolean("done");
+                    
+                    // for testing purposes
+                    double estimatedHours = 0.0;
+                    double remainingHours = 0.0;
+                    boolean done = false;
+
 
                     assignmentList.add(
-                            new Assignment(name, cid, start, deadline, lateDays, 0)
+                            Assignment.fromDatabase(id, name, cid, start, deadline, lateDays, estimatedHours, remainingHours, done)
                     );
                 }
             }
@@ -122,24 +159,48 @@ public class AssignmentRepository {
      */
     public List<Assignment> getAllAssignments() {
         List<Assignment> assignmentList = new ArrayList<>();
+        final String SELECT_ALL_SQL = "SELECT * FROM assignments";
+
         try (Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
+            ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
+
             while (resultSet.next()) {
+                String id = resultSet.getString("id");
                 String name = resultSet.getString("name");
                 String cid = resultSet.getString("courseID");
-                LocalDateTime start =
-                        LocalDateTime.parse(resultSet.getString("start"));
-                LocalDateTime deadline =
-                        LocalDateTime.parse(resultSet.getString("deadline"));
+                LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
+                LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                 int lateDays = resultSet.getInt("lateDaysAllowed");
+
+                //double estimatedHours = resultSet.getDouble("estimatedHours");
+                //double remainingHours = resultSet.getDouble("remainingHours");
+                //boolean done = resultSet.getBoolean("done");
+                    
+                // for testing purposes
+                double estimatedHours = 0.0;
+                double remainingHours = 0.0;
+                boolean done = false;
+
                 assignmentList.add(
-                        new Assignment(name, cid, start, deadline, lateDays, 0)
+                        Assignment.fromDatabase(
+                                id,
+                                name,
+                                cid,
+                                start,
+                                deadline,
+                                lateDays,
+                                estimatedHours,
+                                remainingHours,
+                                done
+                        )
                 );
             }
+
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get all assignments", e);
         }
     }
+
 
 }
