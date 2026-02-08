@@ -1,6 +1,9 @@
 # Maven
 target/
 
+# SQLite database files
+*.db
+
 # IntelliJ IDEA
 .idea/
 *.iml

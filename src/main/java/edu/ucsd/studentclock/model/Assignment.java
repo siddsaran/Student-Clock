@@ -131,6 +131,7 @@ public class Assignment {
     public String toString() {
         return "Assignment{" +
                 "id='" + id + '\'' +
+                ", courseId=" + courseID + '\'' +
                 ", name='" + name + '\'' +
                 ", start=" + start +
                 ", deadline=" + deadline +

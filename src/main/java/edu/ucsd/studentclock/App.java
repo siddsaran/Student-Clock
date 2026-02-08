@@ -1,34 +1,84 @@
 package edu.ucsd.studentclock;
 
+import edu.ucsd.studentclock.datasource.IDataSource;
+import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.presenter.ExamplePresenter1;
-import edu.ucsd.studentclock.presenter.ExamplePresenter2;
+import edu.ucsd.studentclock.presenter.AssignmentPresenter;
+import edu.ucsd.studentclock.presenter.CoursePresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
-import edu.ucsd.studentclock.repository.ExampleRepository;
-import edu.ucsd.studentclock.view.ExampleView1;
-import edu.ucsd.studentclock.view.ExampleView2;
+import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.CourseRepository;
+import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.view.CourseView;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+/**
+ * Entry point for Student Clock.
+ */
 public class App extends Application {
+
+    private static final String JDBC_URL = "jdbc:sqlite:studentclock.db";
+
+    private Connection connection;
+
     @Override
     public void start(Stage primaryStage) {
-        ExampleRepository repository = new ExampleRepository();
 
-        Model sharedModel = new Model();
+        // SQLite connection
+        try {
+            connection = DriverManager.getConnection(JDBC_URL);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to connect to database", e);
+        }
 
-        ExampleView1 view1 = new ExampleView1();
-        ExampleView2 view2 = new ExampleView2();
+        // DataSource abstraction (your design)
+        IDataSource dataSource = new SqlDataSource(JDBC_URL);
 
-        ExamplePresenter1 presenter1 = new ExamplePresenter1(sharedModel, view1);
-        ExamplePresenter2 presenter2 = new ExamplePresenter2(sharedModel, view2);
+        // Repositories
+        CourseRepository courseRepository = new CourseRepository(connection);
+        AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
 
+        // Shared model
+        Model sharedModel = new Model(courseRepository);
+
+        // Views
+        CourseView courseView = new CourseView();
+        AssignmentView assignmentView = new AssignmentView();
+
+        // Presenters
+        CoursePresenter coursePresenter =
+                new CoursePresenter(sharedModel, courseView);
+
+        AssignmentPresenter assignmentPresenter =
+                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);
+
+        // Navigation manager
         PresenterManager manager = new PresenterManager();
-        manager.defineInteractions(primaryStage, "Student Clock", presenter1, presenter2);
+        manager.defineInteractions(
+                primaryStage,
+                "Student Clock",
+                coursePresenter,
+                assignmentPresenter
+        );
+    }
+
+    @Override
+    public void stop() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                // ignore on shutdown
+            }
+        }
     }
 
     public static void main(String[] args) {
         launch(args);
     }
 }
-
