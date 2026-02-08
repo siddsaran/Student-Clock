@@ -18,15 +18,18 @@ public class AssignmentRepository {
      * Persists and retrieves assignments using JDBC with SQLite.
      */
     private static final String CREATE_TABLE_SQL =
-                "CREATE TABLE IF NOT EXISTS assignments (" + "id TEXT PRIMARY KEY, " +
-                        "name TEXT NOT NULL, " + "courseID TEXT NOT NULL, " + 
-                        "start TEXT NOT NULL, " + "deadline TEXT NOT NULL, " + 
-                        "lateDaysAllowed INTEGER)";
+        "CREATE TABLE IF NOT EXISTS assignments (" +
+                "id TEXT PRIMARY KEY, " + "name TEXT NOT NULL, " +
+                "courseID TEXT NOT NULL, " + "start TEXT NOT NULL, " +
+                "deadline TEXT NOT NULL, " + "lateDaysAllowed INTEGER, " +
+                "estimatedHours REAL, " +  "remainingHours REAL, " +
+                "done INTEGER)";
 
     private static final String INSERT_SQL =
-            "INSERT OR REPLACE INTO assignments " +
-                    "(id, name, courseID, start, deadline, lateDaysAllowed) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT OR REPLACE INTO assignments " +
+                "(id, name, courseID, start, deadline, " +
+                "lateDaysAllowed, estimatedHours, remainingHours, done) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
@@ -73,6 +76,9 @@ public class AssignmentRepository {
             statement.setString(4, assignment.getStart().toString());
             statement.setString(5, assignment.getDeadline().toString());
             statement.setInt(6, assignment.getLateDaysAllowed());
+            statement.setDouble(7, assignment.getEstimatedHours());
+            statement.setDouble(8, assignment.getRemainingHours());
+            statement.setBoolean(9, assignment.isDone());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add assignment", e);
@@ -102,10 +108,15 @@ public class AssignmentRepository {
                     LocalDateTime deadline =
                             LocalDateTime.parse(resultSet.getString("deadline"));
                     int lateDays = resultSet.getInt("lateDaysAllowed");
+                    double estimated = resultSet.getDouble("estimatedHours");
+                    double remaining = resultSet.getDouble("remainingHours");
+                    boolean done = resultSet.getBoolean("done");
 
-                    assignmentList.add(
-                            new Assignment(name, cid, start, deadline, lateDays, 0)
-                    );
+                    Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
+                    assignment.setRemainingHours(remaining);
+                    assignment.setDone(done);
+
+                    assignmentList.add(assignment);
                 }
             }
 
@@ -132,9 +143,15 @@ public class AssignmentRepository {
                 LocalDateTime deadline =
                         LocalDateTime.parse(resultSet.getString("deadline"));
                 int lateDays = resultSet.getInt("lateDaysAllowed");
-                assignmentList.add(
-                        new Assignment(name, cid, start, deadline, lateDays, 0)
-                );
+                double estimated = resultSet.getDouble("estimatedHours");
+                double remaining = resultSet.getDouble("remainingHours");
+                boolean done = resultSet.getBoolean("done");
+
+                Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
+                assignment.setRemainingHours(remaining);
+                assignment.setDone(done);
+
+                assignmentList.add(assignment);
             }
             return List.copyOf(assignmentList);
         } catch (SQLException e) {

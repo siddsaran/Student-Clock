@@ -25,9 +25,11 @@ public class AssignmentView extends VBox {
     private final ComboBox<String> courseBox = new ComboBox<>();
     private final DatePicker startPicker = new DatePicker();
     private final DatePicker deadlinePicker = new DatePicker();
+    private final TextField estimatedHoursField = new TextField();
 
     private final Button addButton = new Button("Add Assignment");
     private final Button backButton = new Button("Back");
+    
 
     private final ListView<String> assignmentList = new ListView<>();
 
@@ -50,6 +52,8 @@ public class AssignmentView extends VBox {
 
         courseBox.setPromptText("Select course");
 
+        estimatedHoursField.setPromptText("Estimated hours");
+
         form.add(new Label("Assignment Name"), 0, 0);
         form.add(nameField, 1, 0);
 
@@ -61,6 +65,9 @@ public class AssignmentView extends VBox {
 
         form.add(new Label("Due Date"), 0, 3);
         form.add(deadlinePicker, 1, 3);
+
+        form.add(new Label("Estimated Hours"), 0, 4);
+        form.add(estimatedHoursField, 1, 4);
 
         VBox buttonBox = new VBox(addButton);
         buttonBox.setAlignment(Pos.CENTER);
@@ -97,6 +104,7 @@ public class AssignmentView extends VBox {
     private void handleCreate() {
         try {
             String name = nameField.getText();
+            double estimate = Double.parseDouble(estimatedHoursField.getText());
             String course = courseBox.getValue();
 
             LocalDate startDate = startPicker.getValue();
@@ -111,7 +119,8 @@ public class AssignmentView extends VBox {
                     course,
                     startDate.atStartOfDay(),
                     deadlineDate.atStartOfDay(),
-                    0
+                    0,
+                    estimate
             );
 
             clearInputs();
@@ -140,9 +149,12 @@ public class AssignmentView extends VBox {
         for (Assignment a : assignments) {
             assignmentList.getItems().add(
                     a.getName() + " (" + a.getCourseID() + ")"
+                    + " | Estimated: " + a.getEstimatedHours()
+                    + " | Remaining: " + a.getRemainingHours()
             );
         }
     }
+
 
     /**
      * Populates the course dropdown.

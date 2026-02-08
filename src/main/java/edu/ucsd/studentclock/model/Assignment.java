@@ -1,7 +1,7 @@
 package edu.ucsd.studentclock.model;
 
-import java.util.Objects;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -108,6 +108,14 @@ public class Assignment {
 
     public boolean isDone() {
         return done;
+    }
+
+    public void setRemainingHours(double remainingHours) {
+    this.remainingHours = remainingHours;
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
     }
 
     @Override

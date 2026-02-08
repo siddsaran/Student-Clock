@@ -65,12 +65,14 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * @param start start date/time
      * @param deadline deadline date/time
      * @param lateDays allowed late days
+     * @param estimate estimated hours  
      */
     public void createAssignment(String name,
                                  String course,
                                  LocalDateTime start,
                                  LocalDateTime deadline,
-                                 int lateDays) {
+                                 int lateDays,
+                                double estimate) {
 
         Assignment assignment = new Assignment(
                 name,
@@ -78,7 +80,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 start,
                 deadline,
                 lateDays,
-                0
+                estimate
         );
         repository.addAssignment(assignment);
         updateView();
