@@ -6,10 +6,12 @@ import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import edu.ucsd.studentclock.presenter.CoursePresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
+import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.CourseView;
+import edu.ucsd.studentclock.view.StudyAvailabilityView;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -49,6 +51,7 @@ public class App extends Application {
         // Views
         CourseView courseView = new CourseView();
         AssignmentView assignmentView = new AssignmentView();
+        StudyAvailabilityView studyAvailabilityView = new StudyAvailabilityView();
 
         // Presenters
         CoursePresenter coursePresenter =
@@ -56,6 +59,9 @@ public class App extends Application {
 
         AssignmentPresenter assignmentPresenter =
                 new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);
+        
+        StudyAvailabilityPresenter studyAvailabilityPresenter =
+                new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
 
         // Navigation manager
         PresenterManager manager = new PresenterManager();
@@ -63,7 +69,8 @@ public class App extends Application {
                 primaryStage,
                 "Student Clock",
                 coursePresenter,
-                assignmentPresenter
+                assignmentPresenter,
+                studyAvailabilityPresenter
         );
     }
 

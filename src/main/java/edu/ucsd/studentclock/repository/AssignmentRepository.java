@@ -19,10 +19,14 @@ public class AssignmentRepository {
      */
     private static final String CREATE_TABLE_SQL =
         "CREATE TABLE IF NOT EXISTS assignments (" +
-                "id TEXT PRIMARY KEY, " + "name TEXT NOT NULL, " +
-                "courseID TEXT NOT NULL, " + "start TEXT NOT NULL, " +
-                "deadline TEXT NOT NULL, " + "lateDaysAllowed INTEGER, " +
-                "estimatedHours REAL, " +  "remainingHours REAL, " +
+                "id TEXT PRIMARY KEY, " +
+                "name TEXT NOT NULL, " +
+                "courseID TEXT NOT NULL, " +
+                "start TEXT NOT NULL, " +
+                "deadline TEXT NOT NULL, " +
+                "lateDaysAllowed INTEGER, " +
+                "estimatedHours REAL, " +
+                "remainingHours REAL, " +
                 "done INTEGER)";
 
     private static final String INSERT_SQL =
@@ -33,8 +37,12 @@ public class AssignmentRepository {
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
+
     private static final String SELECT_ALL_SQL =
             "SELECT * FROM assignments";
+
+    private static final String DELETE_BY_ID_SQL =
+        "DELETE FROM assignments WHERE id = ?";
 
     private final Connection connection;
 
@@ -51,6 +59,9 @@ public class AssignmentRepository {
         createTableIfNotExists();
     }
 
+    /**
+     * Creates the assignments table if it does not already exist.
+     */
     private void createTableIfNotExists() {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
@@ -60,10 +71,10 @@ public class AssignmentRepository {
     }
 
     /**
-     * Stores an assignment. If an assignment with the same id already exists,
-     * it is replaced.
+     * Stores an assignment in the database. If an assignment with the same id already
+     * exists, it will be replaced.
      *
-     * @param assignment the assignment to add (must not be null)
+     * @param assignment the assignment to persist (must not be null)
      */
     public void addAssignment(Assignment assignment) {
         if (assignment == null) {
@@ -86,13 +97,33 @@ public class AssignmentRepository {
     }
 
     /**
-     * Returns all assignments for the given course id.
+     * Deletes the assignment with the given id. This method does nothing if the id
+     * is null or blank.
+     *
+     * @param id the assignment id to delete
+     */
+    public void deleteAssignment(String id) {
+        if (id == null) return;
+        String trimmed = id.trim();
+        if (trimmed.isEmpty()) return;
+
+        try (PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID_SQL)) {
+            statement.setString(1, trimmed);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete assignment", e);
+        }
+    }
+
+    /**
+     * Returns all assignments associated with the given course id.
      *
      * @param courseID the course id
-     * @return list of assignments (never null)
+     * @return list of assignments for the course (never null)
      */
     public List<Assignment> getAssignmentsForCourse(String courseID) {
         List<Assignment> assignmentList = new ArrayList<>();
+        if (courseID == null) return List.of();
 
         try (PreparedStatement statement =
                      connection.prepareStatement(SELECT_BY_COURSE_SQL)) {
@@ -103,10 +134,8 @@ public class AssignmentRepository {
                 while (resultSet.next()) {
                     String name = resultSet.getString("name");
                     String cid = resultSet.getString("courseID");
-                    LocalDateTime start =
-                            LocalDateTime.parse(resultSet.getString("start"));
-                    LocalDateTime deadline =
-                            LocalDateTime.parse(resultSet.getString("deadline"));
+                    LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
+                    LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                     int lateDays = resultSet.getInt("lateDaysAllowed");
                     double estimated = resultSet.getDouble("estimatedHours");
                     double remaining = resultSet.getDouble("remainingHours");
@@ -127,21 +156,21 @@ public class AssignmentRepository {
     }
 
     /**
-     * Returns all assignments from all courses.
+     * Returns all assignments across all courses.
      *
      * @return list of all assignments (never null)
      */
     public List<Assignment> getAllAssignments() {
         List<Assignment> assignmentList = new ArrayList<>();
+
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
+
             while (resultSet.next()) {
                 String name = resultSet.getString("name");
                 String cid = resultSet.getString("courseID");
-                LocalDateTime start =
-                        LocalDateTime.parse(resultSet.getString("start"));
-                LocalDateTime deadline =
-                        LocalDateTime.parse(resultSet.getString("deadline"));
+                LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
+                LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                 int lateDays = resultSet.getInt("lateDaysAllowed");
                 double estimated = resultSet.getDouble("estimatedHours");
                 double remaining = resultSet.getDouble("remainingHours");
@@ -153,10 +182,10 @@ public class AssignmentRepository {
 
                 assignmentList.add(assignment);
             }
+
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get all assignments", e);
         }
     }
-
 }

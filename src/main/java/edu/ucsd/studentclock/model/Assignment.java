@@ -74,6 +74,53 @@ public class Assignment {
         this.done = false;
     }
 
+    Assignment(
+            String id,
+            String name,
+            String courseID,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours,
+            double remainingHours,
+            boolean done
+    ) {
+        this.id = id;
+        this.name = name;
+        this.courseID = courseID;
+        this.start = start;
+        this.deadline = deadline;
+        this.lateDaysAllowed = lateDaysAllowed;
+        this.estimatedHours = estimatedHours;
+        this.remainingHours = remainingHours;
+        this.done = done;
+    }
+
+    public static Assignment fromDatabase(
+        String id,
+        String name,
+        String courseID,
+        LocalDateTime start,
+        LocalDateTime deadline,
+        int lateDaysAllowed,
+        double estimatedHours,
+        double remainingHours,
+        boolean done
+    ) {
+        return new Assignment(
+                id,
+                name,
+                courseID,
+                start,
+                deadline,
+                lateDaysAllowed,
+                estimatedHours,
+                remainingHours,
+                done
+            );
+    }
+
+
     public String getID() {
         return id;
     }
