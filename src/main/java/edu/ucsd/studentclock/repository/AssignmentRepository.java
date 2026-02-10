@@ -18,18 +18,26 @@ public class AssignmentRepository {
      * Persists and retrieves assignments using JDBC with SQLite.
      */
     private static final String CREATE_TABLE_SQL =
-                "CREATE TABLE IF NOT EXISTS assignments (" + "id TEXT PRIMARY KEY, " +
-                        "name TEXT NOT NULL, " + "courseID TEXT NOT NULL, " + 
-                        "start TEXT NOT NULL, " + "deadline TEXT NOT NULL, " + 
-                        "lateDaysAllowed INTEGER)";
+        "CREATE TABLE IF NOT EXISTS assignments (" +
+                "id TEXT PRIMARY KEY, " +
+                "name TEXT NOT NULL, " +
+                "courseID TEXT NOT NULL, " +
+                "start TEXT NOT NULL, " +
+                "deadline TEXT NOT NULL, " +
+                "lateDaysAllowed INTEGER, " +
+                "estimatedHours REAL, " +
+                "remainingHours REAL, " +
+                "done INTEGER)";
 
     private static final String INSERT_SQL =
-            "INSERT OR REPLACE INTO assignments " +
-                    "(id, name, courseID, start, deadline, lateDaysAllowed) " +
-                    "VALUES (?, ?, ?, ?, ?, ?)";
+        "INSERT OR REPLACE INTO assignments " +
+                "(id, name, courseID, start, deadline, " +
+                "lateDaysAllowed, estimatedHours, remainingHours, done) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
+
     private static final String SELECT_ALL_SQL =
             "SELECT * FROM assignments";
 
@@ -51,6 +59,9 @@ public class AssignmentRepository {
         createTableIfNotExists();
     }
 
+    /**
+     * Creates the assignments table if it does not already exist.
+     */
     private void createTableIfNotExists() {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
@@ -60,10 +71,10 @@ public class AssignmentRepository {
     }
 
     /**
-     * Stores an assignment. If an assignment with the same id already exists,
-     * it is replaced.
+     * Stores an assignment in the database. If an assignment with the same id already
+     * exists, it will be replaced.
      *
-     * @param assignment the assignment to add (must not be null)
+     * @param assignment the assignment to persist (must not be null)
      */
     public void addAssignment(Assignment assignment) {
         if (assignment == null) {
@@ -76,6 +87,9 @@ public class AssignmentRepository {
             statement.setString(4, assignment.getStart().toString());
             statement.setString(5, assignment.getDeadline().toString());
             statement.setInt(6, assignment.getLateDaysAllowed());
+            statement.setDouble(7, assignment.getEstimatedHours());
+            statement.setDouble(8, assignment.getRemainingHours());
+            statement.setBoolean(9, assignment.isDone());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add assignment", e);
@@ -83,18 +97,15 @@ public class AssignmentRepository {
     }
 
     /**
-     * Deletes the assignment with the given id. No-op if id is null/blank.
+     * Deletes the assignment with the given id. This method does nothing if the id
+     * is null or blank.
      *
-     * @param id assignment id to delete
+     * @param id the assignment id to delete
      */
     public void deleteAssignment(String id) {
-        if (id == null) {
-            return;
-        }
+        if (id == null) return;
         String trimmed = id.trim();
-        if (trimmed.isEmpty()) {
-            return;
-        }
+        if (trimmed.isEmpty()) return;
 
         try (PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID_SQL)) {
             statement.setString(1, trimmed);
@@ -105,14 +116,13 @@ public class AssignmentRepository {
     }
 
     /**
-     * Returns all assignments for the given course id.
+     * Returns all assignments associated with the given course id.
      *
      * @param courseID the course id
-     * @return list of assignments (never null)
+     * @return list of assignments for the course (never null)
      */
     public List<Assignment> getAssignmentsForCourse(String courseID) {
         List<Assignment> assignmentList = new ArrayList<>();
-
         if (courseID == null) return List.of();
 
         try (PreparedStatement statement =
@@ -122,27 +132,20 @@ public class AssignmentRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String id = resultSet.getString("id");
                     String name = resultSet.getString("name");
                     String cid = resultSet.getString("courseID");
-                    LocalDateTime start =
-                            LocalDateTime.parse(resultSet.getString("start"));
-                    LocalDateTime deadline =
-                            LocalDateTime.parse(resultSet.getString("deadline"));
+                    LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
+                    LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                     int lateDays = resultSet.getInt("lateDaysAllowed");
-                    //double estimatedHours = resultSet.getDouble("estimatedHours");
-                    //double remainingHours = resultSet.getDouble("remainingHours");
-                    //boolean done = resultSet.getBoolean("done");
-                    
-                    // for testing purposes
-                    double estimatedHours = 0.0;
-                    double remainingHours = 0.0;
-                    boolean done = false;
+                    double estimated = resultSet.getDouble("estimatedHours");
+                    double remaining = resultSet.getDouble("remainingHours");
+                    boolean done = resultSet.getBoolean("done");
 
+                    Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
+                    assignment.setRemainingHours(remaining);
+                    assignment.setDone(done);
 
-                    assignmentList.add(
-                            Assignment.fromDatabase(id, name, cid, start, deadline, lateDays, estimatedHours, remainingHours, done)
-                    );
+                    assignmentList.add(assignment);
                 }
             }
 
@@ -153,47 +156,31 @@ public class AssignmentRepository {
     }
 
     /**
-     * Returns all assignments from all courses.
+     * Returns all assignments across all courses.
      *
      * @return list of all assignments (never null)
      */
     public List<Assignment> getAllAssignments() {
         List<Assignment> assignmentList = new ArrayList<>();
-        final String SELECT_ALL_SQL = "SELECT * FROM assignments";
 
         try (Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
+             ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
 
             while (resultSet.next()) {
-                String id = resultSet.getString("id");
                 String name = resultSet.getString("name");
                 String cid = resultSet.getString("courseID");
                 LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
                 LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                 int lateDays = resultSet.getInt("lateDaysAllowed");
+                double estimated = resultSet.getDouble("estimatedHours");
+                double remaining = resultSet.getDouble("remainingHours");
+                boolean done = resultSet.getBoolean("done");
 
-                //double estimatedHours = resultSet.getDouble("estimatedHours");
-                //double remainingHours = resultSet.getDouble("remainingHours");
-                //boolean done = resultSet.getBoolean("done");
-                    
-                // for testing purposes
-                double estimatedHours = 0.0;
-                double remainingHours = 0.0;
-                boolean done = false;
+                Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
+                assignment.setRemainingHours(remaining);
+                assignment.setDone(done);
 
-                assignmentList.add(
-                        Assignment.fromDatabase(
-                                id,
-                                name,
-                                cid,
-                                start,
-                                deadline,
-                                lateDays,
-                                estimatedHours,
-                                remainingHours,
-                                done
-                        )
-                );
+                assignmentList.add(assignment);
             }
 
             return List.copyOf(assignmentList);
@@ -201,6 +188,4 @@ public class AssignmentRepository {
             throw new RuntimeException("Failed to get all assignments", e);
         }
     }
-
-
 }

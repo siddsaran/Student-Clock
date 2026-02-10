@@ -1,9 +1,9 @@
 package edu.ucsd.studentclock.model;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
 
 class AssignmentTest {
 
@@ -114,7 +114,15 @@ class AssignmentTest {
         String s = assignment.toString();
         Assertions.assertTrue(s.contains("Quiz 2 Study"));
         Assertions.assertTrue(s.contains("CSE 110"));
-        System.out.println("Passed");
+    }
+
+    // US4-specific coverage
+    @Test
+    void toStringContainsEstimateAndRemaining() {
+        Assignment assignment = makeAssignment(5.0);
+        String s = assignment.toString();
+        Assertions.assertTrue(s.contains("estimatedHours=5.0"));
+        Assertions.assertTrue(s.contains("remainingHours=5.0"));
     }
 
     @Test
