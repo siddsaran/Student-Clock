@@ -226,5 +226,53 @@ class AssignmentRepositoryTest {
         assertEquals("Quiz 2 Study", remaining.get(0).getName());
     }
 
+    @Test
+    void persistAndLoadAssignmentWithSeriesIdRestoresSeriesId() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+        LocalDateTime deadline = LocalDateTime.of(2026, 2, 5, 23, 59);
 
+        Assignment a = new Assignment("PA1", "CSE 110", "pa-series-1", start, deadline, 0, 2.0);
+        repository.addAssignment(a);
+
+        List<Assignment> byCourse = repository.getAssignmentsForCourse("CSE 110");
+        assertEquals(1, byCourse.size());
+        assertEquals("pa-series-1", byCourse.get(0).getSeriesId());
+    }
+
+    @Test
+    void getAssignmentsBySeriesReturnsOnlyAssignmentsInThatSeries() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+
+        repository.addAssignment(new Assignment(
+                "PA1", "CSE 110", "pa-series",
+                start, LocalDateTime.of(2026, 2, 5, 23, 59),
+                0, 0
+        ));
+        repository.addAssignment(new Assignment(
+                "PA2", "CSE 110", "pa-series",
+                start, LocalDateTime.of(2026, 2, 12, 23, 59),
+                0, 0
+        ));
+        repository.addAssignment(new Assignment(
+                "Quiz 2", "CSE 110", null,
+                start, LocalDateTime.of(2026, 2, 3, 23, 59),
+                0, 0
+        ));
+
+        List<Assignment> inSeries = repository.getAssignmentsBySeries("pa-series");
+        assertEquals(2, inSeries.size());
+        assertTrue(inSeries.stream().allMatch(a -> "pa-series".equals(a.getSeriesId())));
+    }
+
+    @Test
+    void getAssignmentsBySeriesWithUnknownIdReturnsEmptyList() {
+        List<Assignment> list = repository.getAssignmentsBySeries("unknown-series");
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    void getAssignmentsBySeriesWithNullReturnsEmptyList() {
+        List<Assignment> list = repository.getAssignmentsBySeries(null);
+        assertTrue(list.isEmpty());
+    }
 }

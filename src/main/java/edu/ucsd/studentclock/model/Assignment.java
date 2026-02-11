@@ -20,6 +20,9 @@ public class Assignment {
     // course
     private final String courseID;
 
+    // optional series (null = not in any series)
+    private final String seriesId;
+
     // number of late days
     private final int lateDaysAllowed;
 
@@ -35,6 +38,18 @@ public class Assignment {
     public Assignment(
             String name,
             String courseID,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours
+    ) {
+        this(name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours);
+    }
+
+    public Assignment(
+            String name,
+            String courseID,
+            String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDaysAllowed,
@@ -66,6 +81,7 @@ public class Assignment {
         this.id = UUID.randomUUID().toString();
         this.name = name;
         this.courseID = courseID;
+        this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
         this.lateDaysAllowed = lateDaysAllowed;
@@ -78,6 +94,7 @@ public class Assignment {
             String id,
             String name,
             String courseID,
+            String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDaysAllowed,
@@ -88,6 +105,7 @@ public class Assignment {
         this.id = id;
         this.name = name;
         this.courseID = courseID;
+        this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
         this.lateDaysAllowed = lateDaysAllowed;
@@ -107,17 +125,33 @@ public class Assignment {
         double remainingHours,
         boolean done
     ) {
+        return fromDatabase(id, name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours, remainingHours, done);
+    }
+
+    public static Assignment fromDatabase(
+            String id,
+            String name,
+            String courseID,
+            String seriesId,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours,
+            double remainingHours,
+            boolean done
+    ) {
         return new Assignment(
                 id,
                 name,
                 courseID,
+                seriesId,
                 start,
                 deadline,
                 lateDaysAllowed,
                 estimatedHours,
                 remainingHours,
                 done
-            );
+        );
     }
 
 
@@ -131,6 +165,10 @@ public class Assignment {
 
     public String getCourseID() {
         return courseID;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
     }
 
     public LocalDateTime getStart() {

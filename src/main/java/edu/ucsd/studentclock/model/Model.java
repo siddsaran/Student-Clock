@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.model;
 
 import edu.ucsd.studentclock.repository.CourseRepository;
+import edu.ucsd.studentclock.repository.SeriesRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,13 +9,18 @@ import java.util.Optional;
 public class Model {
 
     private final CourseRepository repository;
+    private final SeriesRepository seriesRepository;
     private final StudyAvailability studyAvailability = new StudyAvailability();
 
-    public Model(CourseRepository repository) {
+    public Model(CourseRepository repository, SeriesRepository seriesRepository) {
         if (repository == null) {
             throw new NullPointerException("repository must not be null");
         }
+        if (seriesRepository == null) {
+            throw new NullPointerException("seriesRepository must not be null");
+        }
         this.repository = repository;
+        this.seriesRepository = seriesRepository;
     }
 
     public void addCourse(Course course) {
@@ -54,6 +60,18 @@ public class Model {
 
     public List<Course> getAllCourses() {
         return repository.getAllCourses();
+    }
+
+    public void addSeries(Series series) {
+        seriesRepository.addSeries(series);
+    }
+
+    public Optional<Series> getSeries(String id) {
+        return seriesRepository.getSeries(id);
+    }
+
+    public List<Series> getSeriesByCourse(String courseId) {
+        return seriesRepository.getSeriesByCourse(courseId);
     }
 
     public StudyAvailability getStudyAvailability() {

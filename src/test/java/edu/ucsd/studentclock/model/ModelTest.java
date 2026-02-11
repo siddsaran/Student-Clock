@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.model;
 
 import edu.ucsd.studentclock.repository.CourseRepository;
+import edu.ucsd.studentclock.repository.SeriesRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +20,15 @@ class ModelTest {
 
     private Connection connection;
     private CourseRepository repository;
+    private SeriesRepository seriesRepository;
     private Model model;
 
     @BeforeEach
     void setUp() throws SQLException {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
         repository = new CourseRepository(connection);
-        model = new Model(repository);
+        seriesRepository = new SeriesRepository(connection);
+        model = new Model(repository, seriesRepository);
     }
 
     @AfterEach
@@ -70,8 +73,13 @@ class ModelTest {
     }
 
     @Test
-    void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null));
+    void modelWithNullCourseRepositoryThrows() {
+        assertThrows(NullPointerException.class, () -> new Model(null, seriesRepository));
+    }
+
+    @Test
+    void modelWithNullSeriesRepositoryThrows() {
+        assertThrows(NullPointerException.class, () -> new Model(repository, null));
     }
 
     @Test

@@ -9,6 +9,7 @@ import edu.ucsd.studentclock.presenter.PresenterManager;
 import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
+import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.CourseView;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
@@ -43,10 +44,11 @@ public class App extends Application {
 
         // Repositories
         CourseRepository courseRepository = new CourseRepository(connection);
+        SeriesRepository seriesRepository = new SeriesRepository(connection);
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
 
         // Shared model
-        Model sharedModel = new Model(courseRepository);
+        Model sharedModel = new Model(courseRepository, seriesRepository);
 
         // Views
         CourseView courseView = new CourseView();
