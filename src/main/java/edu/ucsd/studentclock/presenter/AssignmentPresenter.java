@@ -86,6 +86,12 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         updateView();
     }
 
+    public void deleteAssignment(Assignment assignment) {
+        if (assignment == null) return;
+        repository.deleteAssignment(assignment.getID());
+        updateView();
+    }
+
     /**
      * Registers callback for back navigation.
      *

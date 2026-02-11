@@ -55,7 +55,7 @@ public class App extends Application {
 
         // Presenters
         CoursePresenter coursePresenter =
-                new CoursePresenter(sharedModel, courseView);
+                new CoursePresenter(sharedModel, courseView, assignmentRepository);
 
         AssignmentPresenter assignmentPresenter =
                 new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);

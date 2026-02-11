@@ -28,10 +28,11 @@ public class AssignmentView extends VBox {
     private final TextField estimatedHoursField = new TextField();
 
     private final Button addButton = new Button("Add Assignment");
+    private final Button deleteButton = new Button("Delete Assignment");
     private final Button backButton = new Button("Back");
     
 
-    private final ListView<String> assignmentList = new ListView<>();
+    private final ListView<Assignment> assignmentList = new ListView<>();
 
     /**
      * Creates the assignment entry screen.
@@ -69,7 +70,7 @@ public class AssignmentView extends VBox {
         form.add(new Label("Estimated Hours"), 0, 4);
         form.add(estimatedHoursField, 1, 4);
 
-        VBox buttonBox = new VBox(addButton);
+        VBox buttonBox = new VBox(10, addButton, deleteButton);
         buttonBox.setAlignment(Pos.CENTER);
 
         getChildren().addAll(
@@ -82,6 +83,7 @@ public class AssignmentView extends VBox {
         );
 
         addButton.setOnAction(e -> handleCreate());
+        deleteButton.setOnAction(e -> handleDelete());
         backButton.setOnAction(e -> {
             if (presenter != null) {
                 presenter.back();
@@ -130,6 +132,17 @@ public class AssignmentView extends VBox {
         }
     }
 
+    private void handleDelete() {
+        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            new Alert(Alert.AlertType.ERROR, "Select an assignment to delete.").showAndWait();
+            return;
+        }
+        presenter.deleteAssignment(selected);
+    }
+
+
+
     /**
      * Clears all input fields after successful submission.
      */
@@ -145,14 +158,7 @@ public class AssignmentView extends VBox {
      * @param assignments list of assignments
      */
     public void showAssignments(List<Assignment> assignments) {
-        assignmentList.getItems().clear();
-        for (Assignment a : assignments) {
-            assignmentList.getItems().add(
-                    a.getName() + " (" + a.getCourseID() + ")"
-                    + " | Estimated: " + a.getEstimatedHours()
-                    + " | Remaining: " + a.getRemainingHours()
-            );
-        }
+        assignmentList.getItems().setAll(assignments);
     }
 
 

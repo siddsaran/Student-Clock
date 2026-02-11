@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.presenter;
 
 import edu.ucsd.studentclock.model.Model;
+import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.CourseView;
 import javafx.scene.control.Alert;
 
@@ -11,10 +12,11 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
 
     private Runnable onNavigateToAssignments;
     private Runnable onNavigateToStudyAvailability; 
+    private final AssignmentRepository aRepository;
 
-    public CoursePresenter(Model model, CourseView view) {
+    public CoursePresenter(Model model, CourseView view, AssignmentRepository aRepository) {
         super(model, view);
-
+        this.aRepository = aRepository;
         view.getAddButton().setOnAction(e -> handleAdd());
         view.getDeleteButton().setOnAction(e -> handleDelete());
         view.getAssignmentsButton().setOnAction(e -> {
@@ -28,6 +30,7 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
                 onNavigateToStudyAvailability.run();
             }
         });
+        
 
         updateView();
     }
@@ -71,6 +74,7 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
             new Alert(Alert.AlertType.WARNING, "Select a course to delete.").showAndWait();
             return;
         }
+        aRepository.deleteAssignmentsForCourse(id);
         model.deleteCourse(id);
         updateView();
     }
