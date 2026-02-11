@@ -46,7 +46,7 @@ public class App extends Application {
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
 
         // Shared model
-        Model sharedModel = new Model(courseRepository);
+        Model sharedModel = new Model(courseRepository, assignmentRepository);
 
         // Views
         CourseView courseView = new CourseView();
@@ -55,7 +55,7 @@ public class App extends Application {
 
         // Presenters
         CoursePresenter coursePresenter =
-                new CoursePresenter(sharedModel, courseView, assignmentRepository);
+                new CoursePresenter(sharedModel, courseView);
 
         AssignmentPresenter assignmentPresenter =
                 new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);

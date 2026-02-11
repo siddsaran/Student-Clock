@@ -12,11 +12,9 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
 
     private Runnable onNavigateToAssignments;
     private Runnable onNavigateToStudyAvailability; 
-    private final AssignmentRepository aRepository;
 
-    public CoursePresenter(Model model, CourseView view, AssignmentRepository aRepository) {
+    public CoursePresenter(Model model, CourseView view) {
         super(model, view);
-        this.aRepository = aRepository;
         view.getAddButton().setOnAction(e -> handleAdd());
         view.getDeleteButton().setOnAction(e -> handleDelete());
         view.getAssignmentsButton().setOnAction(e -> {
@@ -74,7 +72,6 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
             new Alert(Alert.AlertType.WARNING, "Select a course to delete.").showAndWait();
             return;
         }
-        aRepository.deleteAssignmentsForCourse(id);
         model.deleteCourse(id);
         updateView();
     }
