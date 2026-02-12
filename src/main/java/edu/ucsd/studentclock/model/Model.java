@@ -1,5 +1,6 @@
 package edu.ucsd.studentclock.model;
 
+import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 
@@ -11,16 +12,21 @@ public class Model {
     private final CourseRepository repository;
     private final SeriesRepository seriesRepository;
     private final StudyAvailability studyAvailability = new StudyAvailability();
-
-    public Model(CourseRepository repository, SeriesRepository seriesRepository) {
+    private final AssignmentRepository aRepository;
+  
+    public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository) {
         if (repository == null) {
             throw new NullPointerException("repository must not be null");
         }
         if (seriesRepository == null) {
             throw new NullPointerException("seriesRepository must not be null");
         }
+        if (aRepository == null) {
+            throw new NullPointerException("assignmentRepository must not be null");
+        }
         this.repository = repository;
         this.seriesRepository = seriesRepository;
+        this.aRepository = aRepository;
     }
 
     public void addCourse(Course course) {
@@ -91,6 +97,7 @@ public class Model {
         if (trimmedId.isEmpty()) {
             return;
         }
+        aRepository.deleteAssignmentsForCourse(trimmedId);
         repository.deleteCourse(trimmedId);
     }
 }

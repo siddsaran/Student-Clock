@@ -21,9 +21,6 @@ class AssignmentRepositoryTest {
     private Connection connection;
     private AssignmentRepository repository;
 
-    /**
-     * Wrap an existing Connection in an IDataSource so AssignmentRepository can use it.
-     */
     private static class TestDataSource implements IDataSource {
         private final Connection connection;
 
@@ -190,10 +187,8 @@ class AssignmentRepositoryTest {
         repository.addAssignment(a1);
         repository.addAssignment(a2);
 
-        // sanity check
         assertEquals(2, repository.getAssignmentsForCourse("CSE 110").size());
 
-        // delete only a1
         repository.deleteAssignment(a1.getID());
 
         List<Assignment> remaining = repository.getAssignmentsForCourse("CSE 110");
@@ -217,10 +212,8 @@ class AssignmentRepositoryTest {
 
         repository.addAssignment(assignment);
 
-        // Attempt to delete an ID that was never stored
         repository.deleteAssignment("non-existent-id");
 
-        // Original assignment should still be there
         List<Assignment> remaining = repository.getAssignmentsForCourse("CSE 110");
         assertEquals(1, remaining.size());
         assertEquals("Quiz 2 Study", remaining.get(0).getName());
@@ -238,6 +231,51 @@ class AssignmentRepositoryTest {
         assertEquals(1, byCourse.size());
         assertEquals("pa-series-1", byCourse.get(0).getSeriesId());
     }
+    void deleteAssignmentsForCourseRemovesOnlyAssignmentsFromThatCourse() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+
+        Assignment a1 = new Assignment(
+                "Quiz 2 Study",
+                "CSE 110",
+                start,
+                LocalDateTime.of(2026, 2, 3, 23, 59),
+                0,
+                0
+        );
+
+        Assignment a2 = new Assignment(
+                "MVP",
+                "CSE 110",
+                start,
+                LocalDateTime.of(2026, 2, 5, 23, 59),
+                2,
+                0
+        );
+
+        Assignment a3 = new Assignment(
+                "PA1",
+                "CSE 101",
+                start,
+                LocalDateTime.of(2026, 2, 6, 23, 59),
+                0,
+                0
+        );
+
+        repository.addAssignment(a1);
+        repository.addAssignment(a2);
+        repository.addAssignment(a3);
+
+        assertEquals(3, repository.getAllAssignments().size());
+
+        repository.deleteAssignmentsForCourse("CSE 110");
+
+        List<Assignment> remaining = repository.getAllAssignments();
+
+        assertEquals(1, remaining.size());
+        assertEquals("CSE 101", remaining.get(0).getCourseID());
+        assertEquals("PA1", remaining.get(0).getName());
+    }
+
 
     @Test
     void getAssignmentsBySeriesReturnsOnlyAssignmentsInThatSeries() {

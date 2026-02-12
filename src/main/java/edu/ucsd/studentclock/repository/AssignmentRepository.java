@@ -45,6 +45,9 @@ public class AssignmentRepository {
     private static final String DELETE_BY_ID_SQL =
         "DELETE FROM assignments WHERE id = ?";
 
+    private static final String DELETE_BY_COURSEID_SQL = 
+        "DELETE FROM assignments WHERE courseID = ?";
+
     private final Connection connection;
 
     /**
@@ -145,6 +148,16 @@ public class AssignmentRepository {
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get assignments for course", e);
+        }
+    }
+
+    public void deleteAssignmentsForCourse(String courseID) {
+        if (courseID == null || courseID.isBlank()) return;
+        try (PreparedStatement ps = connection.prepareStatement(DELETE_BY_COURSEID_SQL)) {
+            ps.setString(1, courseID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete assignments for course", e);
         }
     }
 

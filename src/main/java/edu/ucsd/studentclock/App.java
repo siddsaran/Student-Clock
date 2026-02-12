@@ -48,7 +48,7 @@ public class App extends Application {
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
 
         // Shared model
-        Model sharedModel = new Model(courseRepository, seriesRepository);
+        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository);
 
         // Views
         CourseView courseView = new CourseView();
