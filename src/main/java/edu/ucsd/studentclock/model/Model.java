@@ -80,6 +80,17 @@ public class Model {
         return seriesRepository.getSeriesByCourse(courseId);
     }
 
+    /**
+     * Creates a series and links selected existing assignments to it.
+     *
+     * @param series series to create
+     * @param assignmentIds selected assignment ids to link
+     */
+    public void createSeriesAndLinkAssignments(Series series, List<String> assignmentIds) {
+        seriesRepository.addSeries(series);
+        aRepository.setSeriesForAssignments(series.getId(), assignmentIds);
+    }
+
     public StudyAvailability getStudyAvailability() {
         return studyAvailability;
     }

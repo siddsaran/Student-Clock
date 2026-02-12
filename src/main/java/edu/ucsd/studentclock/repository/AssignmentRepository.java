@@ -47,6 +47,8 @@ public class AssignmentRepository {
 
     private static final String DELETE_BY_COURSEID_SQL = 
         "DELETE FROM assignments WHERE courseID = ?";
+    private static final String UPDATE_SERIES_BY_ID_SQL =
+        "UPDATE assignments SET seriesId = ? WHERE id = ?";
 
     private final Connection connection;
 
@@ -158,6 +160,36 @@ public class AssignmentRepository {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete assignments for course", e);
+        }
+    }
+
+    /**
+     * Associates the given assignments with a series by setting seriesId.
+     * This method is a no-op if seriesId is null/blank or assignmentIds is null/empty.
+     *
+     * @param seriesId series identifier to set
+     * @param assignmentIds assignment ids to update
+     */
+    public void setSeriesForAssignments(String seriesId, List<String> assignmentIds) {
+        if (seriesId == null || seriesId.isBlank()) {
+            return;
+        }
+        if (assignmentIds == null || assignmentIds.isEmpty()) {
+            return;
+        }
+
+        try (PreparedStatement statement = connection.prepareStatement(UPDATE_SERIES_BY_ID_SQL)) {
+            for (String assignmentId : assignmentIds) {
+                if (assignmentId == null || assignmentId.isBlank()) {
+                    continue;
+                }
+                statement.setString(1, seriesId);
+                statement.setString(2, assignmentId);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to set series for assignments", e);
         }
     }
 

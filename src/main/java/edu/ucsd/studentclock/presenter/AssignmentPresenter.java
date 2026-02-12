@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
+import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 
@@ -90,6 +91,55 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         if (assignment == null) return;
         repository.deleteAssignment(assignment.getID());
         updateView();
+    }
+
+    /**
+     * Creates a series and links selected existing assignments to it.
+     *
+     * @param seriesId series id
+     * @param seriesName series display name
+     * @param defaultLateDays default late days for assignments in this series
+     * @param assignmentIds selected assignment ids to link
+     */
+    public void createSeriesAndLinkSelected(String seriesId,
+                                            String seriesName,
+                                            int defaultLateDays,
+                                            List<String> assignmentIds) {
+        String trimmedSeriesId = seriesId == null ? null : seriesId.trim();
+        String trimmedSeriesName = seriesName == null ? null : seriesName.trim();
+        if (trimmedSeriesId == null || trimmedSeriesId.isEmpty()) {
+            throw new IllegalArgumentException("Series ID is required");
+        }
+        if (trimmedSeriesName == null || trimmedSeriesName.isEmpty()) {
+            throw new IllegalArgumentException("Series name is required");
+        }
+        if (assignmentIds == null || assignmentIds.isEmpty()) {
+            throw new IllegalArgumentException("Select at least one assignment to link");
+        }
+
+        List<Assignment> selectedAssignments = assignmentIds.stream()
+                .map(this::findAssignmentById)
+                .collect(Collectors.toList());
+
+        String courseId = selectedAssignments.stream()
+                .findFirst()
+                .map(Assignment::getCourseID)
+                .orElseThrow(() -> new IllegalArgumentException("Could not determine course for selected assignments"));
+        boolean sameCourse = selectedAssignments.stream().allMatch(a -> courseId.equals(a.getCourseID()));
+        if (!sameCourse) {
+            throw new IllegalArgumentException("Selected assignments must be from the same course");
+        }
+
+        Series series = new Series(trimmedSeriesId, courseId, trimmedSeriesName, defaultLateDays);
+        model.createSeriesAndLinkAssignments(series, assignmentIds);
+        updateView();
+    }
+
+    private Assignment findAssignmentById(String assignmentId) {
+        return repository.getAllAssignments().stream()
+                .filter(a -> a.getID().equals(assignmentId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
     }
 
     /**
