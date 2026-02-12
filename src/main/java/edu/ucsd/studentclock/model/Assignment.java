@@ -184,6 +184,12 @@ public class Assignment {
 
     @Override
     public String toString() {
+        return name + " (" + courseID + ")"
+                + " | Estimated: " + estimatedHours
+                + " | Remaining: " + remainingHours;
+    }
+
+    public String toFullString() {
         return "Assignment{" +
                 "id='" + id + '\'' +
                 ", courseId=" + courseID + '\'' +

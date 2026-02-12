@@ -1,6 +1,8 @@
 package edu.ucsd.studentclock.model;
 
 import edu.ucsd.studentclock.repository.CourseRepository;
+import edu.ucsd.studentclock.datasource.SqlDataSource;
+import edu.ucsd.studentclock.repository.AssignmentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +21,15 @@ class ModelTest {
 
     private Connection connection;
     private CourseRepository repository;
+    private AssignmentRepository assignmentRepository;
     private Model model;
 
     @BeforeEach
     void setUp() throws SQLException {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
         repository = new CourseRepository(connection);
-        model = new Model(repository);
+        assignmentRepository = new AssignmentRepository(() -> connection);
+        model = new Model(repository, assignmentRepository);
     }
 
     @AfterEach
@@ -71,7 +75,7 @@ class ModelTest {
 
     @Test
     void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null));
+        assertThrows(NullPointerException.class, () -> new Model(null, null));
     }
 
     @Test
@@ -131,4 +135,31 @@ class ModelTest {
                 () -> model.addCourse("CSE 110", "   "));
         assertTrue(e.getMessage().contains("name"));
     }
+
+    @Test
+    void deleteCourseDeletesAssignmentsForThatCourse() {
+        model.addCourse("CSE 110", "Software Engineering");
+
+        assignmentRepository.addAssignment(new Assignment(
+                "Quiz 2 Study", "CSE 110",
+                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
+                0, 0
+        ));
+        assignmentRepository.addAssignment(new Assignment(
+                "MVP", "CSE 110",
+                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 6, 23, 59),
+                0, 0
+        ));
+
+        assertEquals(2, assignmentRepository.getAssignmentsForCourse("CSE 110").size());
+
+        model.deleteCourse("CSE 110");
+
+        assertTrue(model.getCourse("CSE 110").isEmpty());
+
+        assertTrue(assignmentRepository.getAssignmentsForCourse("CSE 110").isEmpty());
+    }
+
 }

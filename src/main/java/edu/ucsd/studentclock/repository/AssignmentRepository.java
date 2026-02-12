@@ -44,6 +44,9 @@ public class AssignmentRepository {
     private static final String DELETE_BY_ID_SQL =
         "DELETE FROM assignments WHERE id = ?";
 
+    private static final String DELETE_BY_COURSEID_SQL = 
+        "DELETE FROM assignments WHERE courseID = ?";
+
     private final Connection connection;
 
     /**
@@ -132,6 +135,7 @@ public class AssignmentRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
+                    String id = resultSet.getString("id");
                     String name = resultSet.getString("name");
                     String cid = resultSet.getString("courseID");
                     LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
@@ -141,9 +145,17 @@ public class AssignmentRepository {
                     double remaining = resultSet.getDouble("remainingHours");
                     boolean done = resultSet.getBoolean("done");
 
-                    Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
-                    assignment.setRemainingHours(remaining);
-                    assignment.setDone(done);
+                    Assignment assignment = Assignment.fromDatabase(
+                            id,
+                            name,
+                            cid,
+                            start,
+                            deadline,
+                            lateDays,
+                            estimated,
+                            remaining,
+                            done
+                    );
 
                     assignmentList.add(assignment);
                 }
@@ -152,6 +164,16 @@ public class AssignmentRepository {
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get assignments for course", e);
+        }
+    }
+
+    public void deleteAssignmentsForCourse(String courseID) {
+        if (courseID == null || courseID.isBlank()) return;
+        try (PreparedStatement ps = connection.prepareStatement(DELETE_BY_COURSEID_SQL)) {
+            ps.setString(1, courseID);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to delete assignments for course", e);
         }
     }
 
@@ -167,6 +189,7 @@ public class AssignmentRepository {
              ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
 
             while (resultSet.next()) {
+                String id = resultSet.getString("id");
                 String name = resultSet.getString("name");
                 String cid = resultSet.getString("courseID");
                 LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
@@ -175,10 +198,17 @@ public class AssignmentRepository {
                 double estimated = resultSet.getDouble("estimatedHours");
                 double remaining = resultSet.getDouble("remainingHours");
                 boolean done = resultSet.getBoolean("done");
-
-                Assignment assignment = new Assignment(name, cid, start, deadline, lateDays, estimated);
-                assignment.setRemainingHours(remaining);
-                assignment.setDone(done);
+                Assignment assignment = Assignment.fromDatabase(
+                        id,
+                        name,
+                        cid,
+                        start,
+                        deadline,
+                        lateDays,
+                        estimated,
+                        remaining,
+                        done
+                );
 
                 assignmentList.add(assignment);
             }
