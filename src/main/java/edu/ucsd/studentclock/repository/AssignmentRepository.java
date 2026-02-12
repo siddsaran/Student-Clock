@@ -28,13 +28,14 @@ public class AssignmentRepository {
                 "lateDaysAllowed INTEGER, " +
                 "estimatedHours REAL, " +
                 "remainingHours REAL, " +
+                "cumulativeHours REAL, " +
                 "done INTEGER)";
 
     private static final String INSERT_SQL =
         "INSERT OR REPLACE INTO assignments " +
                 "(id, name, courseID, seriesId, start, deadline, " +
-                "lateDaysAllowed, estimatedHours, remainingHours, done) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "lateDaysAllowed, estimatedHours, remainingHours, cumulativeHours, done) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
@@ -98,7 +99,8 @@ public class AssignmentRepository {
             statement.setInt(7, assignment.getLateDaysAllowed());
             statement.setDouble(8, assignment.getEstimatedHours());
             statement.setDouble(9, assignment.getRemainingHours());
-            statement.setBoolean(10, assignment.isDone());
+            statement.setDouble(10, assignment.getCumulativeHours());
+            statement.setBoolean(11, assignment.isDone());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add assignment", e);
@@ -219,7 +221,8 @@ public class AssignmentRepository {
         int lateDays = resultSet.getInt("lateDaysAllowed");
         double estimated = resultSet.getDouble("estimatedHours");
         double remaining = resultSet.getDouble("remainingHours");
+        double cumulative = resultSet.getDouble("cumulativeHours");
         boolean done = resultSet.getBoolean("done");
-        return Assignment.fromDatabase(id, name, cid, seriesId, start, deadline, lateDays, estimated, remaining, done);
+        return Assignment.fromDatabase(id, name, cid, seriesId, start, deadline, lateDays, estimated, remaining, cumulative, done);
     }
 }
