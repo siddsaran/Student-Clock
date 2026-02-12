@@ -44,6 +44,26 @@ class AssignmentTest {
     }
 
     @Test
+    void getSeriesIdReturnsNullWhenCreatedWithoutSeries() {
+        Assignment assignment = makeAssignment(3.0);
+        Assertions.assertNull(assignment.getSeriesId());
+    }
+
+    @Test
+    void getSeriesIdReturnsSeriesIdWhenCreatedWithSeries() {
+        Assignment assignment = new Assignment(
+                "PA1",
+                "CSE 110",
+                "pa-series-1",
+                LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59),
+                0,
+                3.0
+        );
+        Assertions.assertEquals("pa-series-1", assignment.getSeriesId());
+    }
+
+    @Test
     void getStartReturnsConstructorStart() {
         Assignment assignment = makeAssignment(3.0);
         Assertions.assertEquals(

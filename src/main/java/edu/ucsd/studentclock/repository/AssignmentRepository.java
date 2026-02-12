@@ -22,6 +22,7 @@ public class AssignmentRepository {
                 "id TEXT PRIMARY KEY, " +
                 "name TEXT NOT NULL, " +
                 "courseID TEXT NOT NULL, " +
+                "seriesId TEXT, " +
                 "start TEXT NOT NULL, " +
                 "deadline TEXT NOT NULL, " +
                 "lateDaysAllowed INTEGER, " +
@@ -31,9 +32,9 @@ public class AssignmentRepository {
 
     private static final String INSERT_SQL =
         "INSERT OR REPLACE INTO assignments " +
-                "(id, name, courseID, start, deadline, " +
+                "(id, name, courseID, seriesId, start, deadline, " +
                 "lateDaysAllowed, estimatedHours, remainingHours, done) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
@@ -64,12 +65,16 @@ public class AssignmentRepository {
 
     /**
      * Creates the assignments table if it does not already exist.
+     * Adds seriesId column to existing tables that do not have it.
      */
     private void createTableIfNotExists() {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
+            statement.execute("ALTER TABLE assignments ADD COLUMN seriesId TEXT");
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to create assignments table", e);
+            if (!e.getMessage().contains("duplicate column name")) {
+                throw new RuntimeException("Failed to create or migrate assignments table", e);
+            }
         }
     }
 
@@ -87,12 +92,13 @@ public class AssignmentRepository {
             statement.setString(1, assignment.getID());
             statement.setString(2, assignment.getName());
             statement.setString(3, assignment.getCourseID());
-            statement.setString(4, assignment.getStart().toString());
-            statement.setString(5, assignment.getDeadline().toString());
-            statement.setInt(6, assignment.getLateDaysAllowed());
-            statement.setDouble(7, assignment.getEstimatedHours());
-            statement.setDouble(8, assignment.getRemainingHours());
-            statement.setBoolean(9, assignment.isDone());
+            statement.setString(4, assignment.getSeriesId());
+            statement.setString(5, assignment.getStart().toString());
+            statement.setString(6, assignment.getDeadline().toString());
+            statement.setInt(7, assignment.getLateDaysAllowed());
+            statement.setDouble(8, assignment.getEstimatedHours());
+            statement.setDouble(9, assignment.getRemainingHours());
+            statement.setBoolean(10, assignment.isDone());
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add assignment", e);
@@ -135,29 +141,7 @@ public class AssignmentRepository {
 
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String id = resultSet.getString("id");
-                    String name = resultSet.getString("name");
-                    String cid = resultSet.getString("courseID");
-                    LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
-                    LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
-                    int lateDays = resultSet.getInt("lateDaysAllowed");
-                    double estimated = resultSet.getDouble("estimatedHours");
-                    double remaining = resultSet.getDouble("remainingHours");
-                    boolean done = resultSet.getBoolean("done");
-
-                    Assignment assignment = Assignment.fromDatabase(
-                            id,
-                            name,
-                            cid,
-                            start,
-                            deadline,
-                            lateDays,
-                            estimated,
-                            remaining,
-                            done
-                    );
-
-                    assignmentList.add(assignment);
+                    assignmentList.add(mapRow(resultSet));
                 }
             }
 
@@ -189,33 +173,53 @@ public class AssignmentRepository {
              ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
 
             while (resultSet.next()) {
-                String id = resultSet.getString("id");
-                String name = resultSet.getString("name");
-                String cid = resultSet.getString("courseID");
-                LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
-                LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
-                int lateDays = resultSet.getInt("lateDaysAllowed");
-                double estimated = resultSet.getDouble("estimatedHours");
-                double remaining = resultSet.getDouble("remainingHours");
-                boolean done = resultSet.getBoolean("done");
-                Assignment assignment = Assignment.fromDatabase(
-                        id,
-                        name,
-                        cid,
-                        start,
-                        deadline,
-                        lateDays,
-                        estimated,
-                        remaining,
-                        done
-                );
-
-                assignmentList.add(assignment);
+                assignmentList.add(mapRow(resultSet));
             }
 
             return List.copyOf(assignmentList);
         } catch (SQLException e) {
             throw new RuntimeException("Failed to get all assignments", e);
         }
+    }
+
+    private static final String SELECT_BY_SERIES_SQL =
+            "SELECT * FROM assignments WHERE seriesId = ?";
+
+    /**
+     * Returns all assignments in the given series.
+     *
+     * @param seriesId the series id (null returns empty list)
+     * @return list of assignments in the series (never null)
+     */
+    public List<Assignment> getAssignmentsBySeries(String seriesId) {
+        if (seriesId == null) {
+            return List.of();
+        }
+        List<Assignment> assignmentList = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement(SELECT_BY_SERIES_SQL)) {
+            statement.setString(1, seriesId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    assignmentList.add(mapRow(resultSet));
+                }
+            }
+            return List.copyOf(assignmentList);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get assignments by series", e);
+        }
+    }
+
+    private static Assignment mapRow(ResultSet resultSet) throws SQLException {
+        String id = resultSet.getString("id");
+        String name = resultSet.getString("name");
+        String cid = resultSet.getString("courseID");
+        String seriesId = resultSet.getString("seriesId");
+        LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
+        LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
+        int lateDays = resultSet.getInt("lateDaysAllowed");
+        double estimated = resultSet.getDouble("estimatedHours");
+        double remaining = resultSet.getDouble("remainingHours");
+        boolean done = resultSet.getBoolean("done");
+        return Assignment.fromDatabase(id, name, cid, seriesId, start, deadline, lateDays, estimated, remaining, done);
     }
 }
