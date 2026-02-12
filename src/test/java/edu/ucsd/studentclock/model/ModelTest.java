@@ -84,6 +84,7 @@ class ModelTest {
     @Test
     void modelWithNullSeriesRepositoryThrows() {
         assertThrows(NullPointerException.class, () -> new Model(repository, null, null));
+    }
       
     @Test
     void modelWithNullRepositoryThrows() {
