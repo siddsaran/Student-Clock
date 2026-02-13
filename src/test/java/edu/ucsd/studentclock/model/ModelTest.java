@@ -2,7 +2,6 @@ package edu.ucsd.studentclock.model;
 
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
-import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -173,6 +172,43 @@ class ModelTest {
         assertTrue(model.getCourse("CSE 110").isEmpty());
 
         assertTrue(assignmentRepository.getAssignmentsForCourse("CSE 110").isEmpty());
+    }
+
+    @Test
+    void createSeriesAndLinkAssignmentsCreatesSeriesAndLinksSelectedAssignments() {
+        model.addCourse("CSE 110", "Software Engineering");
+
+        Assignment a1 = new Assignment(
+                "PA1", "CSE 110",
+                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
+                0, 0
+        );
+        Assignment a2 = new Assignment(
+                "PA2", "CSE 110",
+                java.time.LocalDateTime.of(2026, 2, 6, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 12, 23, 59),
+                0, 0
+        );
+        assignmentRepository.addAssignment(a1);
+        assignmentRepository.addAssignment(a2);
+
+        Series series = new Series("pa-series", "CSE 110", "PAs", 0);
+        model.createSeriesAndLinkAssignments(series, List.of(a1.getID()));
+
+        Optional<Series> storedSeries = model.getSeries("pa-series");
+        assertTrue(storedSeries.isPresent());
+        assertEquals("PAs", storedSeries.get().getName());
+
+        List<Assignment> linked = assignmentRepository.getAssignmentsBySeries("pa-series");
+        assertEquals(1, linked.size());
+        assertEquals(a1.getID(), linked.get(0).getID());
+
+        Assignment stillUnlinked = assignmentRepository.getAssignmentsForCourse("CSE 110").stream()
+                .filter(a -> a2.getID().equals(a.getID()))
+                .findFirst()
+                .orElseThrow();
+        assertNull(stillUnlinked.getSeriesId());
     }
 
 }

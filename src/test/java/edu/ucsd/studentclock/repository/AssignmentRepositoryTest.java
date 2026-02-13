@@ -313,4 +313,54 @@ class AssignmentRepositoryTest {
         List<Assignment> list = repository.getAssignmentsBySeries(null);
         assertTrue(list.isEmpty());
     }
+
+    @Test
+    void setSeriesForAssignmentsLinksOnlyRequestedIds() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+
+        Assignment a1 = new Assignment("PA1", "CSE 110", start, LocalDateTime.of(2026, 2, 5, 23, 59), 0, 0);
+        Assignment a2 = new Assignment("PA2", "CSE 110", start, LocalDateTime.of(2026, 2, 12, 23, 59), 0, 0);
+        Assignment a3 = new Assignment("Quiz", "CSE 110", start, LocalDateTime.of(2026, 2, 3, 23, 59), 0, 0);
+        repository.addAssignment(a1);
+        repository.addAssignment(a2);
+        repository.addAssignment(a3);
+
+        repository.setSeriesForAssignments("pa-series", List.of(a1.getID(), a2.getID()));
+
+        List<Assignment> inSeries = repository.getAssignmentsBySeries("pa-series");
+        assertEquals(2, inSeries.size());
+        assertTrue(inSeries.stream().anyMatch(a -> a1.getID().equals(a.getID())));
+        assertTrue(inSeries.stream().anyMatch(a -> a2.getID().equals(a.getID())));
+
+        List<Assignment> all = repository.getAssignmentsForCourse("CSE 110");
+        Assignment unlinked = all.stream()
+                .filter(a -> a3.getID().equals(a.getID()))
+                .findFirst()
+                .orElseThrow();
+        assertNull(unlinked.getSeriesId());
+    }
+
+    @Test
+    void setSeriesForAssignmentsWithBlankSeriesIdDoesNothing() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+        Assignment a1 = new Assignment("PA1", "CSE 110", start, LocalDateTime.of(2026, 2, 5, 23, 59), 0, 0);
+        repository.addAssignment(a1);
+
+        repository.setSeriesForAssignments("   ", List.of(a1.getID()));
+
+        Assignment loaded = repository.getAssignmentsForCourse("CSE 110").get(0);
+        assertNull(loaded.getSeriesId());
+    }
+
+    @Test
+    void setSeriesForAssignmentsWithEmptyIdsDoesNothing() {
+        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
+        Assignment a1 = new Assignment("PA1", "CSE 110", start, LocalDateTime.of(2026, 2, 5, 23, 59), 0, 0);
+        repository.addAssignment(a1);
+
+        repository.setSeriesForAssignments("pa-series", List.of());
+
+        Assignment loaded = repository.getAssignmentsForCourse("CSE 110").get(0);
+        assertNull(loaded.getSeriesId());
+    }
 }

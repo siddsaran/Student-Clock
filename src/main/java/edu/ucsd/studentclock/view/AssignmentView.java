@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.view;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.ucsd.studentclock.model.Assignment;
@@ -13,6 +14,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -26,9 +28,13 @@ public class AssignmentView extends VBox {
     private final DatePicker startPicker = new DatePicker();
     private final DatePicker deadlinePicker = new DatePicker();
     private final TextField estimatedHoursField = new TextField();
+    private final TextField seriesIdField = new TextField();
+    private final TextField seriesNameField = new TextField();
+    private final TextField seriesDefaultLateDaysField = new TextField();
 
     private final Button addButton = new Button("Add Assignment");
     private final Button deleteButton = new Button("Delete Assignment");
+    private final Button createSeriesButton = new Button("Create Series + Link Selected");
     private final Button backButton = new Button("Back");
     
 
@@ -54,6 +60,9 @@ public class AssignmentView extends VBox {
         courseBox.setPromptText("Select course");
 
         estimatedHoursField.setPromptText("Estimated hours");
+        seriesIdField.setPromptText("Series ID");
+        seriesNameField.setPromptText("Series name");
+        seriesDefaultLateDaysField.setPromptText("Default late days");
 
         form.add(new Label("Assignment Name"), 0, 0);
         form.add(nameField, 1, 0);
@@ -69,9 +78,17 @@ public class AssignmentView extends VBox {
 
         form.add(new Label("Estimated Hours"), 0, 4);
         form.add(estimatedHoursField, 1, 4);
+        form.add(new Label("Series ID"), 0, 5);
+        form.add(seriesIdField, 1, 5);
+        form.add(new Label("Series Name"), 0, 6);
+        form.add(seriesNameField, 1, 6);
+        form.add(new Label("Series Default Late Days"), 0, 7);
+        form.add(seriesDefaultLateDaysField, 1, 7);
 
-        VBox buttonBox = new VBox(10, addButton, deleteButton);
+        VBox buttonBox = new VBox(10, addButton, deleteButton, createSeriesButton);
         buttonBox.setAlignment(Pos.CENTER);
+
+        assignmentList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         getChildren().addAll(
                 title,
@@ -84,6 +101,7 @@ public class AssignmentView extends VBox {
 
         addButton.setOnAction(e -> handleCreate());
         deleteButton.setOnAction(e -> handleDelete());
+        createSeriesButton.setOnAction(e -> handleCreateSeriesAndLink());
         backButton.setOnAction(e -> {
             if (presenter != null) {
                 presenter.back();
@@ -141,6 +159,22 @@ public class AssignmentView extends VBox {
         presenter.deleteAssignment(selected);
     }
 
+    private void handleCreateSeriesAndLink() {
+        try {
+            String seriesId = seriesIdField.getText();
+            String seriesName = seriesNameField.getText();
+            int defaultLateDays = Integer.parseInt(seriesDefaultLateDaysField.getText());
+            List<String> selectedAssignmentIds = getSelectedAssignmentIds();
+
+            if (presenter == null) {
+                throw new IllegalStateException("Presenter is not attached");
+            }
+            presenter.createSeriesAndLinkSelected(seriesId, seriesName, defaultLateDays, selectedAssignmentIds);
+            clearSeriesInputs();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+        }
+    }
 
 
     /**
@@ -150,6 +184,12 @@ public class AssignmentView extends VBox {
         nameField.clear();
         startPicker.setValue(null);
         deadlinePicker.setValue(null);
+    }
+
+    private void clearSeriesInputs() {
+        seriesIdField.clear();
+        seriesNameField.clear();
+        seriesDefaultLateDaysField.clear();
     }
 
     /**
@@ -169,6 +209,14 @@ public class AssignmentView extends VBox {
     */
     public void setCourses(List<String> courses) {
         courseBox.getItems().setAll(courses);
+    }
+
+    public List<String> getSelectedAssignmentIds() {
+        List<String> selectedIds = new ArrayList<>();
+        for (Assignment assignment : assignmentList.getSelectionModel().getSelectedItems()) {
+            selectedIds.add(assignment.getID());
+        }
+        return selectedIds;
     }
 
     /**
