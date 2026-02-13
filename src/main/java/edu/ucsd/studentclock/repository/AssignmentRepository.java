@@ -72,6 +72,7 @@ public class AssignmentRepository {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
             statement.execute("ALTER TABLE assignments ADD COLUMN seriesId TEXT");
+            statement.execute("ALTER TABLE assignments ADD COLUMN cumulativeHours REAL");
         } catch (SQLException e) {
             if (!e.getMessage().contains("duplicate column name")) {
                 throw new RuntimeException("Failed to create or migrate assignments table", e);
