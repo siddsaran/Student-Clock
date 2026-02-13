@@ -94,6 +94,14 @@ public final class StudyAvailability {
         return null;
     }
 
+    public int hoursLeft(int currenthour){
+        if(currenthour > totalWeeklyHours){
+            throw new IllegalArgumentException("Current hour must not exceed the total weekly hours.");
+        }
+        int remain = totalWeeklyHours - currenthour;
+        return remain;
+    }
+
     
 
 }
