@@ -48,7 +48,7 @@ public class AssignmentRepository {
     private static final String DELETE_BY_COURSEID_SQL = 
         "DELETE FROM assignments WHERE courseID = ?";
     private static final String UPDATE_SERIES_BY_ID_SQL =
-        "UPDATE assignments SET seriesId = ? WHERE id = ?";
+        "UPDATE assignments SET seriesId = ?, lateDaysAllowed = ? WHERE id = ?";
 
     private final Connection connection;
 
@@ -164,13 +164,15 @@ public class AssignmentRepository {
     }
 
     /**
-     * Associates the given assignments with a series by setting seriesId.
-     * This method is a no-op if seriesId is null/blank or assignmentIds is null/empty.
+     * Associates the given assignments with a series by setting seriesId and lateDaysAllowed.
+     * Linked assignments have their late days set to the series default.
+     * No-op if seriesId is null/blank or assignmentIds is null/empty.
      *
      * @param seriesId series identifier to set
+     * @param defaultLateDays late days allowed to set on each linked assignment
      * @param assignmentIds assignment ids to update
      */
-    public void setSeriesForAssignments(String seriesId, List<String> assignmentIds) {
+    public void setSeriesForAssignments(String seriesId, int defaultLateDays, List<String> assignmentIds) {
         if (seriesId == null || seriesId.isBlank()) {
             return;
         }
@@ -184,7 +186,8 @@ public class AssignmentRepository {
                     continue;
                 }
                 statement.setString(1, seriesId);
-                statement.setString(2, assignmentId);
+                statement.setInt(2, defaultLateDays);
+                statement.setString(3, assignmentId);
                 statement.addBatch();
             }
             statement.executeBatch();

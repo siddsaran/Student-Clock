@@ -193,7 +193,7 @@ class ModelTest {
         assignmentRepository.addAssignment(a1);
         assignmentRepository.addAssignment(a2);
 
-        Series series = new Series("pa-series", "CSE 110", "PAs", 0);
+        Series series = new Series("pa-series", "CSE 110", "PAs", 2);
         model.createSeriesAndLinkAssignments(series, List.of(a1.getID()));
 
         Optional<Series> storedSeries = model.getSeries("pa-series");
@@ -203,6 +203,7 @@ class ModelTest {
         List<Assignment> linked = assignmentRepository.getAssignmentsBySeries("pa-series");
         assertEquals(1, linked.size());
         assertEquals(a1.getID(), linked.get(0).getID());
+        assertEquals(2, linked.get(0).getLateDaysAllowed());
 
         Assignment stillUnlinked = assignmentRepository.getAssignmentsForCourse("CSE 110").stream()
                 .filter(a -> a2.getID().equals(a.getID()))
