@@ -19,7 +19,8 @@ public class PresenterManager {
                                    String appName,
                                    CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter,
-                                   StudyAvailabilityPresenter studyAvailabilityPresenter) {
+                                   StudyAvailabilityPresenter studyAvailabilityPresenter,
+                                   DashboardPresenter dashboardPresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
@@ -29,11 +30,19 @@ public class PresenterManager {
         // Navigate from courses to study availability
         coursePresenter.setOnNavigateToStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
 
+        // Navigate from courses to dashboard
+        coursePresenter.setOnNavigateToDashboard(() -> switcher.switchTo(dashboardPresenter));
+
         // Navigate from assignment back to courses
         assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
         // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
+
+        // Navigate from dashboard back to courses
+        dashboardPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
+
+
 
         // Initial screen
         switcher.switchTo(coursePresenter);

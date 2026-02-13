@@ -1,10 +1,15 @@
 package edu.ucsd.studentclock;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import edu.ucsd.studentclock.presenter.CoursePresenter;
+import edu.ucsd.studentclock.presenter.DashboardPresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
 import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
@@ -12,13 +17,10 @@ import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.CourseView;
+import edu.ucsd.studentclock.view.DashboardView;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
 import javafx.application.Application;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * Entry point for Student Clock.
@@ -54,6 +56,7 @@ public class App extends Application {
         CourseView courseView = new CourseView();
         AssignmentView assignmentView = new AssignmentView();
         StudyAvailabilityView studyAvailabilityView = new StudyAvailabilityView();
+        DashboardView dashboardView = new DashboardView();
 
         // Presenters
         CoursePresenter coursePresenter =
@@ -64,6 +67,9 @@ public class App extends Application {
         
         StudyAvailabilityPresenter studyAvailabilityPresenter =
                 new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
+        DashboardPresenter dashboardPresenter =
+            new DashboardPresenter(sharedModel, dashboardView, assignmentRepository);
+
 
         // Navigation manager
         PresenterManager manager = new PresenterManager();
@@ -73,6 +79,7 @@ public class App extends Application {
                 coursePresenter,
                 assignmentPresenter,
                 studyAvailabilityPresenter
+                ,dashboardPresenter
         );
     }
 

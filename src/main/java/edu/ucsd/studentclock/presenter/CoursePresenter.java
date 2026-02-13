@@ -12,6 +12,7 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
 
     private Runnable onNavigateToAssignments;
     private Runnable onNavigateToStudyAvailability; 
+    private Runnable onNavigateToDashboard;
 
     public CoursePresenter(Model model, CourseView view) {
         super(model, view);
@@ -26,6 +27,12 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
         view.getStudyAvailabilityButton().setOnAction(e -> {
             if (onNavigateToStudyAvailability != null) {
                 onNavigateToStudyAvailability.run();
+            }
+        });
+
+        view.getDashboardButton().setOnAction(e -> {
+            if (onNavigateToDashboard != null) {
+                onNavigateToDashboard.run();
             }
         });
         
@@ -52,6 +59,9 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
 
     public void setOnNavigateToStudyAvailability(Runnable runnable) {
         this.onNavigateToStudyAvailability = runnable;
+    }
+    public void setOnNavigateToDashboard(Runnable action) {
+        this.onNavigateToDashboard = action;
     }
 
     private void handleAdd() {
