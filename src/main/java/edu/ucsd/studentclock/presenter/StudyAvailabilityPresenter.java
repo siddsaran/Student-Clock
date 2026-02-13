@@ -1,5 +1,7 @@
 package edu.ucsd.studentclock.presenter;
 
+import java.time.DayOfWeek;
+
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
@@ -22,6 +24,9 @@ public class StudyAvailabilityPresenter
                                       StudyAvailabilityView view) {
         super(model, view);
         view.setPresenter(this);
+        for (DayOfWeek d : DayOfWeek.values()) {
+            view.setOnDayToggled(d, () -> model.getStudyAvailability().setAvailable(d, view.isDaySelected(d)));
+        }
         updateView();
     }
 
@@ -36,6 +41,11 @@ public class StudyAvailabilityPresenter
         view.setWeeklyHoursText(
                 String.valueOf(availability.getTotalWeeklyHours())
         );
+
+        for (DayOfWeek d : DayOfWeek.values()) {
+            view.setDaySelected(d, availability.isAvailable(d));
+        }
+
         view.clearStatus();
     }
 
@@ -65,6 +75,11 @@ public class StudyAvailabilityPresenter
 
         StudyAvailability availability = model.getStudyAvailability();
         availability.setTotalWeeklyHours(hours);
+
+        for (DayOfWeek d : DayOfWeek.values()) {
+            boolean selected = view.isDaySelected(d);
+            availability.setAvailable(d, selected);
+        }
 
         String validationError = availability.validate();
         if (validationError != null) {
