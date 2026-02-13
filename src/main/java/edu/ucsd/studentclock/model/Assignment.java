@@ -29,11 +29,13 @@ public class Assignment {
     // Start date and deadline
     private final LocalDateTime start;
     private final LocalDateTime deadline;
+    private LocalDateTime clockInTime;
 
     // planning hours and progress
     private final double estimatedHours;
     private double remainingHours;
     private boolean done;
+    private double cumulativeHours;
 
     public Assignment(
             String name,
@@ -87,10 +89,12 @@ public class Assignment {
         this.lateDaysAllowed = lateDaysAllowed;
         this.estimatedHours = estimatedHours;
         this.remainingHours = estimatedHours;
+        this.cumulativeHours = 0.0;
         this.done = false;
+        this.clockInTime = null;
     }
 
-    Assignment(
+    private Assignment(
             String id,
             String name,
             String courseID,
@@ -100,6 +104,7 @@ public class Assignment {
             int lateDaysAllowed,
             double estimatedHours,
             double remainingHours,
+            double cumulativeHours,
             boolean done
     ) {
         this.id = id;
@@ -111,6 +116,7 @@ public class Assignment {
         this.lateDaysAllowed = lateDaysAllowed;
         this.estimatedHours = estimatedHours;
         this.remainingHours = remainingHours;
+        this.cumulativeHours = cumulativeHours;
         this.done = done;
     }
 
@@ -123,9 +129,10 @@ public class Assignment {
         int lateDaysAllowed,
         double estimatedHours,
         double remainingHours,
+        double cumulativeHours,
         boolean done
     ) {
-        return fromDatabase(id, name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours, remainingHours, done);
+        return fromDatabase(id, name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours, remainingHours, cumulativeHours, done);
     }
 
     public static Assignment fromDatabase(
@@ -138,6 +145,7 @@ public class Assignment {
             int lateDaysAllowed,
             double estimatedHours,
             double remainingHours,
+            double cumulativeHours,
             boolean done
     ) {
         return new Assignment(
@@ -150,6 +158,7 @@ public class Assignment {
                 lateDaysAllowed,
                 estimatedHours,
                 remainingHours,
+                cumulativeHours,
                 done
         );
     }
@@ -203,6 +212,23 @@ public class Assignment {
         this.done = done;
     }
 
+    public double getCumulativeHours() {
+        return this.cumulativeHours;
+    }
+
+    public void markDone() {
+        this.done = true;
+        this.remainingHours = 0.0;
+    }
+
+    public void applyWork(double hours) {
+        if (hours < 0) {
+            throw new IllegalArgumentException("Hours cannot be negative");
+        }
+        this.cumulativeHours += hours;
+        this.remainingHours = Math.max(0.0, this.estimatedHours - this.cumulativeHours);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -224,7 +250,8 @@ public class Assignment {
     public String toString() {
         return name + " (" + courseID + ")"
                 + " | Estimated: " + estimatedHours
-                + " | Remaining: " + remainingHours;
+                + " | Remaining: " + remainingHours
+                + " | Hours Worked: " + cumulativeHours;
     }
 
     public String toFullString() {
