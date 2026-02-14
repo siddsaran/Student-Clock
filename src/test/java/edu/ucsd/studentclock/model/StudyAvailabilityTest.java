@@ -135,7 +135,7 @@ class StudyAvailabilityTest {
     void CountDownNormal(){
         availability.setTotalWeeklyHours(5);
         int remains = availability.hoursLeft(3);
-        assertEquals(2, availability.hoursLeft(5));
+        assertEquals(2, availability.hoursLeft(3));
     }
 
 }
