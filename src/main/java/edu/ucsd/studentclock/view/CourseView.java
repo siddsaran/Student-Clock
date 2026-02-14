@@ -19,6 +19,7 @@ public class CourseView extends VBox {
 
     private final TextField idField = new TextField();
     private final TextField nameField = new TextField();
+    private final Button dashboardButton = new Button("Dashboard");
     private final Button addButton = new Button("Add Course");
     private final Button deleteButton = new Button("Delete Selected");
     private final Button assignmentsButton = new Button("Go to Assignments");
@@ -45,7 +46,7 @@ public class CourseView extends VBox {
 
         VBox buttonBox = new VBox(10);
         buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.getChildren().addAll(addButton, deleteButton, assignmentsButton, studyAvailabilityButton);
+        buttonBox.getChildren().addAll(addButton, deleteButton, assignmentsButton, studyAvailabilityButton, dashboardButton);
 
         getChildren().addAll(
                 title,
@@ -100,6 +101,9 @@ public class CourseView extends VBox {
 
     public Button getStudyAvailabilityButton() {
         return studyAvailabilityButton;
+    }
+    public Button getDashboardButton() {
+        return dashboardButton;
     }
 
     public void clearForm() {

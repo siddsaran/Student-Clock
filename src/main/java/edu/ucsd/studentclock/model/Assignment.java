@@ -205,7 +205,7 @@ public class Assignment {
     }
 
     public void setRemainingHours(double remainingHours) {
-    this.remainingHours = remainingHours;
+        this.remainingHours = Math.max(0, remainingHours);
     }
 
     public void setDone(boolean done) {
