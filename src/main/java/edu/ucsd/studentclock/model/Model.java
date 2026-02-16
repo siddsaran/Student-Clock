@@ -88,7 +88,7 @@ public class Model {
      */
     public void createSeriesAndLinkAssignments(Series series, List<String> assignmentIds) {
         seriesRepository.addSeries(series);
-        aRepository.setSeriesForAssignments(series.getId(), assignmentIds);
+        aRepository.setSeriesForAssignments(series.getId(), series.getDefaultLateDays(), assignmentIds);
     }
 
     public StudyAvailability getStudyAvailability() {
