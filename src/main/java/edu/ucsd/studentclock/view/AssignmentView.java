@@ -6,6 +6,7 @@ import java.util.List;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
+import edu.ucsd.studentclock.service.ClockOutResult;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -36,6 +37,11 @@ public class AssignmentView extends VBox {
     private final Button deleteButton = new Button("Delete Assignment");
     private final Button createSeriesButton = new Button("Create Series + Link Selected");
     private final Button backButton = new Button("Back");
+    private final Button clockButton = new Button("Clock In");
+    private final Button markDoneButton = new Button("Mark Done");
+
+    private final TextField manualHoursField = new TextField();
+    private final Button applyHoursButton = new Button("Apply Hours");
     
 
     private final ListView<Assignment> assignmentList = new ListView<>();
@@ -63,6 +69,7 @@ public class AssignmentView extends VBox {
         seriesIdField.setPromptText("Series ID");
         seriesNameField.setPromptText("Series name");
         seriesDefaultLateDaysField.setPromptText("Default late days");
+        manualHoursField.setPromptText("Hours worked (e.g., 1.5)");
 
         form.add(new Label("Assignment Name"), 0, 0);
         form.add(nameField, 1, 0);
@@ -85,10 +92,35 @@ public class AssignmentView extends VBox {
         form.add(new Label("Series Default Late Days"), 0, 7);
         form.add(seriesDefaultLateDaysField, 1, 7);
 
-        VBox buttonBox = new VBox(10, addButton, deleteButton, createSeriesButton);
-        buttonBox.setAlignment(Pos.CENTER);
+        VBox trackingBox = new VBox(
+                10,
+                clockButton,
+                manualHoursField,
+                applyHoursButton,
+                markDoneButton
+        );
 
-        assignmentList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        VBox buttonBox = new VBox(
+                10,
+                addButton,
+                deleteButton,
+                createSeriesButton,
+                trackingBox
+        );
+
+        buttonBox.setAlignment(Pos.CENTER);
+        trackingBox.setVisible(false);
+        trackingBox.setManaged(false);
+        assignmentList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        assignmentList.getSelectionModel()
+            .selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> {
+
+                boolean hasSelection = newVal != null;
+
+                trackingBox.setVisible(hasSelection);
+                trackingBox.setManaged(hasSelection);
+            });
 
         getChildren().addAll(
                 title,
@@ -102,12 +134,32 @@ public class AssignmentView extends VBox {
         addButton.setOnAction(e -> handleCreate());
         deleteButton.setOnAction(e -> handleDelete());
         createSeriesButton.setOnAction(e -> handleCreateSeriesAndLink());
+        clockButton.setOnAction(e -> handleClockButton());
+        applyHoursButton.setOnAction(e -> handleApplyHours());
+        markDoneButton.setOnAction(e -> handleMarkDone());
         backButton.setOnAction(e -> {
             if (presenter != null) {
                 presenter.back();
             }
         });
 
+    }
+
+    private void handleClockButton() {
+        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        try {
+            if (!presenter.isTracking()) {
+                presenter.clockIn(selected.getID());
+                clockButton.setText("Clock Out");
+            } else {
+                presenter.clockOut(selected.getID());
+                clockButton.setText("Clock In");
+            }
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+        }
     }
 
     /**
@@ -190,6 +242,32 @@ public class AssignmentView extends VBox {
         seriesIdField.clear();
         seriesNameField.clear();
         seriesDefaultLateDaysField.clear();
+    }
+
+    private void handleApplyHours() {
+        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        try {
+            double hours = Double.parseDouble(manualHoursField.getText().trim());
+            presenter.applyManualHours(selected.getID(), hours);
+            manualHoursField.clear();
+        } catch (NumberFormatException ex) {
+            new Alert(Alert.AlertType.ERROR, "Enter a valid number like 1.5").showAndWait();
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+        }
+    }
+
+    private void handleMarkDone() {
+        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+
+        try {
+            presenter.markDone(selected.getID());
+        } catch (Exception ex) {
+            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+        }
     }
 
     /**
