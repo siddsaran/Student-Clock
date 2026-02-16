@@ -109,4 +109,33 @@ class StudyAvailabilityTest {
         assertNotNull(availability.validate());
         assertEquals("Allocated hours exceed total weekly hours.", availability.validate());
     }
+
+    //Test for countdown hours go here.
+    
+    @Test
+    void CountDownSameVal(){
+        availability.setTotalWeeklyHours(5);
+        int remains = availability.hoursLeft(5);
+        assertEquals(0, availability.hoursLeft(5));
+    }
+
+    @Test
+    void CountDownCurrentLarger(){
+        availability.setTotalWeeklyHours(5);
+        try{
+            int remains = availability.hoursLeft(7);
+        }
+        catch(Exception e){
+                assertEquals("Current hour must not exceed the total weekly hours.", e.getMessage());
+
+        }
+    }
+
+    @Test
+    void CountDownNormal(){
+        availability.setTotalWeeklyHours(5);
+        int remains = availability.hoursLeft(3);
+        assertEquals(2, availability.hoursLeft(3));
+    }
+
 }
