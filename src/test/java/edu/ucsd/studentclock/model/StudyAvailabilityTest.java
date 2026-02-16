@@ -109,4 +109,6 @@ class StudyAvailabilityTest {
         assertNotNull(availability.validate());
         assertEquals("Allocated hours exceed total weekly hours.", availability.validate());
     }
+
+
 }
