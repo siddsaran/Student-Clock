@@ -1,21 +1,26 @@
 package edu.ucsd.studentclock.model;
 
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
 
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
+import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
+
 
 public class Model {
 
     private final CourseRepository repository;
     private final SeriesRepository seriesRepository;
-    private final StudyAvailability studyAvailability = new StudyAvailability();
+    private final StudyAvailability studyAvailability;
     private final AssignmentRepository aRepository;
     private Assignment selectedAssignment;
+    private final StudyAvailabilityRepository saRepository;
+
   
-    public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository) {
+    public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository, StudyAvailabilityRepository saRepository) {
         if (repository == null) {
             throw new NullPointerException("repository must not be null");
         }
@@ -25,9 +30,16 @@ public class Model {
         if (aRepository == null) {
             throw new NullPointerException("assignmentRepository must not be null");
         }
+        if (saRepository == null) {
+            throw new NullPointerException("studyAvailabilityRepository must not be null");
+        }
+
         this.repository = repository;
         this.seriesRepository = seriesRepository;
         this.aRepository = aRepository;
+        this.saRepository = saRepository;
+
+        this.studyAvailability = saRepository.load().orElseGet(StudyAvailability::new);
     }
 
     public void addCourse(Course course) {
@@ -117,5 +129,28 @@ public class Model {
     }
     public Assignment getSelectedAssignment() {
         return selectedAssignment;
+    }
+
+    /** Persist current in-memory availability to the DB. */
+    public void saveStudyAvailability() {
+        saRepository.save(studyAvailability);
+    }
+
+    /** Updates weekly hours and persists immediately. */
+    public void setTotalWeeklyHours(int hours) {
+        studyAvailability.setTotalWeeklyHours(hours);
+        saveStudyAvailability();
+    }
+
+    /** Updates availability for a day and persists immediately. */
+    public void setAvailable(DayOfWeek day, boolean available) {
+        studyAvailability.setAvailable(day, available);
+        saveStudyAvailability();
+    }
+
+    /** Updates daily limit and persists immediately. */
+    public void setDailyLimit(DayOfWeek day, int hours) {
+        studyAvailability.setDailyLimit(day, hours);
+        saveStudyAvailability();
     }
 }

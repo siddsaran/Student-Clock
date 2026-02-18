@@ -3,6 +3,7 @@ package edu.ucsd.studentclock.model;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ class ModelTest {
     private CourseRepository repository;
     private SeriesRepository seriesRepository;
     private AssignmentRepository assignmentRepository;
+    private StudyAvailabilityRepository saRepository;
     private Model model;
 
     @BeforeEach
@@ -30,8 +32,9 @@ class ModelTest {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
         repository = new CourseRepository(connection);
         seriesRepository = new SeriesRepository(connection);
+        saRepository = new StudyAvailabilityRepository(connection);
         assignmentRepository = new AssignmentRepository(() -> connection);
-        model = new Model(repository, assignmentRepository, seriesRepository);
+        model = new Model(repository, assignmentRepository, seriesRepository, saRepository);
     }
 
     @AfterEach
@@ -77,17 +80,17 @@ class ModelTest {
 
     @Test
     void modelWithNullCourseRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, seriesRepository));
+        assertThrows(NullPointerException.class, () -> new Model(null, null, seriesRepository, saRepository));
     }
 
     @Test
     void modelWithNullSeriesRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, null, null));
+        assertThrows(NullPointerException.class, () -> new Model(repository, null, null, saRepository));
     }
       
     @Test
     void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, null));
+        assertThrows(NullPointerException.class, () -> new Model(null, null, null, saRepository));
     }
 
     @Test
