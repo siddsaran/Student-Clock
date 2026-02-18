@@ -10,6 +10,8 @@ import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.service.TimeTrackingManager;
+import edu.ucsd.studentclock.service.ClockOutResult;
 
 /**
  * Presenter for the Assignment screen.
@@ -18,6 +20,7 @@ import edu.ucsd.studentclock.view.AssignmentView;
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
 
     private final AssignmentRepository repository;
+    private final TimeTrackingManager timeTrackingManager;
     private Runnable onBack;
     /**
      * Creates an AssignmentPresenter.
@@ -31,6 +34,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                                AssignmentRepository repository) {
         super(model, view);
         this.repository = repository;
+        this.timeTrackingManager = new TimeTrackingManager();
         view.setPresenter(this);
         updateView();
     }
@@ -142,6 +146,29 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
     }
 
+    public void clockIn(String assignmentId) {
+        Assignment a = findAssignmentById(assignmentId);
+        timeTrackingManager.clockIn(a);
+        updateView();
+    }
+
+    public ClockOutResult clockOut(String assignmentId) {
+        Assignment active = timeTrackingManager.getActiveAssignment();
+        if (active == null) {
+            throw new IllegalStateException("Not currently clocked in");
+        }
+        if (!active.getID().equals(assignmentId)) {
+            throw new IllegalArgumentException("Selected assignment is not the active clocked-in assignment");
+        }
+
+        ClockOutResult result = timeTrackingManager.clockOut();
+
+        repository.addAssignment(active);
+
+        updateView();
+        return result;
+    }
+
     /**
      * Registers callback for back navigation.
      *
@@ -149,6 +176,28 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
+    }
+
+    public boolean isTracking() {
+        return timeTrackingManager.isTracking();
+    }  
+
+    public void applyManualHours(String assignmentId, double hours) {
+        if (hours < 0) {
+            throw new IllegalArgumentException("hours must be >= 0");
+        }
+
+        Assignment a = findAssignmentById(assignmentId);
+        a.applyWork(hours);
+        repository.addAssignment(a);
+        updateView();
+    }
+
+    public void markDone(String assignmentId) {
+        Assignment a = findAssignmentById(assignmentId);
+        a.markDone();
+        repository.addAssignment(a);
+        updateView();
     }
 
     /**

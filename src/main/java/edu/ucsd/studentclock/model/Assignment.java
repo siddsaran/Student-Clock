@@ -226,7 +226,7 @@ public class Assignment {
             throw new IllegalArgumentException("Hours cannot be negative");
         }
         this.cumulativeHours += hours;
-        this.remainingHours = Math.max(0.0, this.estimatedHours - this.cumulativeHours);
+        this.remainingHours = Math.max(0.0, this.remainingHours - hours);
     }
 
     @Override

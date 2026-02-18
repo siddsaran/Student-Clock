@@ -2,16 +2,30 @@ package edu.ucsd.studentclock.service;
 
 import edu.ucsd.studentclock.model.Assignment;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * Manages time tracking
  */
 public class TimeTrackingManager {
 
+    private final Clock clock;
+
     private Assignment activeAssignment;
-    private LocalDateTime clockInTime;
+    private Instant clockInInstant;
+
+    public TimeTrackingManager() {
+        this(Clock.systemDefaultZone());
+    }
+
+    public TimeTrackingManager(Clock clock) {
+        if (clock == null) {
+            throw new NullPointerException("clock must not be null");
+        }
+        this.clock = clock;
+    }
 
     /**
      * Starts tracking time for an assignment.
@@ -33,7 +47,7 @@ public class TimeTrackingManager {
         }
 
         this.activeAssignment = assignment;
-        this.clockInTime = LocalDateTime.now();
+        this.clockInInstant = clock.instant();
     }
 
     /**
@@ -41,20 +55,15 @@ public class TimeTrackingManager {
      * Applies work to the assignment.
      */
     public ClockOutResult clockOut() {
-        if (activeAssignment == null || clockInTime == null) {
+        if (activeAssignment == null || clockInInstant == null) {
             throw new IllegalStateException("Not currently clocked into any assignment");
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant out = clock.instant();
 
-        double hoursWorked = Duration.between(clockInTime, now).toMinutes() / 60.0;
+        double hoursWorked = Duration.between(clockInInstant, out).toMinutes() / 60.0;
 
         activeAssignment.applyWork(hoursWorked);
-
-        // auto mark done if remaining reaches zero
-        if (activeAssignment.getRemainingHours() <= 0.0) {
-            activeAssignment.markDone();
-        }
 
         ClockOutResult result = new ClockOutResult(
                 activeAssignment.getID(),
@@ -66,7 +75,7 @@ public class TimeTrackingManager {
 
         // clear active session
         activeAssignment = null;
-        clockInTime = null;
+        clockInInstant = null;
 
         return result;
     }
