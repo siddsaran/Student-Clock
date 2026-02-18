@@ -1,7 +1,6 @@
 package edu.ucsd.studentclock.presenter;
 
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.CourseView;
 import javafx.scene.control.Alert;
 
@@ -36,7 +35,6 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
             }
         });
         
-
         updateView();
     }
 

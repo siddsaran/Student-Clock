@@ -36,6 +36,11 @@ public class PresenterManager {
         // Navigate from assignment back to courses
         assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
+        // Topbar assignments page
+        assignmentPresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
+        assignmentPresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
+        assignmentPresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
+
         // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 

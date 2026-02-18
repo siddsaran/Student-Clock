@@ -13,6 +13,7 @@ public class Model {
     private final SeriesRepository seriesRepository;
     private final StudyAvailability studyAvailability = new StudyAvailability();
     private final AssignmentRepository aRepository;
+    private Assignment selectedAssignment;
   
     public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository) {
         if (repository == null) {
@@ -110,5 +111,11 @@ public class Model {
         }
         aRepository.deleteAssignmentsForCourse(trimmedId);
         repository.deleteCourse(trimmedId);
+    }
+    public void setSelectedAssignment(Assignment assignment) {
+        this.selectedAssignment = assignment;
+    }
+    public Assignment getSelectedAssignment() {
+        return selectedAssignment;
     }
 }

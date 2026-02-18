@@ -9,9 +9,9 @@ import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
-import edu.ucsd.studentclock.view.AssignmentView;
-import edu.ucsd.studentclock.service.TimeTrackingManager;
 import edu.ucsd.studentclock.service.ClockOutResult;
+import edu.ucsd.studentclock.service.TimeTrackingManager;
+import edu.ucsd.studentclock.view.AssignmentView;
 
 /**
  * Presenter for the Assignment screen.
@@ -22,6 +22,9 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private final AssignmentRepository repository;
     private final TimeTrackingManager timeTrackingManager;
     private Runnable onBack;
+    private Runnable onCourses;
+    private Runnable onStudyAvailability;
+    private Runnable onDashboard;
     /**
      * Creates an AssignmentPresenter.
      *
@@ -36,6 +39,17 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         this.repository = repository;
         this.timeTrackingManager = new TimeTrackingManager();
         view.setPresenter(this);
+        view.getCoursesButton().setOnAction(e -> {
+            if (onCourses != null) onCourses.run();
+        });
+
+        view.getStudyAvailabilityButton().setOnAction(e -> {
+            if (onStudyAvailability != null) onStudyAvailability.run();
+        });
+
+        view.getDashboardButton().setOnAction(e -> {
+            if (onDashboard != null) onDashboard.run();
+        });
         updateView();
     }
 
@@ -60,6 +74,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .collect(Collectors.toList());
         view.setCourses(courseIds);
         view.showAssignments(repository.getAllAssignments());
+
+        Assignment selected = model.getSelectedAssignment();
+        if (selected != null) {
+            view.selectAssignment(selected);
+        }
     }
 
     /**
@@ -176,6 +195,17 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
+    }
+    public void setOnCourses(Runnable r) {
+        onCourses = r;
+    }
+
+    public void setOnStudyAvailability(Runnable r) {
+        onStudyAvailability = r;
+    }
+
+    public void setOnDashboard(Runnable r) {
+        onDashboard = r;
     }
 
     public boolean isTracking() {

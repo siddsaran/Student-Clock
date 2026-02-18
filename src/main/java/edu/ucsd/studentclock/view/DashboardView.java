@@ -29,7 +29,7 @@ public class DashboardView extends BorderPane {
     private final TableView<Assignment> table = new TableView<>();
     private final Label studyHoursLabel = new Label("Study Hours Remaining 0");
     private final Region studyStatusIndicator = new Region();
-    private final Button showOpenButton = new Button("Show Open Assignments");
+    private final Button showOpenButton = new Button("Show Open");
 
     public DashboardView() {
 

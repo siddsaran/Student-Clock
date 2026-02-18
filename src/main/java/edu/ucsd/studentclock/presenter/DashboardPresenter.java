@@ -79,10 +79,10 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
     }
 
     public void openAssignment(Assignment assignment) {
-        if (onBack != null) {
-            onBack.run();
-        }
+        model.setSelectedAssignment(assignment);
+        if (onBack != null) onBack.run();
     }
+
 
 
     public void setOnBack(Runnable action) {

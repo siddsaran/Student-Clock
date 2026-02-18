@@ -6,7 +6,6 @@ import java.util.List;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
-import edu.ucsd.studentclock.service.ClockOutResult;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -17,10 +16,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class AssignmentView extends VBox {
+public class AssignmentView extends BorderPane {
 
     private AssignmentPresenter presenter;
 
@@ -42,7 +44,10 @@ public class AssignmentView extends VBox {
 
     private final TextField manualHoursField = new TextField();
     private final Button applyHoursButton = new Button("Apply Hours");
-    
+
+    private final Button dashboardButton = new Button("Dashboard");
+    private final Button courseButton = new Button("Go to Courses");
+    private final Button studyAvailabilityButton = new Button("Go to Study Availability");
 
     private final ListView<Assignment> assignmentList = new ListView<>();
 
@@ -52,24 +57,28 @@ public class AssignmentView extends VBox {
      */
     public AssignmentView() {
         setPadding(new Insets(20));
-        setSpacing(15);
 
         Label title = new Label("Add Assignment");
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Label assignmentsTitle = new Label("Assignments");
+        assignmentsTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        Label seriesTitle = new Label("Series");
+        seriesTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(10);
 
         nameField.setPromptText("Enter assignment name");
-
         courseBox.setPromptText("Select course");
-
         estimatedHoursField.setPromptText("Estimated hours");
         seriesIdField.setPromptText("Series ID");
         seriesNameField.setPromptText("Series name");
         seriesDefaultLateDaysField.setPromptText("Default late days");
         manualHoursField.setPromptText("Hours worked (e.g., 1.5)");
+        
 
         form.add(new Label("Assignment Name"), 0, 0);
         form.add(nameField, 1, 0);
@@ -85,32 +94,48 @@ public class AssignmentView extends VBox {
 
         form.add(new Label("Estimated Hours"), 0, 4);
         form.add(estimatedHoursField, 1, 4);
-        form.add(new Label("Series ID"), 0, 5);
-        form.add(seriesIdField, 1, 5);
-        form.add(new Label("Series Name"), 0, 6);
-        form.add(seriesNameField, 1, 6);
-        form.add(new Label("Series Default Late Days"), 0, 7);
-        form.add(seriesDefaultLateDaysField, 1, 7);
+
+        
+        HBox navBar = new HBox(10,
+                courseButton,
+                studyAvailabilityButton,
+                dashboardButton
+        );
+        navBar.setAlignment(Pos.CENTER_LEFT);
+
+        VBox topContainer = new VBox(navBar);
+        topContainer.setPadding(new Insets(0, 0, 20, 0));
+        setTop(topContainer);
+
+
+        VBox assignmentButtons = new VBox(10, addButton, deleteButton);
+
+        GridPane seriesBox = new GridPane();
+            seriesBox.setHgap(10);
+            seriesBox.setVgap(10);
+
+            seriesBox.add(new Label("Series ID"), 0, 0);
+            seriesBox.add(seriesIdField, 1, 0);
+
+            seriesBox.add(new Label("Series Name"), 0, 1);
+            seriesBox.add(seriesNameField, 1, 1);
+
+            seriesBox.add(new Label("Default Late Days"), 0, 2);
+            seriesBox.add(seriesDefaultLateDaysField, 1, 2);
+
+            seriesBox.add(createSeriesButton, 1, 3);
 
         VBox trackingBox = new VBox(
                 10,
                 clockButton,
                 manualHoursField,
                 applyHoursButton,
-                markDoneButton
-        );
+                markDoneButton);
 
-        VBox buttonBox = new VBox(
-                10,
-                addButton,
-                deleteButton,
-                createSeriesButton,
-                trackingBox
-        );
-
-        buttonBox.setAlignment(Pos.CENTER);
         trackingBox.setVisible(false);
         trackingBox.setManaged(false);
+        trackingBox.setMaxWidth(300);
+        
         assignmentList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         assignmentList.getSelectionModel()
             .selectedItemProperty()
@@ -122,14 +147,35 @@ public class AssignmentView extends VBox {
                 trackingBox.setManaged(hasSelection);
             });
 
-        getChildren().addAll(
-                title,
-                form,
-                buttonBox,
-                new Label("Assignments"),
-                assignmentList,
-                backButton
+        VBox leftPanel = new VBox(20,
+            title,
+            form,
+            assignmentButtons,
+            seriesTitle,
+            seriesBox
         );
+
+        VBox rightPanel = new VBox(10,
+            assignmentsTitle,
+            assignmentList,
+            trackingBox
+        );
+        assignmentList.setPrefHeight(400);
+        assignmentList.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(assignmentList, Priority.ALWAYS);
+
+
+        HBox main = new HBox(50, leftPanel, rightPanel);
+        setCenter(main);
+
+        HBox.setHgrow(rightPanel, Priority.ALWAYS);
+        
+        HBox bottom = new HBox(backButton);
+        bottom.setAlignment(Pos.CENTER_LEFT);
+        bottom.setPadding(new Insets(10, 0, 0, 0));
+        setBottom(bottom);
+
+
 
         addButton.setOnAction(e -> handleCreate());
         deleteButton.setOnAction(e -> handleDelete());
@@ -296,6 +342,20 @@ public class AssignmentView extends VBox {
         }
         return selectedIds;
     }
+    public void selectAssignment(Assignment assignment) {
+        assignmentList.getSelectionModel().select(assignment);
+    }
+     public Button getCoursesButton() {
+        return courseButton;
+    }
+
+    public Button getStudyAvailabilityButton() {
+        return studyAvailabilityButton;
+    }
+    public Button getDashboardButton() {
+        return dashboardButton;
+    }
+
 
     /**
      * Returns the back navigation button.
@@ -305,4 +365,5 @@ public class AssignmentView extends VBox {
     public Button getBackButton() {
         return backButton;
     }
+    
 }
