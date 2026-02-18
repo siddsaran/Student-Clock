@@ -1,11 +1,11 @@
 package edu.ucsd.studentclock.model;
 
+import java.util.List;
+import java.util.Optional;
+
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 public class Model {
 

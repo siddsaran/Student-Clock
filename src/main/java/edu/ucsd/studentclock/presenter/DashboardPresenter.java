@@ -23,7 +23,9 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         super(model, view);
         this.assignmentRepo = assignmentRepo;
 
-        view.getBackButton().setOnAction(e -> {
+        view.setPresenter(this);
+
+        view.getShowOpenButton().setOnAction(e -> {
             if (onBack != null) onBack.run();
         });
     }
@@ -41,7 +43,8 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
                 return urgent
                         || status == AssignmentStatus.RED
-                        || status == AssignmentStatus.ORANGE;
+                        || status == AssignmentStatus.ORANGE
+                        || status == AssignmentStatus.YELLOW;
             })
             .sorted((a, b) -> {
                 int sa = severityScore(a, now);
@@ -53,21 +56,33 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
             })
             .collect(Collectors.toList());
 
-    view.showAssignments(filtered, now);
+            int remainingStudyHours = model.getStudyAvailability().getUnallocatedHours();
+
+            view.setStudyHoursRemaining(remainingStudyHours);
+
+
+        view.showAssignments(filtered, now);
     }
 
+
     private int severityScore(Assignment a, LocalDateTime now) {
-        if (AssignmentStatusCalculator.isUrgent(a, now)) return 3;
+        if (AssignmentStatusCalculator.isUrgent(a, now)) return 4;
 
         AssignmentStatus status =
                 AssignmentStatusCalculator.behindStatus(a, now);
 
-        if (status == AssignmentStatus.RED) return 2;
-        if (status == AssignmentStatus.ORANGE) return 1;
+        if (status == AssignmentStatus.RED) return 3;
+        if (status == AssignmentStatus.ORANGE) return 2;
+        if (status == AssignmentStatus.YELLOW) return 1;
 
         return 0;
     }
 
+    public void openAssignment(Assignment assignment) {
+        if (onBack != null) {
+            onBack.run();
+        }
+    }
 
 
     public void setOnBack(Runnable action) {

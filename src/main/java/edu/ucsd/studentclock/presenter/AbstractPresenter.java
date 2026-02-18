@@ -19,7 +19,7 @@ public abstract class AbstractPresenter<V extends Region> {
         
         this.model = model;
         this.view = view;
-        this.scene = new Scene(view, 500, 600);
+        this.scene = new Scene(view, 1200, 800);
     }
 
     public abstract String getViewTitle();

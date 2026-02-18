@@ -69,18 +69,20 @@ public class App extends Application {
                 new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
         DashboardPresenter dashboardPresenter =
             new DashboardPresenter(sharedModel, dashboardView, assignmentRepository);
+        dashboardView.setPresenter(dashboardPresenter);
 
 
         // Navigation manager
         PresenterManager manager = new PresenterManager();
-        manager.defineInteractions(
+                manager.defineInteractions(
                 primaryStage,
                 "Student Clock",
+                dashboardPresenter,
                 coursePresenter,
                 assignmentPresenter,
                 studyAvailabilityPresenter
-                ,dashboardPresenter
         );
+
     }
 
     @Override
