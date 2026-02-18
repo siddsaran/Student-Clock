@@ -17,10 +17,10 @@ public class PresenterManager {
      */
     public void defineInteractions(Stage stage,
                                    String appName,
+                                   DashboardPresenter dashboardPresenter,
                                    CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter,
-                                   StudyAvailabilityPresenter studyAvailabilityPresenter,
-                                   DashboardPresenter dashboardPresenter) {
+                                   StudyAvailabilityPresenter studyAvailabilityPresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
@@ -36,15 +36,20 @@ public class PresenterManager {
         // Navigate from assignment back to courses
         assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
+        // Topbar assignments page
+        assignmentPresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
+        assignmentPresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
+        assignmentPresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
+
         // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
         // Navigate from dashboard back to courses
-        dashboardPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
+        dashboardPresenter.setOnBack(() -> switcher.switchTo(assignmentPresenter));
 
 
 
         // Initial screen
-        switcher.switchTo(coursePresenter);
+        switcher.switchTo(dashboardPresenter);
     }
 }

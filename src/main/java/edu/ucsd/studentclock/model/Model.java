@@ -1,11 +1,11 @@
 package edu.ucsd.studentclock.model;
 
+import java.util.List;
+import java.util.Optional;
+
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 public class Model {
 
@@ -13,6 +13,7 @@ public class Model {
     private final SeriesRepository seriesRepository;
     private final StudyAvailability studyAvailability = new StudyAvailability();
     private final AssignmentRepository aRepository;
+    private Assignment selectedAssignment;
   
     public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository) {
         if (repository == null) {
@@ -110,5 +111,11 @@ public class Model {
         }
         aRepository.deleteAssignmentsForCourse(trimmedId);
         repository.deleteCourse(trimmedId);
+    }
+    public void setSelectedAssignment(Assignment assignment) {
+        this.selectedAssignment = assignment;
+    }
+    public Assignment getSelectedAssignment() {
+        return selectedAssignment;
     }
 }
