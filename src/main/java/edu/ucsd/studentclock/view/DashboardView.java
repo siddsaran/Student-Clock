@@ -30,6 +30,8 @@ public class DashboardView extends BorderPane {
     private final Label studyHoursLabel = new Label("Study Hours Remaining 0");
     private final Region studyStatusIndicator = new Region();
     private final Button showOpenButton = new Button("Show Open");
+    private final Button bigPictureButton = new Button("Big Picture");
+
 
     public DashboardView() {
 
@@ -121,11 +123,15 @@ public class DashboardView extends BorderPane {
 
         setCenter(table);
 
-        HBox bottom = new HBox(showOpenButton);
+        HBox bottom = new HBox(15, showOpenButton, bigPictureButton);
         bottom.setAlignment(Pos.CENTER);
         bottom.setPadding(new Insets(15));
         setBottom(bottom);
     }
+    public Button getBigPictureButton() {
+        return bigPictureButton;
+    }
+
 
     public void setPresenter(DashboardPresenter presenter) {
         this.presenter = presenter;

@@ -8,6 +8,7 @@ import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
+import edu.ucsd.studentclock.presenter.BigPicturePresenter;
 import edu.ucsd.studentclock.presenter.CoursePresenter;
 import edu.ucsd.studentclock.presenter.DashboardPresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
@@ -16,6 +17,7 @@ import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.view.BigPictureView;
 import edu.ucsd.studentclock.view.CourseView;
 import edu.ucsd.studentclock.view.DashboardView;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
@@ -57,6 +59,7 @@ public class App extends Application {
         AssignmentView assignmentView = new AssignmentView();
         StudyAvailabilityView studyAvailabilityView = new StudyAvailabilityView();
         DashboardView dashboardView = new DashboardView();
+        BigPictureView bigPictureView = new BigPictureView();
 
         // Presenters
         CoursePresenter coursePresenter =
@@ -71,6 +74,11 @@ public class App extends Application {
             new DashboardPresenter(sharedModel, dashboardView, assignmentRepository);
         dashboardView.setPresenter(dashboardPresenter);
 
+        BigPicturePresenter bigPicturePresenter =
+            new BigPicturePresenter(sharedModel, bigPictureView);
+        bigPictureView.setPresenter(bigPicturePresenter);
+
+
 
         // Navigation manager
         PresenterManager manager = new PresenterManager();
@@ -80,7 +88,8 @@ public class App extends Application {
                 dashboardPresenter,
                 coursePresenter,
                 assignmentPresenter,
-                studyAvailabilityPresenter
+                studyAvailabilityPresenter,
+                bigPicturePresenter
         );
 
     }

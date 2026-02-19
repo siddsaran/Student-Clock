@@ -25,6 +25,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onCourses;
     private Runnable onStudyAvailability;
     private Runnable onDashboard;
+    private Runnable onBigPicture;
+
     /**
      * Creates an AssignmentPresenter.
      *
@@ -50,6 +52,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         view.getDashboardButton().setOnAction(e -> {
             if (onDashboard != null) onDashboard.run();
         });
+
+        view.getBigPictureButton().setOnAction(e -> {
+            if (onBigPicture != null) onBigPicture.run();
+        });
+
         updateView();
     }
 
@@ -207,6 +214,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     public void setOnDashboard(Runnable r) {
         onDashboard = r;
     }
+    public void setOnBigPicture(Runnable r) {
+        onBigPicture = r;
+    }
+
 
     public boolean isTracking() {
         return timeTrackingManager.isTracking();

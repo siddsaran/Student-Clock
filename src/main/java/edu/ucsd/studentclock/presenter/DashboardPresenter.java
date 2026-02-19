@@ -15,6 +15,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     private final AssignmentRepository assignmentRepo;
     private Runnable onBack;
+    private Runnable onBigPicture;
 
     public DashboardPresenter(Model model,
                               DashboardView view,
@@ -28,6 +29,11 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         view.getShowOpenButton().setOnAction(e -> {
             if (onBack != null) onBack.run();
         });
+
+        view.getBigPictureButton().setOnAction(e -> {
+            if (onBigPicture != null) onBigPicture.run();
+        });
+
     }
 
     @Override
@@ -87,6 +93,9 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     public void setOnBack(Runnable action) {
         this.onBack = action;
+    }
+    public void setOnBigPicture(Runnable r) {
+        onBigPicture = r;
     }
 
     @Override
