@@ -368,7 +368,7 @@ public class AssignmentView extends BorderPane {
     public List<String> getSelectedAssignmentIds() {
         List<String> selectedIds = new ArrayList<>();
         for (AssignmentListEntry entry : assignmentList.getSelectionModel().getSelectedItems()) {
-            if (!entry.isHeader() && entry.getAssignment() != null) {
+            if (entry.getAssignment() != null) {
                 selectedIds.add(entry.getAssignment().getID());
             }
         }
@@ -377,7 +377,7 @@ public class AssignmentView extends BorderPane {
 
     private Assignment getFirstSelectedAssignment() {
         for (AssignmentListEntry entry : assignmentList.getSelectionModel().getSelectedItems()) {
-            if (!entry.isHeader() && entry.getAssignment() != null) {
+            if (entry.getAssignment() != null) {
                 return entry.getAssignment();
             }
         }
@@ -389,7 +389,7 @@ public class AssignmentView extends BorderPane {
         List<AssignmentListEntry> items = assignmentList.getItems();
         for (int i = 0; i < items.size(); i++) {
             AssignmentListEntry entry = items.get(i);
-            if (!entry.isHeader() && assignment.equals(entry.getAssignment())) {
+            if (assignment.equals(entry.getAssignment())) {
                 assignmentList.getSelectionModel().clearAndSelect(i);
                 return;
             }
