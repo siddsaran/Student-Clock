@@ -41,8 +41,8 @@ public class App extends Application {
             throw new RuntimeException("Failed to connect to database", e);
         }
 
-        // DataSource abstraction (your design)
-        IDataSource dataSource = new SqlDataSource(JDBC_URL);
+        // DataSource abstraction (same DB file as connection above)
+        IDataSource dataSource = new SqlDataSource("studentclock.db");
 
         // Repositories
         CourseRepository courseRepository = new CourseRepository(connection);

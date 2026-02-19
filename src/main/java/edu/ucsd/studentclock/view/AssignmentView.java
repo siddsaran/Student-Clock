@@ -7,6 +7,7 @@ import java.util.List;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import javafx.geometry.Insets;
+import javafx.scene.control.ListCell;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -49,7 +50,7 @@ public class AssignmentView extends BorderPane {
     private final Button courseButton = new Button("Go to Courses");
     private final Button studyAvailabilityButton = new Button("Go to Study Availability");
 
-    private final ListView<Assignment> assignmentList = new ListView<>();
+    private final ListView<AssignmentListEntry> assignmentList = new ListView<>();
 
     /**
      * Creates the assignment entry screen.
@@ -136,13 +137,42 @@ public class AssignmentView extends BorderPane {
         trackingBox.setManaged(false);
         trackingBox.setMaxWidth(300);
         
-        assignmentList.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        assignmentList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        assignmentList.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(AssignmentListEntry item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                Assignment a = item.getAssignment();
+                String mainText = a.getName() + " (" + a.getCourseID() + ")"
+                        + " | Estimated: " + a.getEstimatedHours()
+                        + " | Remaining: " + a.getRemainingHours();
+                Label mainLabel = new Label(mainText);
+                HBox row;
+                if (item.getDisplayName() != null) {
+                    Label tag = new Label(item.getDisplayName());
+                    String tagColor = tagColorForSeries(item.getDisplayName());
+                    tag.setStyle("-fx-background-color: " + tagColor + "; "
+                            + "-fx-background-radius: 9999px; "
+                            + "-fx-padding: 4 10; -fx-font-size: 11px; "
+                            + "-fx-text-fill: white; -fx-font-weight: bold;");
+                    row = new HBox(10, mainLabel, tag);
+                } else {
+                    row = new HBox(10, mainLabel);
+                }
+                HBox.setHgrow(mainLabel, Priority.ALWAYS);
+                setGraphic(row);
+                setText(null);
+            }
+        });
         assignmentList.getSelectionModel()
             .selectedItemProperty()
             .addListener((obs, oldVal, newVal) -> {
-
-                boolean hasSelection = newVal != null;
-
+                boolean hasSelection = getFirstSelectedAssignment() != null;
                 trackingBox.setVisible(hasSelection);
                 trackingBox.setManaged(hasSelection);
             });
@@ -192,7 +222,7 @@ public class AssignmentView extends BorderPane {
     }
 
     private void handleClockButton() {
-        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        Assignment selected = getFirstSelectedAssignment();
         if (selected == null) return;
 
         try {
@@ -249,7 +279,7 @@ public class AssignmentView extends BorderPane {
     }
 
     private void handleDelete() {
-        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        Assignment selected = getFirstSelectedAssignment();
         if (selected == null) {
             new Alert(Alert.AlertType.ERROR, "Select an assignment to delete.").showAndWait();
             return;
@@ -291,7 +321,7 @@ public class AssignmentView extends BorderPane {
     }
 
     private void handleApplyHours() {
-        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        Assignment selected = getFirstSelectedAssignment();
         if (selected == null) return;
 
         try {
@@ -306,7 +336,7 @@ public class AssignmentView extends BorderPane {
     }
 
     private void handleMarkDone() {
-        Assignment selected = assignmentList.getSelectionModel().getSelectedItem();
+        Assignment selected = getFirstSelectedAssignment();
         if (selected == null) return;
 
         try {
@@ -317,12 +347,12 @@ public class AssignmentView extends BorderPane {
     }
 
     /**
-     * Displays all assignments for the currently selected course.
+     * Displays assignments grouped by series with section headers and row tags.
      *
-     * @param assignments list of assignments
+     * @param entries list of section headers and assignment rows
      */
-    public void showAssignments(List<Assignment> assignments) {
-        assignmentList.getItems().setAll(assignments);
+    public void showGroupedAssignments(List<AssignmentListEntry> entries) {
+        assignmentList.getItems().setAll(entries);
     }
 
 
@@ -337,15 +367,46 @@ public class AssignmentView extends BorderPane {
 
     public List<String> getSelectedAssignmentIds() {
         List<String> selectedIds = new ArrayList<>();
-        for (Assignment assignment : assignmentList.getSelectionModel().getSelectedItems()) {
-            selectedIds.add(assignment.getID());
+        for (AssignmentListEntry entry : assignmentList.getSelectionModel().getSelectedItems()) {
+            if (!entry.isHeader() && entry.getAssignment() != null) {
+                selectedIds.add(entry.getAssignment().getID());
+            }
         }
         return selectedIds;
     }
-    public void selectAssignment(Assignment assignment) {
-        assignmentList.getSelectionModel().select(assignment);
+
+    private Assignment getFirstSelectedAssignment() {
+        for (AssignmentListEntry entry : assignmentList.getSelectionModel().getSelectedItems()) {
+            if (!entry.isHeader() && entry.getAssignment() != null) {
+                return entry.getAssignment();
+            }
+        }
+        return null;
     }
-     public Button getCoursesButton() {
+
+    public void selectAssignment(Assignment assignment) {
+        if (assignment == null) return;
+        List<AssignmentListEntry> items = assignmentList.getItems();
+        for (int i = 0; i < items.size(); i++) {
+            AssignmentListEntry entry = items.get(i);
+            if (!entry.isHeader() && assignment.equals(entry.getAssignment())) {
+                assignmentList.getSelectionModel().clearAndSelect(i);
+                return;
+            }
+        }
+    }
+
+    private static final String[] SERIES_TAG_COLORS = {
+        "#4A90D9", "#7B68A6", "#50A060", "#C07850", "#B85450",
+        "#5B9AA0", "#E8A838", "#6B8E6B", "#9B6B8E", "#4A7C9E"
+    };
+
+    private static String tagColorForSeries(String seriesName) {
+        int index = Math.abs(seriesName.hashCode()) % SERIES_TAG_COLORS.length;
+        return SERIES_TAG_COLORS[index];
+    }
+
+    public Button getCoursesButton() {
         return courseButton;
     }
 
