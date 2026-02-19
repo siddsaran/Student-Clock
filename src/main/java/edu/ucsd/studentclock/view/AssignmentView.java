@@ -49,6 +49,8 @@ public class AssignmentView extends BorderPane {
     private final Button dashboardButton = new Button("Dashboard");
     private final Button courseButton = new Button("Go to Courses");
     private final Button studyAvailabilityButton = new Button("Go to Study Availability");
+    private final Button bigPictureButton = new Button("Big Picture");
+
 
     private final ListView<AssignmentListEntry> assignmentList = new ListView<>();
 
@@ -219,6 +221,10 @@ public class AssignmentView extends BorderPane {
             }
         });
 
+    }
+
+    public Button getBigPictureButton() {
+        return bigPictureButton;
     }
 
     private void handleClockButton() {

@@ -20,7 +20,8 @@ public class PresenterManager {
                                    DashboardPresenter dashboardPresenter,
                                    CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter,
-                                   StudyAvailabilityPresenter studyAvailabilityPresenter) {
+                                   StudyAvailabilityPresenter studyAvailabilityPresenter,
+                                   BigPicturePresenter bigPicturePresenter) {
 
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
@@ -44,8 +45,19 @@ public class PresenterManager {
         // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
-        // Navigate from dashboard back to courses
+        // Navigate from dashboard to courses
         dashboardPresenter.setOnBack(() -> switcher.switchTo(assignmentPresenter));
+
+        // Navigate from dashboard to BigPictureView
+        dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));;
+
+        // Big Picture global nav
+        bigPicturePresenter.setOnBack(() -> switcher.switchTo(dashboardPresenter));
+        bigPicturePresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
+        bigPicturePresenter.setOnAssignments(() -> switcher.switchTo(assignmentPresenter));
+        bigPicturePresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
+        bigPicturePresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
+
 
 
 
