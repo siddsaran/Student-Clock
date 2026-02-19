@@ -1,7 +1,12 @@
 package edu.ucsd.studentclock.presenter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
@@ -11,6 +16,7 @@ import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.service.ClockOutResult;
 import edu.ucsd.studentclock.service.TimeTrackingManager;
+import edu.ucsd.studentclock.view.AssignmentListEntry;
 import edu.ucsd.studentclock.view.AssignmentView;
 
 /**
@@ -80,12 +86,63 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .map(Course::getId)
                 .collect(Collectors.toList());
         view.setCourses(courseIds);
-        view.showAssignments(repository.getAllAssignments());
+        List<AssignmentListEntry> grouped = buildGroupedAssignmentList();
+        view.showGroupedAssignments(grouped);
 
         Assignment selected = model.getSelectedAssignment();
         if (selected != null) {
             view.selectAssignment(selected);
         }
+    }
+
+    /**
+     * Builds a list of assignment rows (no headers). No-series assignments have no tag;
+     * series assignments have a tag. Order: no series first, then each series by name.
+     */
+    private List<AssignmentListEntry> buildGroupedAssignmentList() {
+        List<Assignment> assignments = repository.getAllAssignments();
+        Map<String, String> seriesIdToName = new HashMap<>();
+        for (Assignment a : assignments) {
+            String sid = a.getSeriesId();
+            if (sid != null && !seriesIdToName.containsKey(sid)) {
+                String name = model.getSeries(sid)
+                        .map(Series::getName)
+                        .orElse(sid);
+                seriesIdToName.put(sid, name);
+            }
+        }
+
+        Map<String, List<Assignment>> bySeries = new HashMap<>();
+        for (Assignment a : assignments) {
+            String key = a.getSeriesId() != null ? a.getSeriesId() : null;
+            bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
+        }
+
+        List<AssignmentListEntry> result = new ArrayList<>();
+        List<Assignment> noSeriesList = bySeries.get(null);
+        if (noSeriesList != null) {
+            for (Assignment a : noSeriesList) {
+                result.add(AssignmentListEntry.forRowWithoutTag(a));
+            }
+        }
+
+        List<String> seriesIds = assignments.stream()
+                .map(Assignment::getSeriesId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted(Comparator
+                        .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
+                        .thenComparing(id -> id))
+                .collect(Collectors.toList());
+
+        for (String seriesId : seriesIds) {
+            String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
+            for (Assignment a : bySeries.get(seriesId)) {
+                result.add(AssignmentListEntry.forRow(a, displayName));
+            }
+        }
+
+        return result;
     }
 
     /**

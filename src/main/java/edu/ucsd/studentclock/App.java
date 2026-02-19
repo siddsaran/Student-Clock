@@ -16,6 +16,7 @@ import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
+import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.BigPictureView;
 import edu.ucsd.studentclock.view.CourseView;
@@ -43,16 +44,17 @@ public class App extends Application {
             throw new RuntimeException("Failed to connect to database", e);
         }
 
-        // DataSource abstraction (your design)
-        IDataSource dataSource = new SqlDataSource(JDBC_URL);
+        // DataSource abstraction (same DB file as connection above)
+        IDataSource dataSource = new SqlDataSource("studentclock.db");
 
         // Repositories
         CourseRepository courseRepository = new CourseRepository(connection);
         SeriesRepository seriesRepository = new SeriesRepository(connection);
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
+        StudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(connection);
 
         // Shared model
-        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository);
+        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository);
 
         // Views
         CourseView courseView = new CourseView();

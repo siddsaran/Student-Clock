@@ -24,9 +24,12 @@ public class StudyAvailabilityPresenter
                                       StudyAvailabilityView view) {
         super(model, view);
         view.setPresenter(this);
+
+        // ✅ Persist immediately when a day is toggled
         for (DayOfWeek d : DayOfWeek.values()) {
-            view.setOnDayToggled(d, () -> model.getStudyAvailability().setAvailable(d, view.isDaySelected(d)));
+            view.setOnDayToggled(d, () -> model.setAvailable(d, view.isDaySelected(d)));
         }
+
         updateView();
     }
 
@@ -38,6 +41,7 @@ public class StudyAvailabilityPresenter
     @Override
     public void updateView() {
         StudyAvailability availability = model.getStudyAvailability();
+
         view.setWeeklyHoursText(
                 String.valueOf(availability.getTotalWeeklyHours())
         );
@@ -73,6 +77,7 @@ public class StudyAvailabilityPresenter
             return;
         }
 
+        // Update in-memory first (so we can validate before persisting)
         StudyAvailability availability = model.getStudyAvailability();
         availability.setTotalWeeklyHours(hours);
 
@@ -86,6 +91,8 @@ public class StudyAvailabilityPresenter
             view.showError(validationError);
             return;
         }
+
+        model.saveStudyAvailability();
 
         view.showMessage("Saved weekly study hours: " + hours);
     }
