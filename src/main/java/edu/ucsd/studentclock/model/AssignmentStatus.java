@@ -5,5 +5,6 @@ public enum AssignmentStatus {
     YELLOW,
     ORANGE,
     RED,
+    GREEN,
     URGENT
 }
