@@ -32,6 +32,7 @@ public class DashboardView extends BorderPane {
     private final Button showOpenButton = new Button("Show Open");
     private final Button bigPictureButton = new Button("Big Picture");
 
+
     public DashboardView() {
 
         setPadding(new Insets(20));
@@ -127,10 +128,10 @@ public class DashboardView extends BorderPane {
         bottom.setPadding(new Insets(15));
         setBottom(bottom);
     }
-
     public Button getBigPictureButton() {
         return bigPictureButton;
     }
+
 
     public void setPresenter(DashboardPresenter presenter) {
         this.presenter = presenter;
@@ -159,10 +160,9 @@ public class DashboardView extends BorderPane {
             case RED:
                 color = Color.RED;
                 break;
-            case URGENT:
-                color = Color.DARKRED;
-                break;
+            case GREEN:
             default:
+                color = Color.LIMEGREEN;
                 break;
         }
 
