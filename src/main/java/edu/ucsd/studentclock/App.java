@@ -77,7 +77,7 @@ public class App extends Application {
         dashboardView.setPresenter(dashboardPresenter);
 
         BigPicturePresenter bigPicturePresenter =
-            new BigPicturePresenter(sharedModel, bigPictureView);
+            new BigPicturePresenter(sharedModel, bigPictureView, assignmentRepository);
         bigPictureView.setPresenter(bigPicturePresenter);
 
 
