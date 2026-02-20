@@ -3,6 +3,7 @@ package edu.ucsd.studentclock.presenter;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Model;
@@ -59,51 +60,60 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = repository.getAllAssignments();
+        // Active assignments only (all courses). View updates when assignments are added,
+        // worked on, or marked done (callers trigger refresh / navigation).
+        List<Assignment> assignments = repository.getAllAssignments().stream()
+                .filter(a -> !a.isDone())
+                .collect(Collectors.toList());
+
         if (assignments.isEmpty()) {
             view.getChart().getData().clear();
             return;
         }
 
+        // Date range: earliest active start date to latest due date
         LocalDate start = assignments.stream()
                 .map(a -> a.getStart().toLocalDate())
                 .min(LocalDate::compareTo)
                 .get();
-
         LocalDate end = assignments.stream()
                 .map(a -> a.getDeadline().toLocalDate())
                 .max(LocalDate::compareTo)
                 .get();
 
+        // Combined remaining hours from every active assignment (all courses), per day
         XYChart.Series<String, Number> workload = new XYChart.Series<>();
-        workload.setName("Total Workload");
+        workload.setName("Remaining Workload");
 
         XYChart.Series<String, Number> burndown = new XYChart.Series<>();
-        burndown.setName("Burndown");
+        burndown.setName("Ideal Burndown");
 
         long days = ChronoUnit.DAYS.between(start, end);
-        double total = 0;
-
         for (int i = 0; i <= days; i++) {
             LocalDate day = start.plusDays(i);
-
+            double remaining = 0;
             for (Assignment a : assignments) {
-                if (a.getStart().toLocalDate().equals(day)) {
-                    total += a.getEstimatedHours();
+                LocalDate aStart = a.getStart().toLocalDate();
+                LocalDate aEnd = a.getDeadline().toLocalDate();
+                if (!day.isBefore(aStart) && !day.isAfter(aEnd)) {
+                    remaining += a.getRemainingHours();
                 }
             }
-
             String label = (day.getMonthValue()) + "/" + day.getDayOfMonth();
-            workload.getData().add(new XYChart.Data<>(label, total));
+            workload.getData().add(new XYChart.Data<>(label, remaining));
         }
 
-        double maxWork = workload.getData().get(workload.getData().size() - 1)
-                .getYValue().doubleValue();
+        double maxWork = 0;
+        for (XYChart.Data<String, Number> d : workload.getData()) {
+            double v = d.getYValue().doubleValue();
+            if (v > maxWork) maxWork = v;
+        }
 
         String firstDay = workload.getData().get(0).getXValue();
         String lastDay = workload.getData().get(workload.getData().size() - 1).getXValue();
+        double firstDayRemaining = workload.getData().get(0).getYValue().doubleValue();
 
-        burndown.getData().add(new XYChart.Data<>(firstDay, maxWork));
+        burndown.getData().add(new XYChart.Data<>(firstDay, firstDayRemaining));
         burndown.getData().add(new XYChart.Data<>(lastDay, 0));
 
         view.getChart().getData().setAll(workload, burndown);
@@ -111,7 +121,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
         NumberAxis yAxis = (NumberAxis) view.getChart().getYAxis();
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(0);
-        yAxis.setUpperBound(maxWork);
+        yAxis.setUpperBound(Math.max(1, maxWork));
         yAxis.setTickUnit(Math.max(1, maxWork / 5));
 
         view.getChart().applyCss();
