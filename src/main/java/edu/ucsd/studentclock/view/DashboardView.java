@@ -148,7 +148,7 @@ public class DashboardView extends BorderPane {
 
     public void setStudyStatus(AssignmentStatus status) {
 
-        Color color = Color.RED;
+        Color color = Color.LIMEGREEN;
 
         switch (status) {
             case YELLOW:
@@ -160,7 +160,9 @@ public class DashboardView extends BorderPane {
             case RED:
                 color = Color.RED;
                 break;
+            case GREEN:
             default:
+                color = Color.LIMEGREEN;
                 break;
         }
 

@@ -131,6 +131,10 @@ public class Model {
         return selectedAssignment;
     }
 
+    public List<Assignment> getAllAssignments() {
+        return aRepository.getAllAssignments();
+    }
+
     /** Persist current in-memory availability to the DB. */
     public void saveStudyAvailability() {
         saRepository.save(studyAvailability);
