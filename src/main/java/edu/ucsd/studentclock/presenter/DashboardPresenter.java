@@ -1,5 +1,7 @@
 package edu.ucsd.studentclock.presenter;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,6 +10,7 @@ import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.Model;
+import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.view.DashboardView;
 
@@ -15,6 +18,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     private final AssignmentRepository assignmentRepo;
     private Runnable onBack;
+    private Runnable onBigPicture;
 
     public DashboardPresenter(Model model,
                               DashboardView view,
@@ -28,6 +32,11 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         view.getShowOpenButton().setOnAction(e -> {
             if (onBack != null) onBack.run();
         });
+
+        view.getBigPictureButton().setOnAction(e -> {
+            if (onBigPicture != null) onBigPicture.run();
+        });
+
     }
 
     @Override
@@ -56,12 +65,87 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
             })
             .collect(Collectors.toList());
 
-            int remainingStudyHours = model.getStudyAvailability().getUnallocatedHours();
+        StudyAvailability sa = model.getStudyAvailability();
 
-            view.setStudyHoursRemaining(remainingStudyHours);
+        int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
+        int workNext7Days = computeRemainingWorkNext7Days(assignmentRepo.getAllAssignments(), now);
 
+        int remainingStudyHours = Math.max(0, availableFromToday - workNext7Days);
+        view.setStudyHoursRemaining(remainingStudyHours);
+
+        AssignmentStatus overallStatus = statusFrom(workNext7Days, availableFromToday);
+        view.setStudyStatus(overallStatus);
 
         view.showAssignments(filtered, now);
+    }
+
+    private int computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
+        LocalDate today = now.toLocalDate();
+        LocalDate end = today.plusDays(7);
+
+        int sum = 0;
+        for (Assignment a : all) {
+            if (a.isDone()) continue;
+            if (a.getDeadline() == null) continue;
+
+            LocalDate due = a.getDeadline().toLocalDate();
+            // due in [today, today+7]
+            if (!due.isBefore(today) && !due.isAfter(end)) {
+                sum += a.getRemainingHours();
+            }
+        }
+        return sum;
+    }
+
+    private int computeWeeklyHoursLeftFromToday(StudyAvailability sa, LocalDateTime now) {
+        int weekly = sa.getTotalWeeklyHours();
+        if (weekly <= 0) return 0;
+
+        int availableDaysInWeek = 0;
+        for (DayOfWeek d : DayOfWeek.values()) {
+            if (sa.isAvailable(d)) availableDaysInWeek++;
+        }
+        if (availableDaysInWeek == 0) return 0;
+
+        int perAvailableDay = weekly / availableDaysInWeek;
+
+        DayOfWeek today = now.getDayOfWeek();
+
+        int remainingAvailableDays = 0;
+        for (DayOfWeek d : DayOfWeek.values()) {
+            if (d.getValue() >= today.getValue() && sa.isAvailable(d)) {
+                remainingAvailableDays++;
+            }
+        }
+
+        return perAvailableDay * remainingAvailableDays;
+    }
+
+
+    private int computeAvailableHoursNext7Days(StudyAvailability sa, LocalDateTime now) {
+        LocalDate today = now.toLocalDate();
+
+        int sum = 0;
+        for (int i = 0; i < 7; i++) {
+            DayOfWeek d = today.plusDays(i).getDayOfWeek();
+            if (sa.isAvailable(d)) {
+                sum += sa.getDailyLimit(d);
+            }
+        }
+        return sum;
+    }
+
+    private AssignmentStatus statusFrom(int work, int available) {
+        if (available <= 0) {
+            return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
+        }
+
+        double ratio = (double) work / (double) available;
+
+        if (ratio >= 1.0) return AssignmentStatus.RED;
+        if (ratio >= 0.80) return AssignmentStatus.ORANGE;
+        if (ratio >= 0.60) return AssignmentStatus.YELLOW;
+        return AssignmentStatus.GREEN;
     }
 
 
@@ -88,9 +172,13 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
     public void setOnBack(Runnable action) {
         this.onBack = action;
     }
+    public void setOnBigPicture(Runnable r) {
+        onBigPicture = r;
+    }
 
     @Override
     public String getViewTitle() {
         return "Dashboard";
     }
+
 }

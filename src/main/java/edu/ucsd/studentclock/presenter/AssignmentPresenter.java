@@ -31,6 +31,9 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onCourses;
     private Runnable onStudyAvailability;
     private Runnable onDashboard;
+    private Runnable onBigPicture;
+    private String courseFilter = AssignmentView.ALL_COURSES;
+
     /**
      * Creates an AssignmentPresenter.
      *
@@ -56,6 +59,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         view.getDashboardButton().setOnAction(e -> {
             if (onDashboard != null) onDashboard.run();
         });
+
+        view.getBigPictureButton().setOnAction(e -> {
+            if (onBigPicture != null) onBigPicture.run();
+        });
+
         updateView();
     }
 
@@ -79,6 +87,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .map(Course::getId)
                 .collect(Collectors.toList());
         view.setCourses(courseIds);
+        view.setSelectedCourse(courseFilter);
         List<AssignmentListEntry> grouped = buildGroupedAssignmentList();
         view.showGroupedAssignments(grouped);
 
@@ -93,7 +102,19 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * series assignments have a tag. Order: no series first, then each series by name.
      */
     private List<AssignmentListEntry> buildGroupedAssignmentList() {
-        List<Assignment> assignments = repository.getAllAssignments();
+        List<Assignment> allAssignments = repository.getAllAssignments();
+
+        // Optionally filter by the selected course.
+        List<Assignment> assignments = allAssignments;
+        if (courseFilter != null
+                && !AssignmentView.ALL_COURSES.equals(courseFilter)
+                && !courseFilter.isBlank()) {
+            assignments = allAssignments.stream()
+                    .filter(a -> courseFilter.equals(a.getCourseID()))
+                    .collect(Collectors.toList());
+        }
+
+        // Pre-compute series display names.
         Map<String, String> seriesIdToName = new HashMap<>();
         for (Assignment a : assignments) {
             String sid = a.getSeriesId();
@@ -105,33 +126,51 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
             }
         }
 
-        Map<String, List<Assignment>> bySeries = new HashMap<>();
-        for (Assignment a : assignments) {
-            String key = a.getSeriesId() != null ? a.getSeriesId() : null;
-            bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
-        }
+        // Group by course first, then within each course by series.
+        Map<String, List<Assignment>> byCourse = assignments.stream()
+                .collect(Collectors.groupingBy(Assignment::getCourseID));
 
-        List<AssignmentListEntry> result = new ArrayList<>();
-        List<Assignment> noSeriesList = bySeries.get(null);
-        if (noSeriesList != null) {
-            for (Assignment a : noSeriesList) {
-                result.add(AssignmentListEntry.forRowWithoutTag(a));
-            }
-        }
-
-        List<String> seriesIds = assignments.stream()
-                .map(Assignment::getSeriesId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted(Comparator
-                        .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
-                        .thenComparing(id -> id))
+        List<String> courseIds = byCourse.keySet().stream()
+                .sorted()
                 .collect(Collectors.toList());
 
-        for (String seriesId : seriesIds) {
-            String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
-            for (Assignment a : bySeries.get(seriesId)) {
-                result.add(AssignmentListEntry.forRow(a, displayName));
+        List<AssignmentListEntry> result = new ArrayList<>();
+        for (String courseId : courseIds) {
+            result.add(AssignmentListEntry.forHeader(courseId));
+
+            List<Assignment> courseAssignments = byCourse.get(courseId);
+            if (courseAssignments == null || courseAssignments.isEmpty()) continue;
+
+            // Within each course, group by series id (null = no series).
+            Map<String, List<Assignment>> bySeries = new HashMap<>();
+            for (Assignment a : courseAssignments) {
+                String key = a.getSeriesId() != null ? a.getSeriesId() : null;
+                bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
+            }
+
+            // No-series first.
+            List<Assignment> noSeriesList = bySeries.get(null);
+            if (noSeriesList != null) {
+                for (Assignment a : noSeriesList) {
+                    result.add(AssignmentListEntry.forRowWithoutTag(a));
+                }
+            }
+
+            // Then each series by display name.
+            List<String> seriesIds = courseAssignments.stream()
+                    .map(Assignment::getSeriesId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .sorted(Comparator
+                            .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
+                            .thenComparing(id -> id))
+                    .collect(Collectors.toList());
+
+            for (String seriesId : seriesIds) {
+                String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
+                for (Assignment a : bySeries.get(seriesId)) {
+                    result.add(AssignmentListEntry.forRow(a, displayName));
+                }
             }
         }
 
@@ -241,6 +280,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         return model.getSeriesByCourse(courseId);
     }
 
+    public void setCourseFilter(String courseIdOrAllCourses) {
+        courseFilter = (courseIdOrAllCourses == null) ? AssignmentView.ALL_COURSES : courseIdOrAllCourses;
+        updateView();
+    }
+
     public void deleteAssignment(Assignment assignment) {
         if (assignment == null) return;
         repository.deleteAssignment(assignment.getID());
@@ -338,6 +382,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     public void setOnDashboard(Runnable r) {
         onDashboard = r;
     }
+    public void setOnBigPicture(Runnable r) {
+        onBigPicture = r;
+    }
+
 
     public boolean isTracking() {
         return timeTrackingManager.isTracking();

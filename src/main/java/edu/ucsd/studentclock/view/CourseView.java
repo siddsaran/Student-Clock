@@ -28,6 +28,8 @@ public class CourseView extends BorderPane {
     private final Button assignmentsButton = new Button("Go to Assignments");
     private final Button studyAvailabilityButton = new Button("Go to Study Availability");
     private final ListView<String> courseList = new ListView<>();
+    private final Button bigPictureButton = new Button("Big Picture");
+
 
     public CourseView() {
         setPadding(new Insets(20));
@@ -76,6 +78,9 @@ public class CourseView extends BorderPane {
         setCenter(main);
 
         VBox.setVgrow(courseList, Priority.ALWAYS);
+    }
+    public Button getBigPictureButton() {
+        return bigPictureButton;
     }
 
 

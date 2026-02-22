@@ -12,6 +12,8 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
     private Runnable onNavigateToAssignments;
     private Runnable onNavigateToStudyAvailability; 
     private Runnable onNavigateToDashboard;
+    private Runnable onBigPicture;
+
 
     public CoursePresenter(Model model, CourseView view) {
         super(model, view);
@@ -34,7 +36,10 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
                 onNavigateToDashboard.run();
             }
         });
-        
+
+        view.getBigPictureButton().setOnAction(e -> {
+            if (onBigPicture != null) onBigPicture.run();
+        });
         updateView();
     }
 
@@ -61,6 +66,10 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
     public void setOnNavigateToDashboard(Runnable action) {
         this.onNavigateToDashboard = action;
     }
+    public void setOnBigPicture(Runnable r) {
+        onBigPicture = r;
+    }
+
 
     private void handleAdd() {
         try {
