@@ -3,6 +3,7 @@ package edu.ucsd.studentclock.presenter;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
@@ -71,73 +72,71 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
             view.getChart().getData().clear();
             return;
         }
-        // TODO (US10-1 / US10-6):
-        // Uses BigPictureEffectiveRanges for late days + series chaining.
-        // If this logic changes, update start/end + loop conditions accordingly.
+        Map<Assignment, LocalDate[]> effectiveRanges =
+                BigPictureEffectiveRanges.computeEffectiveRanges(assignments);
 
-        // NOTE: This currently uses raw start/deadline dates.
-        // Should be updated to use BigPictureEffectiveRanges (effectiveStart/effectiveEnd)
-        // to support late days and assignment series chaining.
-        LocalDate start = assignments.stream()
-            .map(a -> a.getStart().toLocalDate())
-            .min(LocalDate::compareTo)
-            .get();
+        // Chart date range: min effective start → max effective end
+        LocalDate start = effectiveRanges.values().stream()
+                .map(r -> r[0])
+                .min(LocalDate::compareTo)
+                .get();
 
-        LocalDate end = assignments.stream()
-            .map(a -> a.getDeadline().toLocalDate())
-            .max(LocalDate::compareTo)
-            .get();
-        //THIS section
+        LocalDate end = effectiveRanges.values().stream()
+                .map(r -> r[1])
+                .max(LocalDate::compareTo)
+                .get();
         XYChart.Series<String, Number> workload = new XYChart.Series<>();
         workload.setName("Workload");
 
         XYChart.Series<String, Number> burndown = new XYChart.Series<>();
-        burndown.setName("Ideal Burndown");
+        burndown.setName("IdealBurndown");
 
         long days = ChronoUnit.DAYS.between(start, end);
         double runningWorkload = 0;
 
+        // assignments that CAUSED the current plateau
         List<Assignment> plateauAssignments = null;
 
         for (int i = 0; i <= days; i++) {
             LocalDate day = start.plusDays(i);
 
-            List<Assignment> todaysAssignments = assignments.stream()
-                .filter(a -> a.getStart().toLocalDate().equals(day))
-                .collect(Collectors.toList());
+            // assignments that START today
+            List<Assignment> startsToday = assignments.stream()
+                    .filter(a -> effectiveRanges.get(a)[0].equals(day))
+                    .collect(Collectors.toList());
 
-            if (!todaysAssignments.isEmpty()) {
-                for (Assignment a : todaysAssignments) {
-                    // TODO (US10-2 / US10-5): switch from estimatedHours to remainingHours
-                    // so workload reflects actual progress when hours are logged
-                    runningWorkload += a.getEstimatedHours();
+            if (!startsToday.isEmpty()) {
+                for (Assignment a : startsToday) {
+                    // staircase jump
+                    runningWorkload += a.getRemainingHours();
                 }
-                plateauAssignments = List.copyOf(todaysAssignments);
+                plateauAssignments = List.copyOf(startsToday);
             }
 
             String label = day.getMonthValue() + "/" + day.getDayOfMonth();
 
             XYChart.Data<String, Number> dataPoint =
-                new XYChart.Data<>(label, runningWorkload);
+                    new XYChart.Data<>(label, runningWorkload);
 
+            // every dot on plateau shares same hover assignments
             dataPoint.setExtraValue(plateauAssignments);
 
             workload.getData().add(dataPoint);
         }
 
+        // max workload (first height)
         double maxWork = workload.getData().isEmpty()
-            ? 0
-            : workload.getData().get(workload.getData().size() - 1).getYValue().doubleValue();
+                ? 0
+                : workload.getData().get(workload.getData().size() - 1).getYValue().doubleValue();
 
+        // IDEAL burndown (straight line)
         if (!workload.getData().isEmpty()) {
             String first = workload.getData().get(0).getXValue();
             String last = workload.getData().get(workload.getData().size() - 1).getXValue();
-            // TODO (US10-5): burndown currently ideal/placeholder.
-            // Replace with real remaining-hours-per-day calculation.
             burndown.getData().add(new XYChart.Data<>(first, maxWork));
             burndown.getData().add(new XYChart.Data<>(last, 0));
         }
-
+    
         view.getChart().getData().setAll(List.of(workload, burndown));
 
         NumberAxis yAxis = (NumberAxis) view.getChart().getYAxis();
