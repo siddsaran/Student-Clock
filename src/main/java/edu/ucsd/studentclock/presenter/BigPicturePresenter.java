@@ -73,6 +73,9 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
             .sorted((a1, a2) -> a1.getStart().compareTo(a2.getStart()))
             .collect(Collectors.toList());
 
+        // NOTE: This currently uses raw start/deadline dates.
+        // Should be updated to use BigPictureEffectiveRanges (effectiveStart/effectiveEnd)
+        // to support late days and assignment series chaining.
         LocalDate start = assignments.stream()
             .map(a -> a.getStart().toLocalDate())
             .min(LocalDate::compareTo)
@@ -82,7 +85,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
             .map(a -> a.getDeadline().toLocalDate())
             .max(LocalDate::compareTo)
             .get();
-
+        //THIS section
         XYChart.Series<String, Number> workload = new XYChart.Series<>();
         workload.setName("Workload");
 
