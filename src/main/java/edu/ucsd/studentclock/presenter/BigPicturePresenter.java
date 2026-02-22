@@ -63,19 +63,18 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = repository.getAllAssignments();
-        view.getChart().getData().clear();
+        List<Assignment> assignments = repository.getAllAssignments().stream()
+                .filter(a -> !a.isDone())
+                .collect(Collectors.toList());
 
-        if (assignments.isEmpty()) return;
+        if (assignments.isEmpty()) {
+            view.getChart().getData().clear();
+            return;
+        }
+        // TODO (US10-1 / US10-6):
+        // Uses BigPictureEffectiveRanges for late days + series chaining.
+        // If this logic changes, update start/end + loop conditions accordingly.
 
-        // Sort assignments by start date for deterministic behavior
-        assignments = assignments.stream()
-            .sorted((a1, a2) -> a1.getStart().compareTo(a2.getStart()))
-            .collect(Collectors.toList());
-
-        // NOTE: This currently uses raw start/deadline dates.
-        // Should be updated to use BigPictureEffectiveRanges (effectiveStart/effectiveEnd)
-        // to support late days and assignment series chaining.
         LocalDate start = assignments.stream()
             .map(a -> a.getStart().toLocalDate())
             .min(LocalDate::compareTo)
@@ -106,6 +105,8 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
 
             if (!todaysAssignments.isEmpty()) {
                 for (Assignment a : todaysAssignments) {
+                    // TODO (US10-2 / US10-5): switch from estimatedHours to remainingHours
+                    // so workload reflects actual progress when hours are logged
                     runningWorkload += a.getEstimatedHours();
                 }
                 plateauAssignments = List.copyOf(todaysAssignments);
@@ -128,11 +129,13 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
         if (!workload.getData().isEmpty()) {
             String first = workload.getData().get(0).getXValue();
             String last = workload.getData().get(workload.getData().size() - 1).getXValue();
+            // TODO (US10-5): burndown currently ideal/placeholder.
+            // Replace with real remaining-hours-per-day calculation.
             burndown.getData().add(new XYChart.Data<>(first, maxWork));
             burndown.getData().add(new XYChart.Data<>(last, 0));
         }
 
-        view.getChart().getData().setAll(workload, burndown);
+        view.getChart().getData().setAll(List.of(workload, burndown));
 
         NumberAxis yAxis = (NumberAxis) view.getChart().getYAxis();
         yAxis.setAutoRanging(false);
