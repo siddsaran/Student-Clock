@@ -92,7 +92,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
         workload.setName("Workload");
 
         XYChart.Series<String, Number> burndown = new XYChart.Series<>();
-        burndown.setName("Burndown");
+        burndown.setName("Ideal Burndown");
 
         long days = ChronoUnit.DAYS.between(start, end);
         double runningWorkload = 0;
