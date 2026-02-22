@@ -3,8 +3,10 @@ package edu.ucsd.studentclock.view;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import javafx.geometry.Insets;
 import javafx.scene.control.ListCell;
@@ -38,6 +40,18 @@ public class AssignmentView extends BorderPane {
     private final TextField seriesIdField = new TextField();
     private final TextField seriesNameField = new TextField();
     private final TextField seriesDefaultLateDaysField = new TextField();
+
+    private static final String SERIES_CHOICE_NONE = "No series";
+    private static final String SERIES_CHOICE_NEW = "Create new series";
+    private static final String SERIES_CHOICE_EXISTING = "Add to existing series";
+
+    private final ComboBox<String> seriesChoiceBox = new ComboBox<>();
+    private final TextField addFormNewSeriesNameField = new TextField();
+    private final TextField addFormNewSeriesIdField = new TextField();
+    private final TextField addFormNewDefaultLateDaysField = new TextField();
+    private final ComboBox<Series> existingSeriesBox = new ComboBox<>();
+    private final GridPane addFormNewSeriesPanel = new GridPane();
+    private final HBox addFormExistingSeriesRow = new HBox(10);
 
     private final Button addButton = new Button("Add Assignment");
     private final Button deleteButton = new Button("Delete Assignment");
@@ -82,6 +96,64 @@ public class AssignmentView extends BorderPane {
         seriesDefaultLateDaysField.setPromptText("Default late days");
         manualHoursField.setPromptText("Hours worked (e.g., 1.5)");
 
+        addFormNewSeriesNameField.setPromptText("Series name");
+        addFormNewSeriesIdField.setPromptText("Series ID (optional)");
+        addFormNewDefaultLateDaysField.setPromptText("Default late days");
+        addFormNewDefaultLateDaysField.setText("0");
+
+        seriesChoiceBox.getItems().setAll(SERIES_CHOICE_NONE, SERIES_CHOICE_NEW, SERIES_CHOICE_EXISTING);
+        seriesChoiceBox.getSelectionModel().select(SERIES_CHOICE_NONE);
+        seriesChoiceBox.setMaxWidth(Double.MAX_VALUE);
+
+        addFormNewSeriesPanel.setHgap(10);
+        addFormNewSeriesPanel.setVgap(10);
+        addFormNewSeriesPanel.add(new Label("Series name"), 0, 0);
+        addFormNewSeriesPanel.add(addFormNewSeriesNameField, 1, 0);
+        addFormNewSeriesPanel.add(new Label("Series ID (optional)"), 0, 1);
+        addFormNewSeriesPanel.add(addFormNewSeriesIdField, 1, 1);
+        addFormNewSeriesPanel.add(new Label("Default late days"), 0, 2);
+        addFormNewSeriesPanel.add(addFormNewDefaultLateDaysField, 1, 2);
+
+        existingSeriesBox.setPromptText("Select series");
+        existingSeriesBox.setMaxWidth(Double.MAX_VALUE);
+        existingSeriesBox.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(Series item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getName());
+            }
+        });
+        existingSeriesBox.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override
+            protected void updateItem(Series item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? null : item.getName());
+            }
+        });
+
+        addFormNewSeriesPanel.setVisible(false);
+        addFormNewSeriesPanel.setManaged(false);
+        addFormExistingSeriesRow.getChildren().setAll(new Label("Existing series"), existingSeriesBox);
+        addFormExistingSeriesRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(existingSeriesBox, Priority.ALWAYS);
+        addFormExistingSeriesRow.setVisible(false);
+        addFormExistingSeriesRow.setManaged(false);
+
+        seriesChoiceBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean showNew = SERIES_CHOICE_NEW.equals(newVal);
+            boolean showExisting = SERIES_CHOICE_EXISTING.equals(newVal);
+            addFormNewSeriesPanel.setVisible(showNew);
+            addFormNewSeriesPanel.setManaged(showNew);
+            addFormExistingSeriesRow.setVisible(showExisting);
+            addFormExistingSeriesRow.setManaged(showExisting);
+            if (showExisting && presenter != null) {
+                String course = courseBox.getValue();
+                if (course != null && !course.isBlank()) {
+                    refreshExistingSeriesForCourse(course);
+                }
+            }
+        });
+
         form.add(new Label("Assignment Name"), 0, 0);
         form.add(nameField, 1, 0);
 
@@ -97,10 +169,18 @@ public class AssignmentView extends BorderPane {
         form.add(new Label("Estimated Hours"), 0, 4);
         form.add(estimatedHoursField, 1, 4);
 
+        form.add(new Label("Series"), 0, 5);
+        form.add(seriesChoiceBox, 1, 5);
+
+        VBox seriesOptionsContainer = new VBox(10);
+        seriesOptionsContainer.getChildren().addAll(addFormNewSeriesPanel, addFormExistingSeriesRow);
+        form.add(seriesOptionsContainer, 1, 6);
+
         HBox navBar = new HBox(10,
                 courseButton,
                 studyAvailabilityButton,
-                dashboardButton
+                dashboardButton,
+                bigPictureButton
         );
         navBar.setAlignment(Pos.CENTER_LEFT);
 
@@ -223,6 +303,12 @@ public class AssignmentView extends BorderPane {
         bottom.setPadding(new Insets(10, 0, 0, 0));
         setBottom(bottom);
 
+        courseBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (SERIES_CHOICE_EXISTING.equals(seriesChoiceBox.getValue()) && presenter != null && newVal != null && !newVal.isBlank()) {
+                refreshExistingSeriesForCourse(newVal);
+            }
+        });
+
         addButton.setOnAction(e -> handleCreate());
         deleteButton.setOnAction(e -> handleDelete());
         createSeriesButton.setOnAction(e -> handleCreateSeriesAndLink());
@@ -264,8 +350,8 @@ public class AssignmentView extends BorderPane {
 
     private void handleCreate() {
         try {
-            String name = nameField.getText();
-            double estimate = Double.parseDouble(estimatedHoursField.getText());
+            String name = nameField.getText().trim();
+            double estimate = Double.parseDouble(estimatedHoursField.getText().trim());
             String course = courseBox.getValue();
 
             LocalDate startDate = startPicker.getValue();
@@ -275,19 +361,83 @@ public class AssignmentView extends BorderPane {
                 throw new IllegalArgumentException("All fields required");
             }
 
-            presenter.createAssignment(
-                    name,
-                    course,
-                    startDate.atStartOfDay(),
-                    deadlineDate.atStartOfDay(),
-                    0,
-                    estimate
-            );
+            String seriesChoice = seriesChoiceBox.getValue();
+
+            if (seriesChoice == null || SERIES_CHOICE_NONE.equals(seriesChoice)) {
+                presenter.createAssignment(
+                        name,
+                        course,
+                        startDate.atStartOfDay(),
+                        deadlineDate.atStartOfDay(),
+                        0,
+                        estimate,
+                        null
+                );
+            } else if (SERIES_CHOICE_NEW.equals(seriesChoice)) {
+                String seriesName = addFormNewSeriesNameField.getText().trim();
+                if (seriesName.isEmpty()) {
+                    throw new IllegalArgumentException("Series name is required when creating a new series");
+                }
+                String seriesId = addFormNewSeriesIdField.getText().trim();
+                if (seriesId.isEmpty()) {
+                    seriesId = "series-" + UUID.randomUUID().toString();
+                }
+                int defaultLateDays = 0;
+                String lateDaysStr = addFormNewDefaultLateDaysField.getText().trim();
+                if (!lateDaysStr.isEmpty()) {
+                    defaultLateDays = Integer.parseInt(lateDaysStr);
+                }
+                presenter.createSeries(seriesId, course, seriesName, defaultLateDays);
+                presenter.createAssignment(
+                        name,
+                        course,
+                        startDate.atStartOfDay(),
+                        deadlineDate.atStartOfDay(),
+                        defaultLateDays,
+                        estimate,
+                        seriesId
+                );
+                clearAddFormSeriesInputs();
+            } else if (SERIES_CHOICE_EXISTING.equals(seriesChoice)) {
+                Series selected = existingSeriesBox.getValue();
+                if (selected == null) {
+                    throw new IllegalArgumentException("Select a series to add this assignment to");
+                }
+                presenter.createAssignment(
+                        name,
+                        course,
+                        startDate.atStartOfDay(),
+                        deadlineDate.atStartOfDay(),
+                        selected.getDefaultLateDays(),
+                        estimate,
+                        selected.getId()
+                );
+            }
 
             clearInputs();
+
+        } catch (NumberFormatException ex) {
+            new Alert(Alert.AlertType.ERROR, "Enter valid numbers for estimated hours and late days").showAndWait();
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
         }
+    }
+
+    private void refreshExistingSeriesForCourse(String courseId) {
+        if (presenter == null) return;
+        List<Series> seriesList = presenter.getSeriesForCourse(courseId);
+        Series current = existingSeriesBox.getValue();
+        existingSeriesBox.getItems().setAll(seriesList);
+        existingSeriesBox.getSelectionModel().clearSelection();
+        if (current != null && seriesList.contains(current)) {
+            existingSeriesBox.getSelectionModel().select(current);
+        }
+    }
+
+    private void clearAddFormSeriesInputs() {
+        addFormNewSeriesNameField.clear();
+        addFormNewSeriesIdField.clear();
+        addFormNewDefaultLateDaysField.setText("0");
     }
 
     private void handleDelete() {
@@ -317,8 +467,12 @@ public class AssignmentView extends BorderPane {
 
     private void clearInputs() {
         nameField.clear();
+        estimatedHoursField.clear();
         startPicker.setValue(null);
         deadlinePicker.setValue(null);
+        clearAddFormSeriesInputs();
+        seriesChoiceBox.getSelectionModel().select(SERIES_CHOICE_NONE);
+        existingSeriesBox.getSelectionModel().clearSelection();
     }
 
     private void clearSeriesInputs() {

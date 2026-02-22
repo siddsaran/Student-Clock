@@ -185,25 +185,99 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * @param start start date/time
      * @param deadline deadline date/time
      * @param lateDays allowed late days
-     * @param estimate estimated hours  
+     * @param estimate estimated hours
      */
     public void createAssignment(String name,
                                  String course,
                                  LocalDateTime start,
                                  LocalDateTime deadline,
                                  int lateDays,
-                                double estimate) {
+                                 double estimate) {
+        createAssignment(name, course, start, deadline, lateDays, estimate, null);
+    }
+
+    /**
+     * Creates a new assignment and stores it in the database, optionally in a series.
+     * When seriesId is non-null, the series must exist and its default late days are used.
+     *
+     * @param name assignment name
+     * @param course course id
+     * @param start start date/time
+     * @param deadline deadline date/time
+     * @param lateDays allowed late days (used only when seriesId is null)
+     * @param estimate estimated hours
+     * @param seriesId optional series id; if non-null, assignment is linked and series default late days are used
+     */
+    public void createAssignment(String name,
+                                 String course,
+                                 LocalDateTime start,
+                                 LocalDateTime deadline,
+                                 int lateDays,
+                                 double estimate,
+                                 String seriesId) {
+        int effectiveLateDays = lateDays;
+        String effectiveSeriesId = seriesId == null || seriesId.isBlank() ? null : seriesId.trim();
+
+        if (effectiveSeriesId != null) {
+            Series series = model.getSeries(effectiveSeriesId)
+                    .orElseThrow(() -> new IllegalArgumentException("Series not found: " + effectiveSeriesId));
+            effectiveLateDays = series.getDefaultLateDays();
+        }
 
         Assignment assignment = new Assignment(
                 name,
                 course,
+                effectiveSeriesId,
                 start,
                 deadline,
-                lateDays,
+                effectiveLateDays,
                 estimate
         );
         repository.addAssignment(assignment);
         updateView();
+    }
+
+    /**
+     * Creates a new series and stores it. Used when adding the first assignment of a new series.
+     *
+     * @param seriesId series id
+     * @param courseId course id
+     * @param seriesName display name
+     * @param defaultLateDays default late days for assignments in this series
+     */
+    public void createSeries(String seriesId,
+                             String courseId,
+                             String seriesName,
+                             int defaultLateDays) {
+        String trimmedId = seriesId == null ? null : seriesId.trim();
+        String trimmedName = seriesName == null ? null : seriesName.trim();
+        if (trimmedId == null || trimmedId.isEmpty()) {
+            throw new IllegalArgumentException("Series ID is required");
+        }
+        if (courseId == null || courseId.isBlank()) {
+            throw new IllegalArgumentException("Course is required");
+        }
+        if (trimmedName == null || trimmedName.isEmpty()) {
+            throw new IllegalArgumentException("Series name is required");
+        }
+        if (defaultLateDays < 0) {
+            throw new IllegalArgumentException("Default late days must be >= 0");
+        }
+        Series series = new Series(trimmedId, courseId, trimmedName, defaultLateDays);
+        model.addSeries(series);
+    }
+
+    /**
+     * Returns all series for the given course, for use in "Add to existing series" dropdown.
+     *
+     * @param courseId course id
+     * @return list of series for that course (never null)
+     */
+    public List<Series> getSeriesForCourse(String courseId) {
+        if (courseId == null || courseId.isBlank()) {
+            return List.of();
+        }
+        return model.getSeriesByCourse(courseId);
     }
 
     public void setCourseFilter(String courseIdOrAllCourses) {
