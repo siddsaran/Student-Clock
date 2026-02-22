@@ -75,6 +75,9 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
         // Uses BigPictureEffectiveRanges for late days + series chaining.
         // If this logic changes, update start/end + loop conditions accordingly.
 
+        // NOTE: This currently uses raw start/deadline dates.
+        // Should be updated to use BigPictureEffectiveRanges (effectiveStart/effectiveEnd)
+        // to support late days and assignment series chaining.
         LocalDate start = assignments.stream()
             .map(a -> a.getStart().toLocalDate())
             .min(LocalDate::compareTo)
