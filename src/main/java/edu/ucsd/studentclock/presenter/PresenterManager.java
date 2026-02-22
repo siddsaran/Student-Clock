@@ -26,7 +26,10 @@ public class PresenterManager {
         PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
 
         // Navigate from courses to assignments
-        coursePresenter.setOnNavigateToAssignments(() -> switcher.switchTo(assignmentPresenter));
+        coursePresenter.setOnNavigateToAssignments(() -> {
+            assignmentPresenter.setShowOnlyOpen(false);
+            switcher.switchTo(assignmentPresenter);
+        });
         
         // Navigate from courses to study availability
         coursePresenter.setOnNavigateToStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
@@ -46,7 +49,15 @@ public class PresenterManager {
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
         // Navigate from dashboard to courses
-        dashboardPresenter.setOnBack(() -> switcher.switchTo(assignmentPresenter));
+        dashboardPresenter.setOnShowOpenAssignments(() -> {
+            assignmentPresenter.setShowOnlyOpen(true);
+            switcher.switchTo(assignmentPresenter);
+        });
+
+        dashboardPresenter.setOnAllAssignments(() -> {
+            assignmentPresenter.setShowOnlyOpen(false);
+            switcher.switchTo(assignmentPresenter);
+        });
 
         // Navigate from dashboard to BigPictureView
         dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));;
