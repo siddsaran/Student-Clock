@@ -1,5 +1,6 @@
 package edu.ucsd.studentclock.view;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -7,14 +8,12 @@ import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.presenter.DashboardPresenter;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -32,6 +31,19 @@ public class DashboardView extends BorderPane {
     private final Button showOpenButton = new Button("Show Open");
     private final Button bigPictureButton = new Button("Big Picture");
 
+    // Date/time display
+    private final Label dateTimeLabel = new Label();
+
+    // mock time controls
+    private final ToggleButton mockToggle = new ToggleButton("Use Mock Time");
+    private final DatePicker mockDatePicker = new DatePicker(LocalDate.now());
+    private final Spinner<Integer> hourSpinner = new Spinner<>(0, 23, 12);
+    private final Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, 0);
+    private final Button setMockButton = new Button("Set Mock Date/Time");
+
+    // Used by row coloring so it reflects mock/real time (no LocalDateTime.now() here)
+    private final ObjectProperty<LocalDateTime> nowProperty =
+            new SimpleObjectProperty<>(LocalDateTime.now());
 
     public DashboardView() {
 
@@ -52,7 +64,21 @@ public class DashboardView extends BorderPane {
 
         topBar.getChildren().addAll(title, spacer, studyHoursLabel);
 
-        VBox topContainer = new VBox(10, topBar, statusRow);
+        // Mock controls row
+        hourSpinner.setEditable(true);
+        minuteSpinner.setEditable(true);
+
+        HBox mockRow = new HBox(8,
+                mockToggle,
+                new Label("Mock Date:"), mockDatePicker,
+                new Label("Time:"), hourSpinner, new Label(":"), minuteSpinner,
+                setMockButton
+        );
+        mockRow.setAlignment(Pos.CENTER_LEFT);
+
+        setMockControlsEnabled(false);
+
+        VBox topContainer = new VBox(10, topBar, statusRow, dateTimeLabel, mockRow);
         setTop(topContainer);
 
         TableColumn<Assignment, String> nameCol =
@@ -92,9 +118,11 @@ public class DashboardView extends BorderPane {
                     return;
                 }
 
+                LocalDateTime now = nowProperty.get();
+                if (now == null) now = LocalDateTime.now();
+
                 AssignmentStatus status =
-                        AssignmentStatusCalculator.behindStatus(
-                                a, LocalDateTime.now());
+                        AssignmentStatusCalculator.behindStatus(a, now);
 
                 switch (status) {
                     case RED:
@@ -128,10 +156,31 @@ public class DashboardView extends BorderPane {
         bottom.setPadding(new Insets(15));
         setBottom(bottom);
     }
+
+    private void setMockControlsEnabled(boolean enabled) {
+        mockDatePicker.setDisable(!enabled);
+        hourSpinner.setDisable(!enabled);
+        minuteSpinner.setDisable(!enabled);
+        setMockButton.setDisable(!enabled);
+    }
+
+    public void syncMockToggleState(boolean usingMock) {
+        mockToggle.setSelected(usingMock);
+        mockToggle.setText(usingMock ? "Using Mock Time" : "Use Mock Time");
+        setMockControlsEnabled(usingMock);
+    }
+
+    public void setDateTimeText(String text) {
+        dateTimeLabel.setText(text);
+    }
+
+    public void showError(String msg) {
+        new Alert(Alert.AlertType.ERROR, msg).showAndWait();
+    }
+
     public Button getBigPictureButton() {
         return bigPictureButton;
     }
-
 
     public void setPresenter(DashboardPresenter presenter) {
         this.presenter = presenter;
@@ -139,7 +188,9 @@ public class DashboardView extends BorderPane {
 
     public void showAssignments(List<Assignment> assignments,
                                 LocalDateTime now) {
+        nowProperty.set(now);
         table.setItems(FXCollections.observableArrayList(assignments));
+        table.refresh();
     }
 
     public void setStudyHoursRemaining(int hours) {
@@ -182,4 +233,10 @@ public class DashboardView extends BorderPane {
     public Button getShowOpenButton() {
         return showOpenButton;
     }
+
+    public ToggleButton getMockToggle() { return mockToggle; }
+    public DatePicker getMockDatePicker() { return mockDatePicker; }
+    public Spinner<Integer> getHourSpinner() { return hourSpinner; }
+    public Spinner<Integer> getMinuteSpinner() { return minuteSpinner; }
+    public Button getSetMockButton() { return setMockButton; }
 }

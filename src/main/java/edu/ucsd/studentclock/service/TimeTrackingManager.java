@@ -11,20 +11,19 @@ import java.time.Instant;
  */
 public class TimeTrackingManager {
 
-    private final Clock clock;
-
+    private final TimeService timeService;
     private Assignment activeAssignment;
     private Instant clockInInstant;
 
     public TimeTrackingManager() {
-        this(Clock.systemDefaultZone());
+        this(new TimeService());
     }
 
-    public TimeTrackingManager(Clock clock) {
-        if (clock == null) {
+    public TimeTrackingManager(TimeService timeService) {
+        if (timeService == null) {
             throw new NullPointerException("clock must not be null");
         }
-        this.clock = clock;
+        this.timeService = timeService;
     }
 
     /**
@@ -47,7 +46,7 @@ public class TimeTrackingManager {
         }
 
         this.activeAssignment = assignment;
-        this.clockInInstant = clock.instant();
+        this.clockInInstant = timeService.nowInstant();
     }
 
     /**
@@ -59,7 +58,7 @@ public class TimeTrackingManager {
             throw new IllegalStateException("Not currently clocked into any assignment");
         }
 
-        Instant out = clock.instant();
+        Instant out = timeService.nowInstant();
 
         double hoursWorked = Duration.between(clockInInstant, out).toMinutes() / 60.0;
 
