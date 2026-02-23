@@ -69,6 +69,7 @@ public class AssignmentView extends BorderPane {
     private final Button courseButton = new Button("Go to Courses");
     private final Button studyAvailabilityButton = new Button("Go to Study Availability");
     private final Button bigPictureButton = new Button("Big Picture");
+    private final Button showAllAssignmentsButton = new Button("Show All Assignments");
 
     private final ListView<AssignmentListEntry> assignmentList = new ListView<>();
 
@@ -289,8 +290,10 @@ public class AssignmentView extends BorderPane {
                 seriesBox
         );
 
+        HBox assignmentsHeader = new HBox(15, assignmentsTitle, showAllAssignmentsButton);
+        assignmentsHeader.setAlignment(Pos.CENTER_LEFT);
         VBox rightPanel = new VBox(10,
-                assignmentsTitle,
+                assignmentsHeader,
                 assignmentList,
                 trackingBox
         );
@@ -328,6 +331,12 @@ public class AssignmentView extends BorderPane {
         courseBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (suppressCourseListener) return;
             if (presenter != null) presenter.setCourseFilter(newVal);
+        });
+
+        showAllAssignmentsButton.setOnAction(e -> {
+            if (presenter != null) {
+                presenter.setCourseFilter(ALL_COURSES);
+            }
         });
     }
 
