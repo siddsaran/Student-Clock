@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
 
@@ -254,4 +255,64 @@ class ModelTest {
         assertEquals("pa-series", inSeries.get(0).getSeriesId());
     }
 
+    @Test
+    void deleteCourseNoOpsOnNullOrBlank() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.deleteCourse(null);
+        assertTrue(model.getCourse("CSE 110").isPresent());
+
+        model.deleteCourse("   ");
+        assertTrue(model.getCourse("CSE 110").isPresent());
+    }
+
+    @Test
+    void selectedAssignmentRoundTrips() {
+        Assignment a = new Assignment(
+                "PA1",
+                "CSE 110",
+                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
+                0,
+                2.0
+        );
+
+        assertNull(model.getSelectedAssignment());
+        model.setSelectedAssignment(a);
+        assertEquals(a, model.getSelectedAssignment());
+    }
+
+    @Test
+    void setTotalWeeklyHoursPersistsToRepository() {
+        model.setTotalWeeklyHours(12);
+        StudyAvailability loaded = saRepository.load().orElseThrow();
+        assertEquals(12, loaded.getTotalWeeklyHours());
+    }
+
+    @Test
+    void setAvailableAndDailyLimitPersistToRepository() {
+        model.setTotalWeeklyHours(10);
+
+        model.setAvailable(DayOfWeek.MONDAY, true);
+        model.setDailyLimit(DayOfWeek.MONDAY, 3);
+
+        StudyAvailability loaded = saRepository.load().orElseThrow();
+        assertEquals(10, loaded.getTotalWeeklyHours());
+        assertTrue(loaded.isAvailable(DayOfWeek.MONDAY));
+        assertEquals(3, loaded.getDailyLimit(DayOfWeek.MONDAY));
+    }
+
+    @Test
+    void modelConstructorLoadsExistingAvailabilityWhenPresent() throws SQLException {
+        StudyAvailability preset = new StudyAvailability();
+        preset.setTotalWeeklyHours(7);
+        preset.setAvailable(DayOfWeek.WEDNESDAY, true);
+        preset.setDailyLimit(DayOfWeek.WEDNESDAY, 2);
+        saRepository.save(preset);
+
+        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository);
+        StudyAvailability a = reloaded.getStudyAvailability();
+        assertEquals(7, a.getTotalWeeklyHours());
+        assertTrue(a.isAvailable(DayOfWeek.WEDNESDAY));
+        assertEquals(2, a.getDailyLimit(DayOfWeek.WEDNESDAY));
+    }
 }
