@@ -4,6 +4,7 @@ import java.time.DayOfWeek;
 
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
+import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
 
 /**
@@ -94,7 +95,7 @@ public class StudyAvailabilityPresenter
 
         model.saveStudyAvailability();
 
-        view.showMessage("Saved weekly study hours: " + hours);
+        view.showMessage("Saved weekly study hours: " + TimeFormatUtils.formatHoursAsHHMM(hours));
     }
 
     public void onBack() {

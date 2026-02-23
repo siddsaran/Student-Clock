@@ -14,6 +14,7 @@ import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.service.TimeService;
 import edu.ucsd.studentclock.view.DashboardView;
 import javafx.animation.KeyFrame;
@@ -23,6 +24,7 @@ import javafx.util.Duration;
 public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     private final AssignmentRepository assignmentRepo;
+    private final WorkLogRepository workLogRepo;
     private final TimeService timeService;
 
     private Runnable onBack;
@@ -37,10 +39,12 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     public DashboardPresenter(Model model,
                               DashboardView view,
-                              AssignmentRepository assignmentRepo) {
+                              AssignmentRepository assignmentRepo,
+                              WorkLogRepository workLogRepo) {
 
         super(model, view);
         this.assignmentRepo = assignmentRepo;
+        this.workLogRepo = workLogRepo;
         this.timeService = model.getTimeService();
 
         view.setPresenter(this);
@@ -120,22 +124,22 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         StudyAvailability sa = model.getStudyAvailability();
 
         int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
-        int workNext7Days = computeRemainingWorkNext7Days(assignmentRepo.getAllAssignments(), now);
-
-        int remainingStudyHours = Math.max(0, availableFromToday - workNext7Days);
+        double totalLoggedThisWeek = workLogRepo.getTotalHoursLoggedThisWeek();
+        int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);
 
-        AssignmentStatus overallStatus = statusFrom(workNext7Days, availableFromToday);
+        double workNext7Days = computeRemainingWorkNext7Days(assignmentRepo.getAllAssignments(), now);
+        AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
         view.showAssignments(filtered, now);
     }
 
-    private int computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
+    private double computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
         LocalDate today = now.toLocalDate();
         LocalDate end = today.plusDays(7);
 
-        int sum = 0;
+        double sum = 0;
         for (Assignment a : all) {
             if (a.isDone()) continue;
             if (a.getDeadline() == null) continue;
@@ -186,12 +190,12 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         return sum;
     }
 
-    private AssignmentStatus statusFrom(int work, int available) {
+    private AssignmentStatus statusFrom(double work, int available) {
         if (available <= 0) {
             return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
         }
 
-        double ratio = (double) work / (double) available;
+        double ratio = work / (double) available;
 
         if (ratio >= 1.0) return AssignmentStatus.RED;
         if (ratio >= 0.80) return AssignmentStatus.ORANGE;

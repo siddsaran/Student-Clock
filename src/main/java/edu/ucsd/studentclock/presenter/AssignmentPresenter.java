@@ -14,6 +14,7 @@ import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.service.ClockOutResult;
 import edu.ucsd.studentclock.service.TimeTrackingManager;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
@@ -27,6 +28,7 @@ import edu.ucsd.studentclock.service.TimeService;
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
 
     private final AssignmentRepository repository;
+    private final WorkLogRepository workLogRepository;
     private final TimeTrackingManager timeTrackingManager;
     private Runnable onBack;
     private Runnable onCourses;
@@ -47,9 +49,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     public AssignmentPresenter(Model model,
                                AssignmentView view,
-                               AssignmentRepository repository) {
+                               AssignmentRepository repository,
+                               WorkLogRepository workLogRepository) {
         super(model, view);
         this.repository = repository;
+        this.workLogRepository = workLogRepository;
         this.timeService = model.getTimeService();
         this.timeTrackingManager = new TimeTrackingManager(this.timeService);
         view.setPresenter(this);
@@ -367,6 +371,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         }
 
         ClockOutResult result = timeTrackingManager.clockOut();
+        workLogRepository.addWorkLog(result.getSessionHours(), LocalDateTime.now());
 
         repository.addAssignment(active);
 
@@ -415,6 +420,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
 
         Assignment a = findAssignmentById(assignmentId);
         a.applyWork(hours);
+        workLogRepository.addWorkLog(hours, LocalDateTime.now());
         repository.addAssignment(a);
         updateView();
     }
