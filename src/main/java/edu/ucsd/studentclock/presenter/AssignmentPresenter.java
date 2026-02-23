@@ -33,6 +33,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onDashboard;
     private Runnable onBigPicture;
     private String courseFilter = AssignmentView.ALL_COURSES;
+    private boolean showOnlyOpen = false;
+    
 
     /**
      * Creates an AssignmentPresenter.
@@ -104,6 +106,11 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private List<AssignmentListEntry> buildGroupedAssignmentList() {
         List<Assignment> allAssignments = repository.getAllAssignments();
 
+        if (showOnlyOpen) {
+            allAssignments = allAssignments.stream()
+                .filter(a -> !a.isDone())
+                .collect(Collectors.toList());
+        }
         // Optionally filter by the selected course.
         List<Assignment> assignments = allAssignments;
         if (courseFilter != null
@@ -142,22 +149,22 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
             if (courseAssignments == null || courseAssignments.isEmpty()) continue;
 
             // Within each course, group by series id (null = no series).
-            Map<String, List<Assignment>> bySeries = new HashMap<>();
-            for (Assignment a : courseAssignments) {
-                String key = a.getSeriesId() != null ? a.getSeriesId() : null;
-                bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
-            }
+        Map<String, List<Assignment>> bySeries = new HashMap<>();
+        for (Assignment a : courseAssignments) {
+            String key = a.getSeriesId() != null ? a.getSeriesId() : null;
+            bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
+        }
 
-            // No-series first.
-            List<Assignment> noSeriesList = bySeries.get(null);
-            if (noSeriesList != null) {
-                for (Assignment a : noSeriesList) {
-                    result.add(AssignmentListEntry.forRowWithoutTag(a));
-                }
+        // No-series first.
+        List<Assignment> noSeriesList = bySeries.get(null);
+        if (noSeriesList != null) {
+            for (Assignment a : noSeriesList) {
+                result.add(AssignmentListEntry.forRowWithoutTag(a));
             }
+        }
 
-            // Then each series by display name.
-            List<String> seriesIds = courseAssignments.stream()
+         // Then each series by display name.
+        List<String> seriesIds = courseAssignments.stream()
                     .map(Assignment::getSeriesId)
                     .filter(Objects::nonNull)
                     .distinct()
@@ -236,6 +243,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         repository.addAssignment(assignment);
         updateView();
     }
+    
 
     /**
      * Creates a new series and stores it. Used when adding the first assignment of a new series.
@@ -385,11 +393,17 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     public void setOnBigPicture(Runnable r) {
         onBigPicture = r;
     }
+    public void setShowOnlyOpen(boolean value) {
+        this.showOnlyOpen = value;
+        updateView();
+    }
 
 
     public boolean isTracking() {
         return timeTrackingManager.isTracking();
     }  
+
+    
 
     public void applyManualHours(String assignmentId, double hours) {
         if (hours < 0) {
