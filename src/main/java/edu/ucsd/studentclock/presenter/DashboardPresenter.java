@@ -3,6 +3,8 @@ package edu.ucsd.studentclock.presenter;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,15 +14,26 @@ import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
-import edu.ucsd.studentclock.repository.WorkLogRepository;
+import edu.ucsd.studentclock.service.TimeService;
 import edu.ucsd.studentclock.view.DashboardView;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 
 public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     private final AssignmentRepository assignmentRepo;
-    private final WorkLogRepository workLogRepo;
+    private final TimeService timeService;
+
     private Runnable onBack;
     private Runnable onBigPicture;
+    private Runnable onShowOpenAssignments;
+    private Runnable onAllAssignments;
+
+    private final DateTimeFormatter clockFmt =
+            DateTimeFormatter.ofPattern("MMMM d, yyyy — h:mm a");
+
+    private final Timeline ticker;
 
     public DashboardPresenter(Model model,
                               DashboardView view,
@@ -29,23 +42,59 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
         super(model, view);
         this.assignmentRepo = assignmentRepo;
-        this.workLogRepo = workLogRepo;
+        this.timeService = model.getTimeService();
 
         view.setPresenter(this);
 
+        // toggle real/mock time
+        view.syncMockToggleState(timeService.isUsingMock());
+        view.getMockToggle().setOnAction(e -> {
+            boolean useMock = view.getMockToggle().isSelected();
+            if (useMock) {
+                timeService.useMockTime();
+            } else {
+                timeService.useRealTime();
+            }
+            view.syncMockToggleState(timeService.isUsingMock());
+            updateView();
+        });
+
+        // set mock date/time
+        view.getSetMockButton().setOnAction(e -> {
+            try {
+                LocalDate d = view.getMockDatePicker().getValue();
+                LocalTime t = LocalTime.of(
+                        view.getHourSpinner().getValue(),
+                        view.getMinuteSpinner().getValue());
+                timeService.setMockDateTime(d, t);
+                updateView();
+            } catch (Exception ex) {
+                view.showError(ex.getMessage());
+            }
+        });
+
         view.getShowOpenButton().setOnAction(e -> {
-            if (onBack != null) onBack.run();
+            if (onShowOpenAssignments != null) onShowOpenAssignments.run();
         });
 
         view.getBigPictureButton().setOnAction(e -> {
             if (onBigPicture != null) onBigPicture.run();
         });
 
+        // keep dashboard clock fresh (and also refresh urgency coloring)
+        ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateView()));
+        ticker.setCycleCount(Timeline.INDEFINITE);
+        ticker.play();
+        
     }
 
     @Override
     public void updateView() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = timeService.now();
+
+        // show date/time + mode on dashboard
+        String mode = timeService.isUsingMock() ? " (MOCK)" : " (REAL)";
+        view.setDateTimeText(now.format(clockFmt) + mode);
 
         List<Assignment> filtered = assignmentRepo.getAllAssignments().stream()
             .filter(a -> !a.isDone())
@@ -126,7 +175,20 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
     }
 
 
-    private AssignmentStatus statusFrom(double work, int available) {
+    private int computeAvailableHoursNext7Days(StudyAvailability sa, LocalDateTime now) {
+        LocalDate today = now.toLocalDate();
+
+        int sum = 0;
+        for (int i = 0; i < 7; i++) {
+            DayOfWeek d = today.plusDays(i).getDayOfWeek();
+            if (sa.isAvailable(d)) {
+                sum += sa.getDailyLimit(d);
+            }
+        }
+        return sum;
+    }
+
+    private AssignmentStatus statusFrom(int work, int available) {
         if (available <= 0) {
             return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
         }
@@ -138,7 +200,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         if (ratio >= 0.60) return AssignmentStatus.YELLOW;
         return AssignmentStatus.GREEN;
     }
-
 
     private int severityScore(Assignment a, LocalDateTime now) {
         if (AssignmentStatusCalculator.isUrgent(a, now)) return 4;
@@ -158,18 +219,22 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         if (onBack != null) onBack.run();
     }
 
-
-
     public void setOnBack(Runnable action) {
         this.onBack = action;
     }
     public void setOnBigPicture(Runnable r) {
         onBigPicture = r;
     }
+    public void setOnShowOpenAssignments(Runnable r) {
+        onShowOpenAssignments = r;
+    }
+
+    public void setOnAllAssignments(Runnable r) {
+        onAllAssignments = r;
+    }
 
     @Override
     public String getViewTitle() {
         return "Dashboard";
     }
-
 }

@@ -21,6 +21,7 @@ import edu.ucsd.studentclock.service.ClockOutResult;
 import edu.ucsd.studentclock.service.TimeTrackingManager;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
 import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.service.TimeService;
 
 /**
  * Presenter for the Assignment screen.
@@ -36,6 +37,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onStudyAvailability;
     private Runnable onDashboard;
     private Runnable onBigPicture;
+    private String courseFilter = AssignmentView.ALL_COURSES;
+    private final TimeService timeService;
+    private boolean showOnlyOpen = false;
+    
 
     /**
      * Creates an AssignmentPresenter.
@@ -50,8 +55,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                                WorkLogRepository workLogRepository) {
         super(model, view);
         this.repository = repository;
-        this.workLogRepository = workLogRepository;
-        this.timeTrackingManager = new TimeTrackingManager();
+        this.timeService = model.getTimeService();
+        this.timeTrackingManager = new TimeTrackingManager(this.timeService);
         view.setPresenter(this);
         view.getCoursesButton().setOnAction(e -> {
             if (onCourses != null) onCourses.run();
@@ -92,6 +97,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .map(Course::getId)
                 .collect(Collectors.toList());
         view.setCourses(courseIds);
+        view.setSelectedCourse(courseFilter);
         List<AssignmentListEntry> grouped = buildGroupedAssignmentList();
         view.showGroupedAssignments(grouped);
 
@@ -106,7 +112,24 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * series assignments have a tag. Order: no series first, then each series by name.
      */
     private List<AssignmentListEntry> buildGroupedAssignmentList() {
-        List<Assignment> assignments = repository.getAllAssignments();
+        List<Assignment> allAssignments = repository.getAllAssignments();
+
+        if (showOnlyOpen) {
+            allAssignments = allAssignments.stream()
+                .filter(a -> !a.isDone())
+                .collect(Collectors.toList());
+        }
+        // Optionally filter by the selected course.
+        List<Assignment> assignments = allAssignments;
+        if (courseFilter != null
+                && !AssignmentView.ALL_COURSES.equals(courseFilter)
+                && !courseFilter.isBlank()) {
+            assignments = allAssignments.stream()
+                    .filter(a -> courseFilter.equals(a.getCourseID()))
+                    .collect(Collectors.toList());
+        }
+
+        // Pre-compute series display names.
         Map<String, String> seriesIdToName = new HashMap<>();
         for (Assignment a : assignments) {
             String sid = a.getSeriesId();
@@ -118,13 +141,29 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
             }
         }
 
+        // Group by course first, then within each course by series.
+        Map<String, List<Assignment>> byCourse = assignments.stream()
+                .collect(Collectors.groupingBy(Assignment::getCourseID));
+
+        List<String> courseIds = byCourse.keySet().stream()
+                .sorted()
+                .collect(Collectors.toList());
+
+        List<AssignmentListEntry> result = new ArrayList<>();
+        for (String courseId : courseIds) {
+            result.add(AssignmentListEntry.forHeader(courseId));
+
+            List<Assignment> courseAssignments = byCourse.get(courseId);
+            if (courseAssignments == null || courseAssignments.isEmpty()) continue;
+
+            // Within each course, group by series id (null = no series).
         Map<String, List<Assignment>> bySeries = new HashMap<>();
-        for (Assignment a : assignments) {
+        for (Assignment a : courseAssignments) {
             String key = a.getSeriesId() != null ? a.getSeriesId() : null;
             bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
         }
 
-        List<AssignmentListEntry> result = new ArrayList<>();
+        // No-series first.
         List<Assignment> noSeriesList = bySeries.get(null);
         if (noSeriesList != null) {
             for (Assignment a : noSeriesList) {
@@ -132,19 +171,21 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
             }
         }
 
-        List<String> seriesIds = assignments.stream()
-                .map(Assignment::getSeriesId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted(Comparator
-                        .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
-                        .thenComparing(id -> id))
-                .collect(Collectors.toList());
+         // Then each series by display name.
+        List<String> seriesIds = courseAssignments.stream()
+                    .map(Assignment::getSeriesId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .sorted(Comparator
+                            .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
+                            .thenComparing(id -> id))
+                    .collect(Collectors.toList());
 
-        for (String seriesId : seriesIds) {
-            String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
-            for (Assignment a : bySeries.get(seriesId)) {
-                result.add(AssignmentListEntry.forRow(a, displayName));
+            for (String seriesId : seriesIds) {
+                String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
+                for (Assignment a : bySeries.get(seriesId)) {
+                    result.add(AssignmentListEntry.forRow(a, displayName));
+                }
             }
         }
 
@@ -159,24 +200,104 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * @param start start date/time
      * @param deadline deadline date/time
      * @param lateDays allowed late days
-     * @param estimate estimated hours  
+     * @param estimate estimated hours
      */
     public void createAssignment(String name,
                                  String course,
                                  LocalDateTime start,
                                  LocalDateTime deadline,
                                  int lateDays,
-                                double estimate) {
+                                 double estimate) {
+        createAssignment(name, course, start, deadline, lateDays, estimate, null);
+    }
+
+    /**
+     * Creates a new assignment and stores it in the database, optionally in a series.
+     * When seriesId is non-null, the series must exist and its default late days are used.
+     *
+     * @param name assignment name
+     * @param course course id
+     * @param start start date/time
+     * @param deadline deadline date/time
+     * @param lateDays allowed late days (used only when seriesId is null)
+     * @param estimate estimated hours
+     * @param seriesId optional series id; if non-null, assignment is linked and series default late days are used
+     */
+    public void createAssignment(String name,
+                                 String course,
+                                 LocalDateTime start,
+                                 LocalDateTime deadline,
+                                 int lateDays,
+                                 double estimate,
+                                 String seriesId) {
+        int effectiveLateDays = lateDays;
+        String effectiveSeriesId = seriesId == null || seriesId.isBlank() ? null : seriesId.trim();
+
+        if (effectiveSeriesId != null) {
+            Series series = model.getSeries(effectiveSeriesId)
+                    .orElseThrow(() -> new IllegalArgumentException("Series not found: " + effectiveSeriesId));
+            effectiveLateDays = series.getDefaultLateDays();
+        }
 
         Assignment assignment = new Assignment(
                 name,
                 course,
+                effectiveSeriesId,
                 start,
                 deadline,
-                lateDays,
+                effectiveLateDays,
                 estimate
         );
         repository.addAssignment(assignment);
+        updateView();
+    }
+    
+
+    /**
+     * Creates a new series and stores it. Used when adding the first assignment of a new series.
+     *
+     * @param seriesId series id
+     * @param courseId course id
+     * @param seriesName display name
+     * @param defaultLateDays default late days for assignments in this series
+     */
+    public void createSeries(String seriesId,
+                             String courseId,
+                             String seriesName,
+                             int defaultLateDays) {
+        String trimmedId = seriesId == null ? null : seriesId.trim();
+        String trimmedName = seriesName == null ? null : seriesName.trim();
+        if (trimmedId == null || trimmedId.isEmpty()) {
+            throw new IllegalArgumentException("Series ID is required");
+        }
+        if (courseId == null || courseId.isBlank()) {
+            throw new IllegalArgumentException("Course is required");
+        }
+        if (trimmedName == null || trimmedName.isEmpty()) {
+            throw new IllegalArgumentException("Series name is required");
+        }
+        if (defaultLateDays < 0) {
+            throw new IllegalArgumentException("Default late days must be >= 0");
+        }
+        Series series = new Series(trimmedId, courseId, trimmedName, defaultLateDays);
+        model.addSeries(series);
+    }
+
+    /**
+     * Returns all series for the given course, for use in "Add to existing series" dropdown.
+     *
+     * @param courseId course id
+     * @return list of series for that course (never null)
+     */
+    public List<Series> getSeriesForCourse(String courseId) {
+        if (courseId == null || courseId.isBlank()) {
+            return List.of();
+        }
+        return model.getSeriesByCourse(courseId);
+    }
+
+    public void setCourseFilter(String courseIdOrAllCourses) {
+        courseFilter = (courseIdOrAllCourses == null) ? AssignmentView.ALL_COURSES : courseIdOrAllCourses;
         updateView();
     }
 
@@ -281,11 +402,17 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     public void setOnBigPicture(Runnable r) {
         onBigPicture = r;
     }
+    public void setShowOnlyOpen(boolean value) {
+        this.showOnlyOpen = value;
+        updateView();
+    }
 
 
     public boolean isTracking() {
         return timeTrackingManager.isTracking();
     }  
+
+    
 
     public void applyManualHours(String assignmentId, double hours) {
         if (hours < 0) {

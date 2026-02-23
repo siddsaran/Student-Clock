@@ -215,4 +215,43 @@ class ModelTest {
         assertNull(stillUnlinked.getSeriesId());
     }
 
+    @Test
+    void getSeriesByCourseReturnsSeriesForThatCourse() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.addCourse("CSE 101", "Other");
+        model.addSeries(new Series("pa-110", "CSE 110", "PAs", 2));
+        model.addSeries(new Series("pa-101", "CSE 101", "PAs", 1));
+
+        List<Series> cse110 = model.getSeriesByCourse("CSE 110");
+        assertEquals(1, cse110.size());
+        assertEquals("pa-110", cse110.get(0).getId());
+        assertEquals("PAs", cse110.get(0).getName());
+
+        List<Series> cse101 = model.getSeriesByCourse("CSE 101");
+        assertEquals(1, cse101.size());
+        assertEquals("pa-101", cse101.get(0).getId());
+    }
+
+    @Test
+    void addSeriesThenAddAssignmentWithSeriesIdAndDefaultLateDaysStoresCorrectly() {
+        model.addCourse("CSE 110", "Software Engineering");
+        Series series = new Series("pa-series", "CSE 110", "PAs", 2);
+        model.addSeries(series);
+
+        Assignment a = new Assignment(
+                "PA1", "CSE 110", "pa-series",
+                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
+                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
+                series.getDefaultLateDays(), 2.0
+        );
+        assignmentRepository.addAssignment(a);
+
+        assertTrue(model.getSeries("pa-series").isPresent());
+        List<Assignment> inSeries = assignmentRepository.getAssignmentsBySeries("pa-series");
+        assertEquals(1, inSeries.size());
+        assertEquals("PA1", inSeries.get(0).getName());
+        assertEquals(2, inSeries.get(0).getLateDaysAllowed());
+        assertEquals("pa-series", inSeries.get(0).getSeriesId());
+    }
+
 }
