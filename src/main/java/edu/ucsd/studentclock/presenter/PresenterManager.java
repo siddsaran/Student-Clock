@@ -1,5 +1,6 @@
 package edu.ucsd.studentclock.presenter;
 
+import edu.ucsd.studentclock.view.AssignmentView;
 import javafx.stage.Stage;
 
 /**
@@ -44,6 +45,7 @@ public class PresenterManager {
         assignmentPresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
         assignmentPresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
         assignmentPresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
+        assignmentPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
 
         // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
@@ -51,6 +53,7 @@ public class PresenterManager {
         // Navigate from dashboard to courses
         dashboardPresenter.setOnShowOpenAssignments(() -> {
             assignmentPresenter.setShowOnlyOpen(true);
+            assignmentPresenter.setCourseFilter(AssignmentView.ALL_COURSES);
             switcher.switchTo(assignmentPresenter);
         });
 

@@ -14,6 +14,7 @@ import edu.ucsd.studentclock.presenter.DashboardPresenter;
 import edu.ucsd.studentclock.presenter.PresenterManager;
 import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
@@ -52,6 +53,7 @@ public class App extends Application {
         CourseRepository courseRepository = new CourseRepository(connection);
         SeriesRepository seriesRepository = new SeriesRepository(connection);
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
+        AssignmentWorkLogRepository assignmentWorkLogRepository = new AssignmentWorkLogRepository(dataSource);
         StudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(connection);
         WorkLogRepository workLogRepository = new WorkLogRepository(dataSource);
 
@@ -70,7 +72,7 @@ public class App extends Application {
                 new CoursePresenter(sharedModel, courseView);
 
         AssignmentPresenter assignmentPresenter =
-                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository, workLogRepository);
+                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository, workLogRepository, assignmentWorkLogRepository);
         
         StudyAvailabilityPresenter studyAvailabilityPresenter =
                 new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
@@ -79,7 +81,7 @@ public class App extends Application {
         dashboardView.setPresenter(dashboardPresenter);
 
         BigPicturePresenter bigPicturePresenter =
-            new BigPicturePresenter(sharedModel, bigPictureView, assignmentRepository);
+            new BigPicturePresenter(sharedModel, bigPictureView, assignmentRepository, assignmentWorkLogRepository);
         bigPictureView.setPresenter(bigPicturePresenter);
 
 
