@@ -8,6 +8,7 @@ import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
+import edu.ucsd.studentclock.service.TimeService;
 
 
 public class Model {
@@ -18,6 +19,7 @@ public class Model {
     private final AssignmentRepository aRepository;
     private Assignment selectedAssignment;
     private final StudyAvailabilityRepository saRepository;
+    private final TimeService timeService = new TimeService();
 
   
     public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository, StudyAvailabilityRepository saRepository) {
@@ -44,6 +46,10 @@ public class Model {
 
     public void addCourse(Course course) {
         repository.addCourse(course);
+    }
+    
+    public TimeService getTimeService() {
+        return timeService;
     }
 
     /**

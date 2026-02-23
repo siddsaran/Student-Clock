@@ -18,6 +18,7 @@ import edu.ucsd.studentclock.service.ClockOutResult;
 import edu.ucsd.studentclock.service.TimeTrackingManager;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
 import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.service.TimeService;
 
 /**
  * Presenter for the Assignment screen.
@@ -33,6 +34,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onDashboard;
     private Runnable onBigPicture;
     private String courseFilter = AssignmentView.ALL_COURSES;
+    private final TimeService timeService;
 
     /**
      * Creates an AssignmentPresenter.
@@ -46,7 +48,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                                AssignmentRepository repository) {
         super(model, view);
         this.repository = repository;
-        this.timeTrackingManager = new TimeTrackingManager();
+        this.timeService = model.getTimeService();
+        this.timeTrackingManager = new TimeTrackingManager(this.timeService);
         view.setPresenter(this);
         view.getCoursesButton().setOnAction(e -> {
             if (onCourses != null) onCourses.run();

@@ -3,55 +3,42 @@ package edu.ucsd.studentclock.service;
 import edu.ucsd.studentclock.model.Assignment;
 import org.junit.jupiter.api.Test;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TimeTrackingManagerTest {
-
-    static final class MutableClock extends Clock {
-        private Instant instant;
-        private final ZoneId zone;
-
-        MutableClock(Instant start) {
-            this.instant = start;
-            this.zone = ZoneId.of("UTC");
-        }
-
-        void plusSeconds(long seconds) {
-            instant = instant.plusSeconds(seconds);
-        }
-
-        @Override public ZoneId getZone() { return zone; }
-
-        @Override public Clock withZone(ZoneId zone) {
-            return new MutableClock(instant);
-        }
-
-        @Override public Instant instant() { return instant; }
-    }
-
     private static Assignment makeAssignment(double estimatedHours) {
         LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
         LocalDateTime deadline = LocalDateTime.of(2026, 2, 5, 23, 59);
         return new Assignment("Quiz 2 Study", "CSE 110", start, deadline, 0, estimatedHours);
     }
 
+    private static LocalDateTime initMockTime(TimeService timeService) {
+        timeService.useMockTime();
+        return timeService.now();
+    }
+
+    private static void setMock(TimeService timeService, LocalDateTime dt) {
+        timeService.setMockDateTime(dt.toLocalDate(), dt.toLocalTime());
+    }
+
     @Test
     void clockInWithNullThrows() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+        TimeService timeService = new TimeService();
+        initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         assertThrows(NullPointerException.class, () -> manager.clockIn(null));
     }
 
     @Test
     void clockInOnDoneAssignmentThrows() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+        TimeService timeService = new TimeService();
+        initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         Assignment a = makeAssignment(1.0);
         a.markDone();
@@ -61,16 +48,20 @@ class TimeTrackingManagerTest {
 
     @Test
     void clockOutWhenNotClockedInThrows() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+        TimeService timeService = new TimeService();
+        initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         assertThrows(IllegalStateException.class, manager::clockOut);
     }
 
     @Test
     void clockInThenClockOut_updatesCumulativeAndRemaining() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+        TimeService timeService = new TimeService();
+        LocalDateTime base = initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         Assignment a = makeAssignment(10.0);
 
@@ -81,7 +72,8 @@ class TimeTrackingManagerTest {
         assertTrue(manager.isTracking());
         assertEquals(a, manager.getActiveAssignment());
 
-        clock.plusSeconds(90 * 60);
+        // Advance mock time by 90 minutes (1.5 hours)
+        setMock(timeService, base.plusMinutes(90));
 
         ClockOutResult result = manager.clockOut();
 
@@ -94,6 +86,7 @@ class TimeTrackingManagerTest {
         assertEquals(1.5, a.getCumulativeHours());
         assertEquals(a.getCumulativeHours(), result.getCumulativeHours());
 
+        // Expected remaining = 10.0 - 1.5 = 8.5
         assertEquals(8.5, a.getRemainingHours());
         assertEquals(a.getRemainingHours(), result.getRemainingHours());
 
@@ -103,8 +96,10 @@ class TimeTrackingManagerTest {
 
     @Test
     void cannotClockInTwiceWithoutClockOut() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+        TimeService timeService = new TimeService();
+        initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         Assignment a1 = makeAssignment(5.0);
         Assignment a2 = new Assignment(
@@ -125,19 +120,27 @@ class TimeTrackingManagerTest {
     }
 
     @Test
-    void assignmentNotDoneAutomatically() {
-        MutableClock clock = new MutableClock(Instant.parse("2026-02-01T10:00:00Z"));
-        TimeTrackingManager manager = new TimeTrackingManager(clock);
+    void assignmentNotDoneAutomaticallyWhenRemainingHitsZero() {
+        TimeService timeService = new TimeService();
+        LocalDateTime base = initMockTime(timeService);
+
+        TimeTrackingManager manager = new TimeTrackingManager(timeService);
         Assignment a = makeAssignment(3.0);
 
         manager.clockIn(a);
-        clock.plusSeconds(60 * 60 * 4);
+
+        // Advance 4 hours
+        setMock(timeService, base.plusHours(4));
+
         ClockOutResult result = manager.clockOut();
 
         assertEquals(4.0, a.getCumulativeHours());
         assertEquals(a.getCumulativeHours(), result.getCumulativeHours());
+
         assertEquals(0.0, a.getRemainingHours());
         assertEquals(a.getRemainingHours(), result.getRemainingHours());
+
+        // Manager does not auto-mark done (your current behavior)
         assertFalse(a.isDone());
         assertFalse(result.isDone());
     }
