@@ -17,6 +17,7 @@ import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
+import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.BigPictureView;
 import edu.ucsd.studentclock.view.CourseView;
@@ -52,6 +53,7 @@ public class App extends Application {
         SeriesRepository seriesRepository = new SeriesRepository(connection);
         AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
         StudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(connection);
+        WorkLogRepository workLogRepository = new WorkLogRepository(dataSource);
 
         // Shared model
         Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository);
@@ -68,12 +70,12 @@ public class App extends Application {
                 new CoursePresenter(sharedModel, courseView);
 
         AssignmentPresenter assignmentPresenter =
-                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);
+                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository, workLogRepository);
         
         StudyAvailabilityPresenter studyAvailabilityPresenter =
                 new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
         DashboardPresenter dashboardPresenter =
-            new DashboardPresenter(sharedModel, dashboardView, assignmentRepository);
+            new DashboardPresenter(sharedModel, dashboardView, assignmentRepository, workLogRepository);
         dashboardView.setPresenter(dashboardPresenter);
 
         BigPicturePresenter bigPicturePresenter =
