@@ -1,4 +1,5 @@
 module edu.ucsd.studentclock {
+    requires transitive javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;

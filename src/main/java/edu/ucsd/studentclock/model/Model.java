@@ -4,25 +4,34 @@ import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Optional;
 
-import edu.ucsd.studentclock.repository.AssignmentRepository;
-import edu.ucsd.studentclock.repository.CourseRepository;
-import edu.ucsd.studentclock.repository.SeriesRepository;
-import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
-import edu.ucsd.studentclock.service.TimeService;
+import edu.ucsd.studentclock.repository.IAssignmentRepository;
+import edu.ucsd.studentclock.repository.ICourseRepository;
+import edu.ucsd.studentclock.repository.ISeriesRepository;
+import edu.ucsd.studentclock.repository.IStudyAvailabilityRepository;
+import edu.ucsd.studentclock.service.ITimeService;
+import edu.ucsd.studentclock.util.ValidationUtils;
 
 
 public class Model {
 
-    private final CourseRepository repository;
-    private final SeriesRepository seriesRepository;
+    private final ICourseRepository repository;
+    private final ISeriesRepository seriesRepository;
     private final StudyAvailability studyAvailability;
-    private final AssignmentRepository aRepository;
+    private final IAssignmentRepository aRepository;
     private Assignment selectedAssignment;
-    private final StudyAvailabilityRepository saRepository;
-    private final TimeService timeService = new TimeService();
+    private final IStudyAvailabilityRepository saRepository;
+    private final ITimeService timeService;
 
-  
-    public Model(CourseRepository repository, AssignmentRepository aRepository, SeriesRepository seriesRepository, StudyAvailabilityRepository saRepository) {
+    /**
+     * Creates a Model with the given repositories and time service.
+     *
+     * @param repository course repository
+     * @param aRepository assignment repository
+     * @param seriesRepository series repository
+     * @param saRepository study availability repository
+     * @param timeService time service (must not be null)
+     */
+    public Model(ICourseRepository repository, IAssignmentRepository aRepository, ISeriesRepository seriesRepository, IStudyAvailabilityRepository saRepository, ITimeService timeService) {
         if (repository == null) {
             throw new NullPointerException("repository must not be null");
         }
@@ -35,11 +44,15 @@ public class Model {
         if (saRepository == null) {
             throw new NullPointerException("studyAvailabilityRepository must not be null");
         }
+        if (timeService == null) {
+            throw new NullPointerException("timeService must not be null");
+        }
 
         this.repository = repository;
         this.seriesRepository = seriesRepository;
         this.aRepository = aRepository;
         this.saRepository = saRepository;
+        this.timeService = timeService;
 
         this.studyAvailability = saRepository.load().orElseGet(StudyAvailability::new);
     }
@@ -48,7 +61,7 @@ public class Model {
         repository.addCourse(course);
     }
     
-    public TimeService getTimeService() {
+    public ITimeService getTimeService() {
         return timeService;
     }
 
@@ -62,20 +75,8 @@ public class Model {
      * @throws IllegalArgumentException if id or name is blank after trimming
      */
     public void addCourse(String id, String name) {
-        String trimmedId = null;
-        String trimmedName = null;
-        if (id != null) {
-            trimmedId = id.trim();
-        }
-        if (name != null) {
-            trimmedName = name.trim();
-        }
-        if (trimmedId != null && trimmedId.isEmpty()) {
-            throw new IllegalArgumentException("id must not be blank");
-        }
-        if (trimmedName != null && trimmedName.isEmpty()) {
-            throw new IllegalArgumentException("name must not be blank");
-        }
+        String trimmedId = ValidationUtils.requireNonBlank(id, "id must not be blank");
+        String trimmedName = ValidationUtils.requireNonBlank(name, "name must not be blank");
         addCourse(new Course(trimmedId, trimmedName));
     }
 

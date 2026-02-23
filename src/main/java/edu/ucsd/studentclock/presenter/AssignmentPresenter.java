@@ -1,34 +1,30 @@
 package edu.ucsd.studentclock.presenter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.service.ClockOutResult;
 import edu.ucsd.studentclock.service.TimeTrackingManager;
+import edu.ucsd.studentclock.util.ValidationUtils;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
 import edu.ucsd.studentclock.view.AssignmentView;
-import edu.ucsd.studentclock.service.TimeService;
+import edu.ucsd.studentclock.service.ITimeService;
 
 /**
  * Presenter for the Assignment screen.
- * Handles user actions and coordinates between AssignmentView and AssignmentRepository.
+ * Handles user actions and coordinates between AssignmentView and the assignment repository.
  */
-public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
+public class AssignmentPresenter extends AbstractPresenter<AssignmentView> implements IAssignmentScreenPresenter {
 
-    private final AssignmentRepository repository;
+    private final IAssignmentRepository repository;
     private final WorkLogRepository workLogRepository;
     private final AssignmentWorkLogRepository assignmentWorkLogRepository;
     private final TimeTrackingManager timeTrackingManager;
@@ -38,7 +34,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
     private Runnable onDashboard;
     private Runnable onBigPicture;
     private String courseFilter = AssignmentView.ALL_COURSES;
-    private final TimeService timeService;
+    private final ITimeService timeService;
     private boolean showOnlyOpen = false;
     
 
@@ -51,7 +47,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      */
     public AssignmentPresenter(Model model,
                                AssignmentView view,
-                               AssignmentRepository repository,
+                               IAssignmentRepository repository,
                                WorkLogRepository workLogRepository,
                                AssignmentWorkLogRepository assignmentWorkLogRepository) {
         super(model, view);
@@ -61,21 +57,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
         this.timeService = model.getTimeService();
         this.timeTrackingManager = new TimeTrackingManager(this.timeService);
         view.setPresenter(this);
-        view.getCoursesButton().setOnAction(e -> {
-            if (onCourses != null) onCourses.run();
-        });
-
-        view.getStudyAvailabilityButton().setOnAction(e -> {
-            if (onStudyAvailability != null) onStudyAvailability.run();
-        });
-
-        view.getDashboardButton().setOnAction(e -> {
-            if (onDashboard != null) onDashboard.run();
-        });
-
-        view.getBigPictureButton().setOnAction(e -> {
-            if (onBigPicture != null) onBigPicture.run();
-        });
+        view.getCoursesButton().setOnAction(e -> runIfSet(onCourses));
+        view.getStudyAvailabilityButton().setOnAction(e -> runIfSet(onStudyAvailability));
+        view.getDashboardButton().setOnAction(e -> runIfSet(onDashboard));
+        view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
 
         updateView();
     }
@@ -101,98 +86,14 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                 .collect(Collectors.toList());
         view.setCourses(courseIds);
         view.setSelectedCourse(courseFilter);
-        List<AssignmentListEntry> grouped = buildGroupedAssignmentList();
+        List<AssignmentListEntry> grouped = AssignmentListGrouper.buildGroupedList(
+                repository.getAllAssignments(), showOnlyOpen, courseFilter, AssignmentView.ALL_COURSES, model);
         view.showGroupedAssignments(grouped);
 
         Assignment selected = model.getSelectedAssignment();
         if (selected != null) {
             view.selectAssignment(selected);
         }
-    }
-
-    /**
-     * Builds a list of assignment rows (no headers). No-series assignments have no tag;
-     * series assignments have a tag. Order: no series first, then each series by name.
-     */
-    private List<AssignmentListEntry> buildGroupedAssignmentList() {
-        List<Assignment> allAssignments = repository.getAllAssignments();
-
-        if (showOnlyOpen) {
-            allAssignments = allAssignments.stream()
-                .filter(a -> !a.isDone())
-                .collect(Collectors.toList());
-        }
-        // Optionally filter by the selected course.
-        List<Assignment> assignments = allAssignments;
-        if (courseFilter != null
-                && !AssignmentView.ALL_COURSES.equals(courseFilter)
-                && !courseFilter.isBlank()) {
-            assignments = allAssignments.stream()
-                    .filter(a -> courseFilter.equals(a.getCourseID()))
-                    .collect(Collectors.toList());
-        }
-
-        // Pre-compute series display names.
-        Map<String, String> seriesIdToName = new HashMap<>();
-        for (Assignment a : assignments) {
-            String sid = a.getSeriesId();
-            if (sid != null && !seriesIdToName.containsKey(sid)) {
-                String name = model.getSeries(sid)
-                        .map(Series::getName)
-                        .orElse(sid);
-                seriesIdToName.put(sid, name);
-            }
-        }
-
-        // Group by course first, then within each course by series.
-        Map<String, List<Assignment>> byCourse = assignments.stream()
-                .collect(Collectors.groupingBy(Assignment::getCourseID));
-
-        List<String> courseIds = byCourse.keySet().stream()
-                .sorted()
-                .collect(Collectors.toList());
-
-        List<AssignmentListEntry> result = new ArrayList<>();
-        for (String courseId : courseIds) {
-            result.add(AssignmentListEntry.forHeader(courseId));
-
-            List<Assignment> courseAssignments = byCourse.get(courseId);
-            if (courseAssignments == null || courseAssignments.isEmpty()) continue;
-
-            // Within each course, group by series id (null = no series).
-        Map<String, List<Assignment>> bySeries = new HashMap<>();
-        for (Assignment a : courseAssignments) {
-            String key = a.getSeriesId() != null ? a.getSeriesId() : null;
-            bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
-        }
-
-        // No-series first.
-        List<Assignment> noSeriesList = bySeries.get(null);
-        if (noSeriesList != null) {
-            for (Assignment a : noSeriesList) {
-                result.add(AssignmentListEntry.forRowWithoutTag(a));
-            }
-        }
-
-         // Then each series by display name.
-        List<String> seriesIds = courseAssignments.stream()
-                    .map(Assignment::getSeriesId)
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .sorted(Comparator
-                            .comparing((String id) -> seriesIdToName.getOrDefault(id, id))
-                            .thenComparing(id -> id))
-                    .collect(Collectors.toList());
-
-            for (String seriesId : seriesIds) {
-                String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
-                for (Assignment a : bySeries.get(seriesId)) {
-                    result.add(AssignmentListEntry.forRow(a, displayName));
-                }
-            }
-        }
-
-        return result;
     }
 
     /**
@@ -268,16 +169,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                              String courseId,
                              String seriesName,
                              int defaultLateDays) {
-        String trimmedId = seriesId == null ? null : seriesId.trim();
-        String trimmedName = seriesName == null ? null : seriesName.trim();
-        if (trimmedId == null || trimmedId.isEmpty()) {
-            throw new IllegalArgumentException("Series ID is required");
-        }
+        String trimmedId = ValidationUtils.requireNonBlank(seriesId, "Series ID is required");
+        String trimmedName = ValidationUtils.requireNonBlank(seriesName, "Series name is required");
         if (courseId == null || courseId.isBlank()) {
             throw new IllegalArgumentException("Course is required");
-        }
-        if (trimmedName == null || trimmedName.isEmpty()) {
-            throw new IllegalArgumentException("Series name is required");
         }
         if (defaultLateDays < 0) {
             throw new IllegalArgumentException("Default late days must be >= 0");
@@ -322,14 +217,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
                                             String seriesName,
                                             int defaultLateDays,
                                             List<String> assignmentIds) {
-        String trimmedSeriesId = seriesId == null ? null : seriesId.trim();
-        String trimmedSeriesName = seriesName == null ? null : seriesName.trim();
-        if (trimmedSeriesId == null || trimmedSeriesId.isEmpty()) {
-            throw new IllegalArgumentException("Series ID is required");
-        }
-        if (trimmedSeriesName == null || trimmedSeriesName.isEmpty()) {
-            throw new IllegalArgumentException("Series name is required");
-        }
+        String trimmedSeriesId = ValidationUtils.requireNonBlank(seriesId, "Series ID is required");
+        String trimmedSeriesName = ValidationUtils.requireNonBlank(seriesName, "Series name is required");
         if (assignmentIds == null || assignmentIds.isEmpty()) {
             throw new IllegalArgumentException("Select at least one assignment to link");
         }
@@ -444,9 +333,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> {
      * Invoked by view when back button is pressed.
      */
     public void back() {
-        if (onBack != null) {
-            onBack.run();
-        }
+        runIfSet(onBack);
     }
 
 

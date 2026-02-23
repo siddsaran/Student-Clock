@@ -1,12 +1,10 @@
 package edu.ucsd.studentclock;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
 import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.datasource.SqlDataSource;
 import edu.ucsd.studentclock.model.Model;
+import edu.ucsd.studentclock.service.ITimeService;
+import edu.ucsd.studentclock.service.TimeService;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import edu.ucsd.studentclock.presenter.BigPicturePresenter;
 import edu.ucsd.studentclock.presenter.CoursePresenter;
@@ -18,6 +16,10 @@ import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
+import edu.ucsd.studentclock.repository.IAssignmentRepository;
+import edu.ucsd.studentclock.repository.ICourseRepository;
+import edu.ucsd.studentclock.repository.ISeriesRepository;
+import edu.ucsd.studentclock.repository.IStudyAvailabilityRepository;
 import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.view.AssignmentView;
 import edu.ucsd.studentclock.view.BigPictureView;
@@ -32,33 +34,24 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 
-    private static final String JDBC_URL = "jdbc:sqlite:studentclock.db";
-
-    private Connection connection;
-
     @Override
     public void start(Stage primaryStage) {
 
-        // SQLite connection
-        try {
-            connection = DriverManager.getConnection(JDBC_URL);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to database", e);
-        }
-
-        // DataSource abstraction (same DB file as connection above)
+        // Single data source for all repositories
         IDataSource dataSource = new SqlDataSource("studentclock.db");
 
-        // Repositories
-        CourseRepository courseRepository = new CourseRepository(connection);
-        SeriesRepository seriesRepository = new SeriesRepository(connection);
-        AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
+        // Repositories (depend on IDataSource abstraction)
+        ICourseRepository courseRepository = new CourseRepository(dataSource);
+        ISeriesRepository seriesRepository = new SeriesRepository(dataSource);
+        IAssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
+        IStudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(dataSource);
+
         AssignmentWorkLogRepository assignmentWorkLogRepository = new AssignmentWorkLogRepository(dataSource);
-        StudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(connection);
         WorkLogRepository workLogRepository = new WorkLogRepository(dataSource);
 
-        // Shared model
-        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository);
+        // Shared model (depends on repository and time-service abstractions)
+        ITimeService timeService = new TimeService();
+        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository, timeService);
 
         // Views
         CourseView courseView = new CourseView();
@@ -98,17 +91,6 @@ public class App extends Application {
                 bigPicturePresenter
         );
 
-    }
-
-    @Override
-    public void stop() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                // ignore on shutdown
-            }
-        }
     }
 
     public static void main(String[] args) {

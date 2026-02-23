@@ -26,7 +26,14 @@ public abstract class AbstractPresenter<V extends Region> {
 
     public abstract void updateView();
 
-    public Scene getView() {
+    /**
+     * Runs the given runnable if non-null. Use for optional navigation callbacks.
+     */
+    protected static void runIfSet(Runnable r) {
+        if (r != null) r.run();
+    }
+
+    public Scene getScene() {
         return this.scene;
     }
 }

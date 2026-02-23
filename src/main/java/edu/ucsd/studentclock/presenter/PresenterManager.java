@@ -63,7 +63,7 @@ public class PresenterManager {
         });
 
         // Navigate from dashboard to BigPictureView
-        dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));;
+        dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
 
         // Big Picture global nav
         bigPicturePresenter.setOnBack(() -> switcher.switchTo(dashboardPresenter));

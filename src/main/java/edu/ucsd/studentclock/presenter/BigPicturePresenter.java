@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.view.BigPictureView;
 import javafx.application.Platform;
@@ -18,45 +18,31 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
 
-public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
+public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
 
     private Runnable onBack;
     private Runnable onCourses;
     private Runnable onAssignments;
     private Runnable onStudyAvailability;
     private Runnable onDashboard;
-    private final AssignmentRepository repository;
+    private final IAssignmentRepository repository;
     private final AssignmentWorkLogRepository assignmentWorkLogRepository;
 
     
 
 
-    public BigPicturePresenter(Model model, BigPictureView view, AssignmentRepository repository,
+    public BigPicturePresenter(Model model, BigPictureView view, IAssignmentRepository repository,
                                AssignmentWorkLogRepository assignmentWorkLogRepository) {
         super(model, view);
         this.repository = repository;
         this.assignmentWorkLogRepository = assignmentWorkLogRepository;
 
 
-        view.getBackButton().setOnAction(e -> {
-            if (onBack != null) onBack.run();
-        });
-
-        view.getCoursesButton().setOnAction(e -> {
-            if (onCourses != null) onCourses.run();
-        });
-
-        view.getAssignmentsButton().setOnAction(e -> {
-            if (onAssignments != null) onAssignments.run();
-        });
-
-        view.getStudyAvailabilityButton().setOnAction(e -> {
-            if (onStudyAvailability != null) onStudyAvailability.run();
-        });
-
-        view.getDashboardButton().setOnAction(e -> {
-            if (onDashboard != null) onDashboard.run();
-        });
+        view.getBackButton().setOnAction(e -> runIfSet(onBack));
+        view.getCoursesButton().setOnAction(e -> runIfSet(onCourses));
+        view.getAssignmentsButton().setOnAction(e -> runIfSet(onAssignments));
+        view.getStudyAvailabilityButton().setOnAction(e -> runIfSet(onStudyAvailability));
+        view.getDashboardButton().setOnAction(e -> runIfSet(onDashboard));
 
 
         updateView();
@@ -104,7 +90,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
                 .map(r -> r[0])
                 .min(LocalDate::compareTo)
                 .get();
-
         LocalDate chartEnd = effectiveRanges.values().stream()
                 .map(r -> r[1])
                 .max(LocalDate::compareTo)
@@ -112,10 +97,30 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
 
         XYChart.Series<String, Number> workload = new XYChart.Series<>();
         workload.setName("Workload");
-
         XYChart.Series<String, Number> burndown = new XYChart.Series<>();
         burndown.setName("IdealBurndown");
 
+        double maxWork = buildWorkloadAndBurndownSeries(
+                assignments, effectiveRanges, chartStart, chartEnd, workload, burndown);
+
+        view.getChart().getData().setAll(List.of(workload, burndown));
+        applyYAxisBounds(maxWork);
+        view.getChart().applyCss();
+        view.getChart().layout();
+        applySeriesStyles(workload, burndown);
+        installDataPointTooltips(workload);
+    }
+
+    /**
+     * Fills workload and burndown series from assignment data. Returns the maximum Y value for axis scaling.
+     */
+    private double buildWorkloadAndBurndownSeries(
+            List<Assignment> assignments,
+            Map<Assignment, LocalDate[]> effectiveRanges,
+            LocalDate chartStart,
+            LocalDate chartEnd,
+            XYChart.Series<String, Number> workload,
+            XYChart.Series<String, Number> burndown) {
         long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
         double runningWorkload = 0;
         double maxWorkload = 0;
@@ -129,22 +134,16 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
             List<Assignment> endsToday = assignments.stream()
                     .filter(a -> effectiveRanges.get(a)[1].equals(day))
                     .collect(Collectors.toList());
-
             List<Assignment> startsToday = assignments.stream()
                     .filter(a -> effectiveRanges.get(a)[0].equals(day))
                     .collect(Collectors.toList());
-
-            // Assignments active on this day (effectiveStart <= day <= effectiveEnd)
             List<Assignment> activeOnDay = assignments.stream()
                     .filter(a -> {
                         LocalDate[] r = effectiveRanges.get(a);
                         return !day.isBefore(r[0]) && !day.isAfter(r[1]);
                     })
                     .collect(Collectors.toList());
-
             String label = day.getMonthValue() + "/" + day.getDayOfMonth();
-
-            // Assignments active at start of day (started before today, not ended yet)
             List<Assignment> activeAtStart = assignments.stream()
                     .filter(a -> {
                         LocalDate[] r = effectiveRanges.get(a);
@@ -152,14 +151,10 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
                     })
                     .collect(Collectors.toList());
 
-            // Point at start of day (connects from previous day)
-            // Skip (day, 0) when assignments start today so line starts at workload level on the left
             boolean skipStartPoint = runningWorkload == 0 && !startsToday.isEmpty();
             if (!skipStartPoint) {
                 workload.getData().add(createDataPoint(label, runningWorkload, activeOnDay));
             }
-
-            // Work logged today: remaining dropped for active assignments
             if (prevDay != null) {
                 boolean workLoggedToday = false;
                 for (Assignment a : activeAtStart) {
@@ -185,14 +180,12 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
                         .collect(Collectors.toList());
                 workload.getData().add(createDataPoint(label, runningWorkload, activeAfterEnds));
             }
-
             if (!startsToday.isEmpty()) {
                 for (Assignment a : startsToday) {
                     runningWorkload += remainingHoursAt(a, day, cumulativeWork);
                 }
                 workload.getData().add(createDataPoint(label, runningWorkload, activeOnDay));
             }
-
             maxWorkload = Math.max(maxWorkload, runningWorkload);
         }
 
@@ -200,7 +193,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
                 : workload.getData().get(0).getYValue().doubleValue();
         double maxWork = Math.max(firstHeight, maxWorkload);
 
-        // Ideal burndown ends at final workload level, not 0, so it ends horizontally
         if (!workload.getData().isEmpty()) {
             String first = workload.getData().get(0).getXValue();
             String last = workload.getData().get(workload.getData().size() - 1).getXValue();
@@ -208,26 +200,27 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
             burndown.getData().add(new XYChart.Data<>(first, maxWork));
             burndown.getData().add(new XYChart.Data<>(last, finalWorkload));
         }
+        return maxWork;
+    }
 
-        view.getChart().getData().setAll(List.of(workload, burndown));
-
+    private void applyYAxisBounds(double maxWork) {
         NumberAxis yAxis = (NumberAxis) view.getChart().getYAxis();
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(0);
         yAxis.setUpperBound(Math.max(1, maxWork));
         yAxis.setTickUnit(Math.max(1, maxWork / 5));
+    }
 
-        view.getChart().applyCss();
-        view.getChart().layout();
-
+    private void applySeriesStyles(XYChart.Series<String, Number> workload, XYChart.Series<String, Number> burndown) {
         if (workload.getNode() != null) {
             workload.getNode().setStyle("-fx-stroke-width: 2;");
         }
         if (burndown.getNode() != null) {
             burndown.getNode().setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
         }
+    }
 
-        // Tooltips with HH:MM formatting
+    private void installDataPointTooltips(XYChart.Series<String, Number> workload) {
         Platform.runLater(() -> {
             for (XYChart.Data<String, Number> point : workload.getData()) {
                 if (point.getNode() == null) continue;

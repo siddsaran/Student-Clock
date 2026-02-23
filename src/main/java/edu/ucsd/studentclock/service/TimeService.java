@@ -7,7 +7,7 @@ import java.util.Objects;
  * Single source of truth for "current time" across the app.
  * Supports switching between real time and mock time for demos/tests.
  */
-public final class TimeService {
+public final class TimeService implements ITimeService {
 
     private Clock clock;            // the active clock (real or mock)
     private boolean usingMock;      // mode flag

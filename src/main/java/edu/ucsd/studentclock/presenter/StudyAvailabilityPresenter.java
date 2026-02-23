@@ -11,7 +11,7 @@ import edu.ucsd.studentclock.view.StudyAvailabilityView;
  * Presenter for the Study Availability screen.
  */
 public class StudyAvailabilityPresenter
-        extends AbstractPresenter<StudyAvailabilityView> {
+        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter {
 
     private Runnable onBack;
 
@@ -26,7 +26,7 @@ public class StudyAvailabilityPresenter
         super(model, view);
         view.setPresenter(this);
 
-        // ✅ Persist immediately when a day is toggled
+        // Persist immediately when a day is toggled
         for (DayOfWeek d : DayOfWeek.values()) {
             view.setOnDayToggled(d, () -> model.setAvailable(d, view.isDaySelected(d)));
         }
@@ -99,7 +99,7 @@ public class StudyAvailabilityPresenter
     }
 
     public void onBack() {
-        if (onBack != null) onBack.run();
+        runIfSet(onBack);
     }
 
     /** Used by PresenterManager */

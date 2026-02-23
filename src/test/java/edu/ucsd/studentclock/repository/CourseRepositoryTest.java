@@ -23,7 +23,7 @@ class CourseRepositoryTest {
     @BeforeEach
     void setUp() throws SQLException {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
-        repository = new CourseRepository(connection);
+        repository = new CourseRepository(() -> connection);
     }
 
     @AfterEach

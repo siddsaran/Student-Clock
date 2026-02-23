@@ -23,7 +23,7 @@ class StudyAvailabilityRepositoryTest {
     @BeforeEach
     void setUp() throws SQLException {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
-        repository = new StudyAvailabilityRepository(connection);
+        repository = new StudyAvailabilityRepository(() -> connection);
     }
 
     @AfterEach

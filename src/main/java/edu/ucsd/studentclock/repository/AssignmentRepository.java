@@ -12,7 +12,7 @@ import java.util.List;
 import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.model.Assignment;
 
-public class AssignmentRepository {
+public class AssignmentRepository implements IAssignmentRepository {
 
     /**
      * Persists and retrieves assignments using JDBC with SQLite.

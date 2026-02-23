@@ -1,12 +1,13 @@
 package edu.ucsd.studentclock.repository;
 
+import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.model.StudyAvailability;
 
 import java.sql.*;
 import java.time.DayOfWeek;
 import java.util.Optional;
 
-public class StudyAvailabilityRepository {
+public class StudyAvailabilityRepository implements IStudyAvailabilityRepository {
 
     private static final String KEY = "singleton";
 
@@ -41,9 +42,9 @@ public class StudyAvailabilityRepository {
 
     private final Connection connection;
 
-    public StudyAvailabilityRepository(Connection connection) {
-        if (connection == null) throw new NullPointerException("connection must not be null");
-        this.connection = connection;
+    public StudyAvailabilityRepository(IDataSource dataSource) {
+        if (dataSource == null) throw new NullPointerException("dataSource must not be null");
+        this.connection = dataSource.getConnection();
         createTables();
         enableForeignKeys();
     }

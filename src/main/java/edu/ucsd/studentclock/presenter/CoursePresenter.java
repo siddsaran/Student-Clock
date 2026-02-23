@@ -19,27 +19,10 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
         super(model, view);
         view.getAddButton().setOnAction(e -> handleAdd());
         view.getDeleteButton().setOnAction(e -> handleDelete());
-        view.getAssignmentsButton().setOnAction(e -> {
-            if (onNavigateToAssignments != null) {
-                onNavigateToAssignments.run();
-            }
-        });
-
-        view.getStudyAvailabilityButton().setOnAction(e -> {
-            if (onNavigateToStudyAvailability != null) {
-                onNavigateToStudyAvailability.run();
-            }
-        });
-
-        view.getDashboardButton().setOnAction(e -> {
-            if (onNavigateToDashboard != null) {
-                onNavigateToDashboard.run();
-            }
-        });
-
-        view.getBigPictureButton().setOnAction(e -> {
-            if (onBigPicture != null) onBigPicture.run();
-        });
+        view.getAssignmentsButton().setOnAction(e -> runIfSet(onNavigateToAssignments));
+        view.getStudyAvailabilityButton().setOnAction(e -> runIfSet(onNavigateToStudyAvailability));
+        view.getDashboardButton().setOnAction(e -> runIfSet(onNavigateToDashboard));
+        view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
         updateView();
     }
 

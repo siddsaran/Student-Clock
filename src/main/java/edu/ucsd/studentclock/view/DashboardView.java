@@ -7,7 +7,7 @@ import java.util.List;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
-import edu.ucsd.studentclock.presenter.DashboardPresenter;
+import edu.ucsd.studentclock.presenter.IDashboardScreenPresenter;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -24,7 +24,7 @@ import javafx.scene.paint.Color;
 
 public class DashboardView extends BorderPane {
 
-    private DashboardPresenter presenter;
+    private IDashboardScreenPresenter presenter;
 
     private final TableView<Assignment> table = new TableView<>();
     private final Label studyHoursLabel = new Label("Study Hours Remaining  00:00");
@@ -183,7 +183,7 @@ public class DashboardView extends BorderPane {
         return bigPictureButton;
     }
 
-    public void setPresenter(DashboardPresenter presenter) {
+    public void setPresenter(IDashboardScreenPresenter presenter) {
         this.presenter = presenter;
     }
 
