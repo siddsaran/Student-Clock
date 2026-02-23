@@ -27,6 +27,8 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     private Runnable onBack;
     private Runnable onBigPicture;
+    private Runnable onShowOpenAssignments;
+    private Runnable onAllAssignments;
 
     private final DateTimeFormatter clockFmt =
             DateTimeFormatter.ofPattern("MMMM d, yyyy — h:mm a");
@@ -71,7 +73,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         });
 
         view.getShowOpenButton().setOnAction(e -> {
-            if (onBack != null) onBack.run();
+            if (onShowOpenAssignments != null) onShowOpenAssignments.run();
         });
 
         view.getBigPictureButton().setOnAction(e -> {
@@ -82,6 +84,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateView()));
         ticker.setCycleCount(Timeline.INDEFINITE);
         ticker.play();
+        
     }
 
     @Override
@@ -219,6 +222,13 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
     }
     public void setOnBigPicture(Runnable r) {
         onBigPicture = r;
+    }
+    public void setOnShowOpenAssignments(Runnable r) {
+        onShowOpenAssignments = r;
+    }
+
+    public void setOnAllAssignments(Runnable r) {
+        onAllAssignments = r;
     }
 
     @Override
