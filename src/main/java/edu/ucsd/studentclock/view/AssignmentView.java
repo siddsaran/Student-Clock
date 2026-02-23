@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.view;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -244,9 +245,13 @@ public class AssignmentView extends BorderPane {
                 setStyle("");
 
                 Assignment a = item.getAssignment();
-                String mainText = a.getName() + " (" + a.getCourseID() + ")"
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
+                String mainText = a.getName() + " (" + a.getCourseID() + ")"        
+                        + " | Start: " + a.getStart().format(formatter)
+                        + " | Deadline: " + a.getDeadline().format(formatter)
                         + " | Estimated: " + TimeFormatUtils.formatHoursAsHHMM(a.getEstimatedHours())
-                        + " | Remaining: " + TimeFormatUtils.formatHoursAsHHMM(a.getRemainingHours());
+                        + " | Remaining: " + TimeFormatUtils.formatHoursAsHHMM(a.getRemainingHours())
+                        + " | Cumulative: " + TimeFormatUtils.formatHoursAsHHMM(a.getCumulativeHours());
                 Label mainLabel = new Label(mainText);
 
                 HBox row;
