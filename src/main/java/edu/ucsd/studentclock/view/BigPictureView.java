@@ -1,6 +1,8 @@
 package edu.ucsd.studentclock.view;
 
 import edu.ucsd.studentclock.presenter.BigPicturePresenter;
+import edu.ucsd.studentclock.util.TimeFormatUtils;
+import javafx.util.StringConverter;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.CategoryAxis;
@@ -50,7 +52,17 @@ public class BigPictureView extends BorderPane {
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(false);
         xAxis.setLabel("Days");
-        yAxis.setLabel("Remaining Hours");
+        yAxis.setLabel("Remaining Hours (HH:MM)");
+        yAxis.setTickLabelFormatter(new StringConverter<Number>() {
+            @Override
+            public String toString(Number n) {
+                return TimeFormatUtils.formatHoursAsHHMM(n.doubleValue());
+            }
+            @Override
+            public Number fromString(String s) {
+                return 0;
+            }
+        });
 
         chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);

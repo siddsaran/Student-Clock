@@ -8,6 +8,7 @@ import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.presenter.DashboardPresenter;
+import edu.ucsd.studentclock.util.TimeFormatUtils;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -26,7 +27,7 @@ public class DashboardView extends BorderPane {
     private DashboardPresenter presenter;
 
     private final TableView<Assignment> table = new TableView<>();
-    private final Label studyHoursLabel = new Label("Study Hours Remaining 0");
+    private final Label studyHoursLabel = new Label("Study Hours Remaining  00:00");
     private final Region studyStatusIndicator = new Region();
     private final Button showOpenButton = new Button("Show Open");
     private final Button bigPictureButton = new Button("Big Picture");
@@ -103,7 +104,7 @@ public class DashboardView extends BorderPane {
                 new TableColumn<>("Hours Remaining");
         remainingCol.setCellValueFactory(c ->
                 new javafx.beans.property.SimpleStringProperty(
-                        String.valueOf(c.getValue().getRemainingHours())));
+                        TimeFormatUtils.formatHoursAsHHMM(c.getValue().getRemainingHours())));
 
         table.getColumns().addAll(nameCol, courseCol, dueCol, remainingCol);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -193,8 +194,8 @@ public class DashboardView extends BorderPane {
         table.refresh();
     }
 
-    public void setStudyHoursRemaining(int hours) {
-        studyHoursLabel.setText("Study Hours Remaining  " + hours);
+    public void setStudyHoursRemaining(double totalHours) {
+        studyHoursLabel.setText("Study Hours Remaining  " + TimeFormatUtils.formatHoursAsHHMM(totalHours));
     }
 
     public void setStudyStatus(AssignmentStatus status) {

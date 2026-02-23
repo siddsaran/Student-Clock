@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.presenter.AssignmentPresenter;
 import javafx.geometry.Insets;
@@ -244,8 +245,8 @@ public class AssignmentView extends BorderPane {
 
                 Assignment a = item.getAssignment();
                 String mainText = a.getName() + " (" + a.getCourseID() + ")"
-                        + " | Estimated: " + a.getEstimatedHours()
-                        + " | Remaining: " + a.getRemainingHours();
+                        + " | Estimated: " + TimeFormatUtils.formatHoursAsHHMM(a.getEstimatedHours())
+                        + " | Remaining: " + TimeFormatUtils.formatHoursAsHHMM(a.getRemainingHours());
                 Label mainLabel = new Label(mainText);
 
                 HBox row;
