@@ -1,5 +1,6 @@
 package edu.ucsd.studentclock.repository;
 
+import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.model.Series;
 
 import java.sql.Connection;
@@ -14,7 +15,7 @@ import java.util.Optional;
 /**
  * Persists and retrieves series using JDBC with SQLite.
  */
-public class SeriesRepository {
+public class SeriesRepository implements ISeriesRepository {
 
     private static final String CREATE_TABLE_SQL =
             "CREATE TABLE IF NOT EXISTS series (id TEXT PRIMARY KEY, courseId TEXT NOT NULL, name TEXT NOT NULL, defaultLateDays INTEGER NOT NULL)";
@@ -28,15 +29,15 @@ public class SeriesRepository {
     private final Connection connection;
 
     /**
-     * Creates a repository that uses the given connection for all operations.
+     * Creates a repository that uses the given data source for all operations.
      *
-     * @param connection a valid JDBC connection (e.g. to SQLite)
+     * @param dataSource a valid data source (e.g. SQLite)
      */
-    public SeriesRepository(Connection connection) {
-        if (connection == null) {
-            throw new NullPointerException("connection must not be null");
+    public SeriesRepository(IDataSource dataSource) {
+        if (dataSource == null) {
+            throw new NullPointerException("dataSource must not be null");
         }
-        this.connection = connection;
+        this.connection = dataSource.getConnection();
         createTableIfNotExists();
     }
 

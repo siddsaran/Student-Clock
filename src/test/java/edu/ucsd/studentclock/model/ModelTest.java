@@ -4,6 +4,7 @@ import edu.ucsd.studentclock.repository.CourseRepository;
 import edu.ucsd.studentclock.repository.SeriesRepository;
 import edu.ucsd.studentclock.repository.AssignmentRepository;
 import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
+import edu.ucsd.studentclock.service.TimeService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,11 +32,12 @@ class ModelTest {
     @BeforeEach
     void setUp() throws SQLException {
         connection = DriverManager.getConnection(JDBC_MEMORY_URL);
-        repository = new CourseRepository(connection);
-        seriesRepository = new SeriesRepository(connection);
-        saRepository = new StudyAvailabilityRepository(connection);
-        assignmentRepository = new AssignmentRepository(() -> connection);
-        model = new Model(repository, assignmentRepository, seriesRepository, saRepository);
+        edu.ucsd.studentclock.datasource.IDataSource dataSource = () -> connection;
+        repository = new CourseRepository(dataSource);
+        seriesRepository = new SeriesRepository(dataSource);
+        saRepository = new StudyAvailabilityRepository(dataSource);
+        assignmentRepository = new AssignmentRepository(dataSource);
+        model = new Model(repository, assignmentRepository, seriesRepository, saRepository, new TimeService());
     }
 
     @AfterEach
@@ -81,17 +83,22 @@ class ModelTest {
 
     @Test
     void modelWithNullCourseRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, seriesRepository, saRepository));
+        assertThrows(NullPointerException.class, () -> new Model(null, null, seriesRepository, saRepository, new TimeService()));
     }
 
     @Test
     void modelWithNullSeriesRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, null, null, saRepository));
+        assertThrows(NullPointerException.class, () -> new Model(repository, null, null, saRepository, new TimeService()));
     }
       
     @Test
     void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, null, saRepository));
+        assertThrows(NullPointerException.class, () -> new Model(null, null, null, saRepository, new TimeService()));
+    }
+
+    @Test
+    void modelWithNullTimeServiceThrows() {
+        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, seriesRepository, saRepository, null));
     }
 
     @Test
@@ -116,12 +123,12 @@ class ModelTest {
 
     @Test
     void addCourseWithNullIdThrows() {
-        assertThrows(NullPointerException.class, () -> model.addCourse(null, "Name"));
+        assertThrows(IllegalArgumentException.class, () -> model.addCourse(null, "Name"));
     }
 
     @Test
     void addCourseWithNullNameThrows() {
-        assertThrows(NullPointerException.class, () -> model.addCourse("CSE 110", null));
+        assertThrows(IllegalArgumentException.class, () -> model.addCourse("CSE 110", null));
     }
 
     @Test
@@ -309,7 +316,7 @@ class ModelTest {
         preset.setDailyLimit(DayOfWeek.WEDNESDAY, 2);
         saRepository.save(preset);
 
-        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository);
+        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository, new TimeService());
         StudyAvailability a = reloaded.getStudyAvailability();
         assertEquals(7, a.getTotalWeeklyHours());
         assertTrue(a.isAvailable(DayOfWeek.WEDNESDAY));

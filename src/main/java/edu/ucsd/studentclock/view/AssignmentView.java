@@ -9,7 +9,7 @@ import java.util.UUID;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.model.Series;
-import edu.ucsd.studentclock.presenter.AssignmentPresenter;
+import edu.ucsd.studentclock.presenter.IAssignmentScreenPresenter;
 import javafx.geometry.Insets;
 import javafx.scene.control.ListCell;
 import javafx.geometry.Pos;
@@ -32,7 +32,7 @@ public class AssignmentView extends BorderPane {
     // Dropdown for ALL courses
     public static final String ALL_COURSES = "All Courses";
 
-    private AssignmentPresenter presenter;
+    private IAssignmentScreenPresenter presenter;
 
     private final TextField nameField = new TextField();
     private final ComboBox<String> courseBox = new ComboBox<>();
@@ -359,7 +359,7 @@ public class AssignmentView extends BorderPane {
         }
     }
 
-    public void setPresenter(AssignmentPresenter presenter) {
+    public void setPresenter(IAssignmentScreenPresenter presenter) {
         this.presenter = presenter;
     }
 

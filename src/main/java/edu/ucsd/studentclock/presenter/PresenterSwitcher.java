@@ -14,7 +14,7 @@ public class PresenterSwitcher {
     public void switchTo(AbstractPresenter presenter) {
         presenter.updateView();
         stage.setTitle(appName + ": " + presenter.getViewTitle());
-        stage.setScene(presenter.getView());
+        stage.setScene(presenter.getScene());
         stage.show();
     }
 }

@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import java.util.EnumMap;
 import java.util.Map;
 
-import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
+import edu.ucsd.studentclock.presenter.IStudyAvailabilityScreenPresenter;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -15,7 +15,7 @@ import javafx.scene.control.CheckBox;
 
 public class StudyAvailabilityView extends VBox {
 
-    private StudyAvailabilityPresenter presenter;
+    private IStudyAvailabilityScreenPresenter presenter;
     
 
     private final Label titleLabel = new Label("Study Availability");
@@ -75,7 +75,7 @@ public class StudyAvailabilityView extends VBox {
     }
 
     /** Called by the presenter constructor */
-    public void setPresenter(StudyAvailabilityPresenter presenter) {
+    public void setPresenter(IStudyAvailabilityScreenPresenter presenter) {
         this.presenter = presenter;
     }
 

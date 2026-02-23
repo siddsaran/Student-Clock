@@ -257,7 +257,7 @@ public class Assignment {
     public String toFullString() {
         return "Assignment{" +
                 "id='" + id + '\'' +
-                ", courseId=" + courseID + '\'' +
+                ", courseId='" + courseID + '\'' +
                 ", name='" + name + '\'' +
                 ", start=" + start +
                 ", deadline=" + deadline +

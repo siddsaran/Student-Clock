@@ -2,7 +2,6 @@ package edu.ucsd.studentclock.service;
 
 import edu.ucsd.studentclock.model.Assignment;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -11,7 +10,7 @@ import java.time.Instant;
  */
 public class TimeTrackingManager {
 
-    private final TimeService timeService;
+    private final ITimeService timeService;
     private Assignment activeAssignment;
     private Instant clockInInstant;
 
@@ -19,9 +18,9 @@ public class TimeTrackingManager {
         this(new TimeService());
     }
 
-    public TimeTrackingManager(TimeService timeService) {
+    public TimeTrackingManager(ITimeService timeService) {
         if (timeService == null) {
-            throw new NullPointerException("clock must not be null");
+            throw new NullPointerException("timeService must not be null");
         }
         this.timeService = timeService;
     }

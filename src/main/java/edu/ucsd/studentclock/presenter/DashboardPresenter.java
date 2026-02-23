@@ -13,19 +13,19 @@ import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
+import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.repository.WorkLogRepository;
-import edu.ucsd.studentclock.service.TimeService;
+import edu.ucsd.studentclock.service.ITimeService;
 import edu.ucsd.studentclock.view.DashboardView;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
-public class DashboardPresenter extends AbstractPresenter<DashboardView> {
+public class DashboardPresenter extends AbstractPresenter<DashboardView> implements IDashboardScreenPresenter {
 
-    private final AssignmentRepository assignmentRepo;
+    private final IAssignmentRepository assignmentRepo;
     private final WorkLogRepository workLogRepo;
-    private final TimeService timeService;
+    private final ITimeService timeService;
 
     private Runnable onBack;
     private Runnable onBigPicture;
@@ -39,7 +39,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     public DashboardPresenter(Model model,
                               DashboardView view,
-                              AssignmentRepository assignmentRepo,
+                              IAssignmentRepository assignmentRepo,
                               WorkLogRepository workLogRepo) {
 
         super(model, view);
@@ -76,13 +76,8 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
             }
         });
 
-        view.getShowOpenButton().setOnAction(e -> {
-            if (onShowOpenAssignments != null) onShowOpenAssignments.run();
-        });
-
-        view.getBigPictureButton().setOnAction(e -> {
-            if (onBigPicture != null) onBigPicture.run();
-        });
+        view.getShowOpenButton().setOnAction(e -> runIfSet(onShowOpenAssignments));
+        view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
 
         // keep dashboard clock fresh (and also refresh urgency coloring)
         ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateView()));
@@ -177,19 +172,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
         return perAvailableDay * remainingAvailableDays;
     }
 
-    private int computeAvailableHoursNext7Days(StudyAvailability sa, LocalDateTime now) {
-        LocalDate today = now.toLocalDate();
-
-        int sum = 0;
-        for (int i = 0; i < 7; i++) {
-            DayOfWeek d = today.plusDays(i).getDayOfWeek();
-            if (sa.isAvailable(d)) {
-                sum += sa.getDailyLimit(d);
-            }
-        }
-        return sum;
-    }
-
     private AssignmentStatus statusFrom(double work, int available) {
         if (available <= 0) {
             return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
@@ -218,7 +200,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> {
 
     public void openAssignment(Assignment assignment) {
         model.setSelectedAssignment(assignment);
-        if (onBack != null) onBack.run();
+        runIfSet(onBack);
     }
 
     public void setOnBack(Runnable action) {
