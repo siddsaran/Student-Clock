@@ -11,21 +11,14 @@ import java.util.UUID;
  */
 public class Assignment {
 
-    // unique id to an assignment
-    private final String id;
-
-    // name of assignment
-    private final String name;
-
-    // course
-    private final String courseID;
+    // unique id to an assignment, name of the assignment, and course
+    private final String id, name, courseID;
 
     // number of late days
     private final int lateDaysAllowed;
 
     // Start date and deadline
-    private final LocalDateTime start;
-    private final LocalDateTime deadline;
+    private final LocalDateTime start, deadline;
 
     // planning hours and progress
     private final double estimatedHours;

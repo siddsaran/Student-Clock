@@ -9,11 +9,8 @@ import java.util.Objects;
  */
 public final class Course {
 
-    // unique identifier
-    private final String id;
-
-    // display label
-    private final String name;
+    // unique identifier and display the label
+    private final String id, name;
 
     public Course(String id, String name) {
         if (id == null) {
@@ -36,8 +33,12 @@ public final class Course {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o){
+            return true;
+        } 
+        if (o == null || getClass() != o.getClass()){
+            return false;
+        } 
         Course course = (Course) o;
         return Objects.equals(id, course.id);
     }

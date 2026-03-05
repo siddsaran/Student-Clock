@@ -130,9 +130,6 @@ public class AssignmentRepository {
                     LocalDateTime deadline =
                             LocalDateTime.parse(resultSet.getString("deadline"));
                     int lateDays = resultSet.getInt("lateDaysAllowed");
-                    //double estimatedHours = resultSet.getDouble("estimatedHours");
-                    //double remainingHours = resultSet.getDouble("remainingHours");
-                    //boolean done = resultSet.getBoolean("done");
                     
                     // for testing purposes
                     double estimatedHours = 0.0;
@@ -172,10 +169,6 @@ public class AssignmentRepository {
                 LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
                 int lateDays = resultSet.getInt("lateDaysAllowed");
 
-                //double estimatedHours = resultSet.getDouble("estimatedHours");
-                //double remainingHours = resultSet.getDouble("remainingHours");
-                //boolean done = resultSet.getBoolean("done");
-                    
                 // for testing purposes
                 double estimatedHours = 0.0;
                 double remainingHours = 0.0;
