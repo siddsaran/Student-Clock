@@ -22,14 +22,14 @@ class AssignmentTest {
     @Test
     void getIdReturnsNonNullId() {
         Assignment assignment = makeAssignment(3.0);
-        assertNotNull(assignment.getID());
+        assertNotNull(assignment.getId());
     }
 
     @Test
     void getIdReturnsDifferentIdsForDifferentAssignments() {
         Assignment a = makeAssignment(3.0);
         Assignment b = makeAssignment(3.0);
-        assertNotEquals(a.getID(), b.getID());
+        assertNotEquals(a.getId(), b.getId());
     }
 
     @Test
@@ -41,7 +41,7 @@ class AssignmentTest {
     @Test
     void getCourseIdReturnsConstructorCourseId() {
         Assignment assignment = makeAssignment(3.0);
-        assertEquals("CSE 110", assignment.getCourseID());
+        assertEquals("CSE 110", assignment.getCourseId());
     }
 
     @Test
@@ -229,9 +229,9 @@ class AssignmentTest {
                 true
         );
 
-        assertEquals("id-123", a.getID());
+        assertEquals("id-123", a.getId());
         assertEquals("PA1", a.getName());
-        assertEquals("CSE 110", a.getCourseID());
+        assertEquals("CSE 110", a.getCourseId());
         assertEquals("series-1", a.getSeriesId());
         assertEquals(start, a.getStart());
         assertEquals(deadline, a.getDeadline());

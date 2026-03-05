@@ -26,6 +26,7 @@ public final class Series {
         if (defaultLateDays < 0) {
             throw new IllegalArgumentException("defaultLateDays must be >= 0");
         }
+
         this.id = id;
         this.courseId = courseId;
         this.name = name;
@@ -49,10 +50,15 @@ public final class Series {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Series series = (Series) o;
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Series series = (Series) object;
         return Objects.equals(id, series.id);
     }
 
@@ -63,6 +69,10 @@ public final class Series {
 
     @Override
     public String toString() {
-        return "Series{id='" + id + "', courseId='" + courseId + "', name='" + name + "', defaultLateDays=" + defaultLateDays + "}";
+        return "Series{id='" + id
+                + "', courseId='" + courseId
+                + "', name='" + name
+                + "', defaultLateDays=" + defaultLateDays
+                + "}";
     }
 }
