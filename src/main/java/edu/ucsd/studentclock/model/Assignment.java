@@ -11,27 +11,15 @@ import java.util.UUID;
  */
 public class Assignment {
 
-    // unique id to an assignment
     private final String id;
-
-    // name of assignment
     private final String name;
-
-    // course
-    private final String courseID;
-
-    // optional series (null = not in any series)
+    private final String courseId;
     private final String seriesId;
-
-    // number of late days
     private final int lateDaysAllowed;
 
-    // Start date and deadline
     private final LocalDateTime start;
     private final LocalDateTime deadline;
-    private LocalDateTime clockInTime;
 
-    // planning hours and progress
     private final double estimatedHours;
     private double remainingHours;
     private boolean done;
@@ -39,18 +27,18 @@ public class Assignment {
 
     public Assignment(
             String name,
-            String courseID,
+            String courseId,
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDaysAllowed,
             double estimatedHours
     ) {
-        this(name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours);
+        this(name, courseId, null, start, deadline, lateDaysAllowed, estimatedHours);
     }
 
     public Assignment(
             String name,
-            String courseID,
+            String courseId,
             String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
@@ -60,7 +48,7 @@ public class Assignment {
         if (name == null) {
             throw new NullPointerException("assignment must have a name");
         }
-        if (courseID == null) {
+        if (courseId == null) {
             throw new NullPointerException("must have a course");
         }
         if (start == null) {
@@ -79,10 +67,9 @@ public class Assignment {
             throw new IllegalArgumentException("estimated hours must be >= 0");
         }
 
-        // random unique id for each assignment
         this.id = UUID.randomUUID().toString();
         this.name = name;
-        this.courseID = courseID;
+        this.courseId = courseId;
         this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
@@ -91,13 +78,12 @@ public class Assignment {
         this.remainingHours = estimatedHours;
         this.cumulativeHours = 0.0;
         this.done = false;
-        this.clockInTime = null;
     }
 
     private Assignment(
             String id,
             String name,
-            String courseID,
+            String courseId,
             String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
@@ -109,7 +95,7 @@ public class Assignment {
     ) {
         this.id = id;
         this.name = name;
-        this.courseID = courseID;
+        this.courseId = courseId;
         this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
@@ -121,24 +107,36 @@ public class Assignment {
     }
 
     public static Assignment fromDatabase(
-        String id,
-        String name,
-        String courseID,
-        LocalDateTime start,
-        LocalDateTime deadline,
-        int lateDaysAllowed,
-        double estimatedHours,
-        double remainingHours,
-        double cumulativeHours,
-        boolean done
+            String id,
+            String name,
+            String courseId,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours,
+            double remainingHours,
+            double cumulativeHours,
+            boolean done
     ) {
-        return fromDatabase(id, name, courseID, null, start, deadline, lateDaysAllowed, estimatedHours, remainingHours, cumulativeHours, done);
+        return fromDatabase(
+                id,
+                name,
+                courseId,
+                null,
+                start,
+                deadline,
+                lateDaysAllowed,
+                estimatedHours,
+                remainingHours,
+                cumulativeHours,
+                done
+        );
     }
 
     public static Assignment fromDatabase(
             String id,
             String name,
-            String courseID,
+            String courseId,
             String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
@@ -151,7 +149,7 @@ public class Assignment {
         return new Assignment(
                 id,
                 name,
-                courseID,
+                courseId,
                 seriesId,
                 start,
                 deadline,
@@ -163,8 +161,7 @@ public class Assignment {
         );
     }
 
-
-    public String getID() {
+    public String getId() {
         return id;
     }
 
@@ -172,8 +169,8 @@ public class Assignment {
         return name;
     }
 
-    public String getCourseID() {
-        return courseID;
+    public String getCourseId() {
+        return courseId;
     }
 
     public String getSeriesId() {
@@ -205,7 +202,7 @@ public class Assignment {
     }
 
     public void setRemainingHours(double remainingHours) {
-        this.remainingHours = Math.max(0, remainingHours);
+        this.remainingHours = Math.max(0.0, remainingHours);
     }
 
     public void setDone(boolean done) {
@@ -213,7 +210,7 @@ public class Assignment {
     }
 
     public double getCumulativeHours() {
-        return this.cumulativeHours;
+        return cumulativeHours;
     }
 
     public void markDone() {
@@ -234,7 +231,7 @@ public class Assignment {
         if (this == o) {
             return true;
         }
-        if ((o == null || getClass() != o.getClass())) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         Assignment that = (Assignment) o;
@@ -248,25 +245,23 @@ public class Assignment {
 
     @Override
     public String toString() {
-        return name + " (" + courseID + ")"
+        return name + " (" + courseId + ")"
                 + " | Estimated: " + estimatedHours
                 + " | Remaining: " + remainingHours
                 + " | Hours Worked: " + cumulativeHours;
     }
 
     public String toFullString() {
-        return "Assignment{" +
-                "id='" + id + '\'' +
-                ", courseId='" + courseID + '\'' +
-                ", name='" + name + '\'' +
-                ", start=" + start +
-                ", deadline=" + deadline +
-                ", lateDaysAllowed=" + lateDaysAllowed +
-                ", estimatedHours=" + estimatedHours +
-                ", remainingHours=" + remainingHours +
-                ", done=" + done +
-                '}';
+        return "Assignment{"
+                + "id='" + id + '\''
+                + ", courseId='" + courseId + '\''
+                + ", name='" + name + '\''
+                + ", start=" + start
+                + ", deadline=" + deadline
+                + ", lateDaysAllowed=" + lateDaysAllowed
+                + ", estimatedHours=" + estimatedHours
+                + ", remainingHours=" + remainingHours
+                + ", done=" + done
+                + '}';
     }
-
-
 }

@@ -60,7 +60,7 @@ class AssignmentRepositoryTest {
 
         Assignment r = retrieved.get(0);
         assertEquals("Quiz 2 Study", r.getName());
-        assertEquals("CSE 110", r.getCourseID());
+        assertEquals("CSE 110", r.getCourseId());
         assertEquals(start, r.getStart());
         assertEquals(deadline, r.getDeadline());
         assertEquals(0, r.getLateDaysAllowed());
@@ -132,10 +132,10 @@ class AssignmentRepositoryTest {
         List<Assignment> cse101 = repository.getAssignmentsForCourse("CSE 101");
 
         assertEquals(2, cse110.size());
-        assertTrue(cse110.stream().allMatch(a -> "CSE 110".equals(a.getCourseID())));
+        assertTrue(cse110.stream().allMatch(a -> "CSE 110".equals(a.getCourseId())));
 
         assertEquals(1, cse101.size());
-        assertTrue(cse101.stream().allMatch(a -> "CSE 101".equals(a.getCourseID())));
+        assertTrue(cse101.stream().allMatch(a -> "CSE 101".equals(a.getCourseId())));
     }
 
     @Test
@@ -189,7 +189,7 @@ class AssignmentRepositoryTest {
 
         assertEquals(2, repository.getAssignmentsForCourse("CSE 110").size());
 
-        repository.deleteAssignment(a1.getID());
+        repository.deleteAssignment(a1.getId());
 
         List<Assignment> remaining = repository.getAssignmentsForCourse("CSE 110");
 
@@ -272,7 +272,7 @@ class AssignmentRepositoryTest {
         List<Assignment> remaining = repository.getAllAssignments();
 
         assertEquals(1, remaining.size());
-        assertEquals("CSE 101", remaining.get(0).getCourseID());
+        assertEquals("CSE 101", remaining.get(0).getCourseId());
         assertEquals("PA1", remaining.get(0).getName());
     }
 
@@ -325,18 +325,18 @@ class AssignmentRepositoryTest {
         repository.addAssignment(a2);
         repository.addAssignment(a3);
 
-        repository.setSeriesForAssignments("pa-series", 2, List.of(a1.getID(), a2.getID()));
+        repository.setSeriesForAssignments("pa-series", 2, List.of(a1.getId(), a2.getId()));
 
         List<Assignment> inSeries = repository.getAssignmentsBySeries("pa-series");
         assertEquals(2, inSeries.size());
-        assertTrue(inSeries.stream().anyMatch(a -> a1.getID().equals(a.getID())));
-        assertTrue(inSeries.stream().anyMatch(a -> a2.getID().equals(a.getID())));
+        assertTrue(inSeries.stream().anyMatch(a -> a1.getId().equals(a.getId())));
+        assertTrue(inSeries.stream().anyMatch(a -> a2.getId().equals(a.getId())));
         assertEquals(2, inSeries.get(0).getLateDaysAllowed());
         assertEquals(2, inSeries.get(1).getLateDaysAllowed());
 
         List<Assignment> all = repository.getAssignmentsForCourse("CSE 110");
         Assignment unlinked = all.stream()
-                .filter(a -> a3.getID().equals(a.getID()))
+                .filter(a -> a3.getId().equals(a.getId()))
                 .findFirst()
                 .orElseThrow();
         assertNull(unlinked.getSeriesId());
@@ -348,7 +348,7 @@ class AssignmentRepositoryTest {
         Assignment a1 = new Assignment("PA1", "CSE 110", start, LocalDateTime.of(2026, 2, 5, 23, 59), 0, 0);
         repository.addAssignment(a1);
 
-        repository.setSeriesForAssignments("   ", 0, List.of(a1.getID()));
+        repository.setSeriesForAssignments("   ", 0, List.of(a1.getId()));
 
         Assignment loaded = repository.getAssignmentsForCourse("CSE 110").get(0);
         assertNull(loaded.getSeriesId());

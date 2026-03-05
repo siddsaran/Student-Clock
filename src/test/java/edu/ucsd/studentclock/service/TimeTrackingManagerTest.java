@@ -80,7 +80,7 @@ class TimeTrackingManagerTest {
         assertFalse(manager.isTracking());
         assertNull(manager.getActiveAssignment());
 
-        assertEquals(a.getID(), result.getAssignmentId());
+        assertEquals(a.getId(), result.getAssignmentId());
         assertEquals(1.5, result.getSessionHours());
 
         assertEquals(1.5, a.getCumulativeHours());

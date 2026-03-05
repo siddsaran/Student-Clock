@@ -64,7 +64,7 @@ public class TimeTrackingManager {
         activeAssignment.applyWork(hoursWorked);
 
         ClockOutResult result = new ClockOutResult(
-                activeAssignment.getID(),
+                activeAssignment.getId(),
                 hoursWorked,
                 activeAssignment.getCumulativeHours(),
                 activeAssignment.getRemainingHours(),

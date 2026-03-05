@@ -19,17 +19,18 @@ import edu.ucsd.studentclock.view.AssignmentListEntry;
  */
 public final class AssignmentListGrouper {
 
-    private AssignmentListGrouper() {}
+    private AssignmentListGrouper() {
+    }
 
     /**
      * Builds a list of assignment rows with course headers. No-series assignments have no tag;
      * series assignments have a tag. Order: no series first, then each series by name.
      *
-     * @param allAssignments all assignments (e.g. from repository)
-     * @param showOnlyOpen   if true, filter to non-done assignments only
-     * @param courseFilter   course id to filter by, or allCoursesLabel to show all
-     * @param allCoursesLabel value that means "no course filter" (e.g. "All Courses")
-     * @param model          used to resolve series display names
+     * @param allAssignments   all assignments (e.g. from repository)
+     * @param showOnlyOpen     if true, filter to non-done assignments only
+     * @param courseFilter     course id to filter by, or allCoursesLabel to show all
+     * @param allCoursesLabel  value that means "no course filter" (e.g. "All Courses")
+     * @param model            used to resolve series display names
      * @return list of headers and rows for the assignment list
      */
     public static List<AssignmentListEntry> buildGroupedList(
@@ -37,55 +38,60 @@ public final class AssignmentListGrouper {
             boolean showOnlyOpen,
             String courseFilter,
             String allCoursesLabel,
-            Model model) {
+            Model model
+    ) {
         List<Assignment> assignments = allAssignments;
+
         if (showOnlyOpen) {
             assignments = assignments.stream()
-                    .filter(a -> !a.isDone())
+                    .filter(assignment -> !assignment.isDone())
                     .collect(Collectors.toList());
         }
+
         if (courseFilter != null
                 && !allCoursesLabel.equals(courseFilter)
                 && !courseFilter.isBlank()) {
             assignments = assignments.stream()
-                    .filter(a -> courseFilter.equals(a.getCourseID()))
+                    .filter(assignment -> courseFilter.equals(assignment.getCourseId()))
                     .collect(Collectors.toList());
         }
 
         Map<String, String> seriesIdToName = new HashMap<>();
-        for (Assignment a : assignments) {
-            String sid = a.getSeriesId();
-            if (sid != null && !seriesIdToName.containsKey(sid)) {
-                String name = model.getSeries(sid)
+        for (Assignment assignment : assignments) {
+            String seriesId = assignment.getSeriesId();
+            if (seriesId != null && !seriesIdToName.containsKey(seriesId)) {
+                String seriesName = model.getSeries(seriesId)
                         .map(Series::getName)
-                        .orElse(sid);
-                seriesIdToName.put(sid, name);
+                        .orElse(seriesId);
+                seriesIdToName.put(seriesId, seriesName);
             }
         }
 
-        Map<String, List<Assignment>> byCourse = assignments.stream()
-                .collect(Collectors.groupingBy(Assignment::getCourseID));
-        List<String> courseIds = byCourse.keySet().stream()
+        Map<String, List<Assignment>> assignmentsByCourse = assignments.stream()
+                .collect(Collectors.groupingBy(Assignment::getCourseId));
+        List<String> courseIds = assignmentsByCourse.keySet().stream()
                 .sorted()
                 .collect(Collectors.toList());
 
-        List<AssignmentListEntry> result = new ArrayList<>();
+        List<AssignmentListEntry> groupedList = new ArrayList<>();
         for (String courseId : courseIds) {
-            result.add(AssignmentListEntry.forHeader(courseId));
+            groupedList.add(AssignmentListEntry.forHeader(courseId));
 
-            List<Assignment> courseAssignments = byCourse.get(courseId);
-            if (courseAssignments == null || courseAssignments.isEmpty()) continue;
-
-            Map<String, List<Assignment>> bySeries = new HashMap<>();
-            for (Assignment a : courseAssignments) {
-                String key = a.getSeriesId() != null ? a.getSeriesId() : null;
-                bySeries.computeIfAbsent(key, k -> new ArrayList<>()).add(a);
+            List<Assignment> courseAssignments = assignmentsByCourse.get(courseId);
+            if (courseAssignments == null || courseAssignments.isEmpty()) {
+                continue;
             }
 
-            List<Assignment> noSeriesList = bySeries.get(null);
-            if (noSeriesList != null) {
-                for (Assignment a : noSeriesList) {
-                    result.add(AssignmentListEntry.forRowWithoutTag(a));
+            Map<String, List<Assignment>> assignmentsBySeries = new HashMap<>();
+            for (Assignment assignment : courseAssignments) {
+                String seriesId = assignment.getSeriesId();
+                assignmentsBySeries.computeIfAbsent(seriesId, key -> new ArrayList<>()).add(assignment);
+            }
+
+            List<Assignment> noSeriesAssignments = assignmentsBySeries.get(null);
+            if (noSeriesAssignments != null) {
+                for (Assignment assignment : noSeriesAssignments) {
+                    groupedList.add(AssignmentListEntry.forRowWithoutTag(assignment));
                 }
             }
 
@@ -100,11 +106,18 @@ public final class AssignmentListGrouper {
 
             for (String seriesId : seriesIds) {
                 String displayName = seriesIdToName.getOrDefault(seriesId, seriesId);
-                for (Assignment a : bySeries.get(seriesId)) {
-                    result.add(AssignmentListEntry.forRow(a, displayName));
+                List<Assignment> seriesAssignments = assignmentsBySeries.get(seriesId);
+
+                if (seriesAssignments == null) {
+                    continue;
+                }
+
+                for (Assignment assignment : seriesAssignments) {
+                    groupedList.add(AssignmentListEntry.forRow(assignment, displayName));
                 }
             }
         }
-        return result;
+
+        return groupedList;
     }
 }

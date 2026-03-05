@@ -4,14 +4,13 @@ import java.time.DayOfWeek;
 
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
-import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
 
 /**
  * Presenter for the Study Availability screen.
  */
 public class StudyAvailabilityPresenter
-        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter {
+        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter{
 
     private Runnable onBack;
 
@@ -26,7 +25,6 @@ public class StudyAvailabilityPresenter
         super(model, view);
         view.setPresenter(this);
 
-        // Persist immediately when a day is toggled
         for (DayOfWeek d : DayOfWeek.values()) {
             view.setOnDayToggled(d, () -> model.setAvailable(d, view.isDaySelected(d)));
         }
@@ -95,11 +93,11 @@ public class StudyAvailabilityPresenter
 
         model.saveStudyAvailability();
 
-        view.showMessage("Saved weekly study hours: " + TimeFormatUtils.formatHoursAsHHMM(hours));
+        view.showMessage("Saved weekly study hours: " + hours);
     }
 
     public void onBack() {
-        runIfSet(onBack);
+        if (onBack != null) onBack.run();
     }
 
     /** Used by PresenterManager */

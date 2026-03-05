@@ -205,7 +205,7 @@ class ModelTest {
         assignmentRepository.addAssignment(a2);
 
         Series series = new Series("pa-series", "CSE 110", "PAs", 2);
-        model.createSeriesAndLinkAssignments(series, List.of(a1.getID()));
+        model.createSeriesAndLinkAssignments(series, List.of(a1.getId()));
 
         Optional<Series> storedSeries = model.getSeries("pa-series");
         assertTrue(storedSeries.isPresent());
@@ -213,11 +213,11 @@ class ModelTest {
 
         List<Assignment> linked = assignmentRepository.getAssignmentsBySeries("pa-series");
         assertEquals(1, linked.size());
-        assertEquals(a1.getID(), linked.get(0).getID());
+        assertEquals(a1.getId(), linked.get(0).getId());
         assertEquals(2, linked.get(0).getLateDaysAllowed());
 
         Assignment stillUnlinked = assignmentRepository.getAssignmentsForCourse("CSE 110").stream()
-                .filter(a -> a2.getID().equals(a.getID()))
+                .filter(a -> a2.getId().equals(a.getId()))
                 .findFirst()
                 .orElseThrow();
         assertNull(stillUnlinked.getSeriesId());

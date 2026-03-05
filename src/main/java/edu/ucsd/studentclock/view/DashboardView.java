@@ -92,7 +92,7 @@ public class DashboardView extends BorderPane {
                 new TableColumn<>("Course");
         courseCol.setCellValueFactory(c ->
                 new javafx.beans.property.SimpleStringProperty(
-                        c.getValue().getCourseID()));
+                        c.getValue().getCourseId()));
 
         TableColumn<Assignment, String> dueCol =
                 new TableColumn<>("Due Date");

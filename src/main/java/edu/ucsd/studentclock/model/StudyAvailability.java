@@ -1,11 +1,10 @@
 package edu.ucsd.studentclock.model;
+
 import java.time.DayOfWeek;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
-
-
 
 /**
  * Stores a student's weekly study availability.
@@ -21,14 +20,13 @@ public final class StudyAvailability {
     private final Set<DayOfWeek> availableDays;
     private final Map<DayOfWeek, Integer> dailyLimits;
 
-
     public StudyAvailability() {
         this.totalWeeklyHours = 0;
         this.availableDays = EnumSet.noneOf(DayOfWeek.class);
         this.dailyLimits = new EnumMap<>(DayOfWeek.class);
 
-        for (DayOfWeek d : DayOfWeek.values()) {
-            dailyLimits.put(d, 0);
+        for (DayOfWeek day : DayOfWeek.values()) {
+            dailyLimits.put(day, 0);
         }
     }
 
@@ -50,10 +48,11 @@ public final class StudyAvailability {
     public void setAvailable(DayOfWeek day, boolean available) {
         if (available) {
             availableDays.add(day);
-        } else {
-            availableDays.remove(day);
-            dailyLimits.put(day, 0); 
+            return;
         }
+
+        availableDays.remove(day);
+        dailyLimits.put(day, 0);
     }
 
     public int getDailyLimit(DayOfWeek day) {
@@ -65,19 +64,17 @@ public final class StudyAvailability {
             throw new IllegalArgumentException("Daily limit must be >= 0");
         }
         if (!isAvailable(day) && hours > 0) {
-            throw new IllegalStateException(
-                "Cannot set hours for an unavailable day: " + day
-            );
+            throw new IllegalStateException("Cannot set hours for an unavailable day: " + day);
         }
         dailyLimits.put(day, hours);
     }
 
     public int getTotalAllocatedHours() {
-        int sum = 0;
-        for (int hrs : dailyLimits.values()) {
-            sum += hrs;
+        int totalAllocatedHours = 0;
+        for (int hours : dailyLimits.values()) {
+            totalAllocatedHours += hours;
         }
-        return sum;
+        return totalAllocatedHours;
     }
 
     public int getUnallocatedHours() {
@@ -104,5 +101,4 @@ public final class StudyAvailability {
     public double getRemainingHoursForWeek(double totalLoggedThisWeek) {
         return Math.max(0.0, totalWeeklyHours - totalLoggedThisWeek);
     }
-
 }

@@ -93,9 +93,9 @@ public class AssignmentRepository implements IAssignmentRepository {
             throw new NullPointerException("assignment must not be null");
         }
         try (PreparedStatement statement = connection.prepareStatement(INSERT_SQL)) {
-            statement.setString(1, assignment.getID());
+            statement.setString(1, assignment.getId());
             statement.setString(2, assignment.getName());
-            statement.setString(3, assignment.getCourseID());
+            statement.setString(3, assignment.getCourseId());
             statement.setString(4, assignment.getSeriesId());
             statement.setString(5, assignment.getStart().toString());
             statement.setString(6, assignment.getDeadline().toString());

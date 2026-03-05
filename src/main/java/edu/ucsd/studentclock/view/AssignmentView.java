@@ -247,7 +247,7 @@ public class AssignmentView extends BorderPane {
 
                 Assignment a = item.getAssignment();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy");
-                String mainText = a.getName() + " (" + a.getCourseID() + ")"        
+                String mainText = a.getName() + " (" + a.getCourseId() + ")"        
                         + " | Start: " + a.getStart().format(formatter)
                         + " | Deadline: " + a.getDeadline().format(formatter)
                         + " | Estimated: " + TimeFormatUtils.formatHoursAsHHMM(a.getEstimatedHours())
@@ -348,10 +348,10 @@ public class AssignmentView extends BorderPane {
 
         try {
             if (!presenter.isTracking()) {
-                presenter.clockIn(selected.getID());
+                presenter.clockIn(selected.getId());
                 clockButton.setText("Clock Out");
             } else {
-                presenter.clockOut(selected.getID());
+                presenter.clockOut(selected.getId());
                 clockButton.setText("Clock In");
             }
         } catch (Exception ex) {
@@ -502,7 +502,7 @@ public class AssignmentView extends BorderPane {
 
         try {
             double hours = Double.parseDouble(manualHoursField.getText().trim());
-            presenter.applyManualHours(selected.getID(), hours);
+            presenter.applyManualHours(selected.getId(), hours);
             manualHoursField.clear();
         } catch (NumberFormatException ex) {
             new Alert(Alert.AlertType.ERROR, "Enter a valid number like 1.5").showAndWait();
@@ -516,7 +516,7 @@ public class AssignmentView extends BorderPane {
         if (selected == null) return;
 
         try {
-            presenter.markDone(selected.getID());
+            presenter.markDone(selected.getId());
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
         }
@@ -553,7 +553,7 @@ public class AssignmentView extends BorderPane {
     public List<String> getSelectedAssignmentIds() {
         List<String> selectedIds = new ArrayList<>();
         for (AssignmentListEntry entry : assignmentList.getSelectionModel().getSelectedItems()) {
-            if (entry.getAssignment() != null) selectedIds.add(entry.getAssignment().getID());
+            if (entry.getAssignment() != null) selectedIds.add(entry.getAssignment().getId());
         }
         return selectedIds;
     }
