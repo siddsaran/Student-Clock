@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,7 +91,7 @@ class ModelTest {
     void modelWithNullSeriesRepositoryThrows() {
         assertThrows(NullPointerException.class, () -> new Model(repository, null, null, saRepository, new TimeService()));
     }
-      
+
     @Test
     void modelWithNullRepositoryThrows() {
         assertThrows(NullPointerException.class, () -> new Model(null, null, null, saRepository, new TimeService()));
@@ -163,25 +164,28 @@ class ModelTest {
     void deleteCourseDeletesAssignmentsForThatCourse() {
         model.addCourse("CSE 110", "Software Engineering");
 
-        assignmentRepository.addAssignment(new Assignment(
-                "Quiz 2 Study", "CSE 110",
-                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
-                0, 0
-        ));
-        assignmentRepository.addAssignment(new Assignment(
-                "MVP", "CSE 110",
-                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 6, 23, 59),
-                0, 0
-        ));
+        assignmentRepository.addAssignment(new AssignmentBuilder()
+                .setName("Quiz 2 Study")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(0)
+                .build());
+        assignmentRepository.addAssignment(new AssignmentBuilder()
+                .setName("MVP")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 6, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(0)
+                .build());
 
         assertEquals(2, assignmentRepository.getAssignmentsForCourse("CSE 110").size());
 
         model.deleteCourse("CSE 110");
 
         assertTrue(model.getCourse("CSE 110").isEmpty());
-
         assertTrue(assignmentRepository.getAssignmentsForCourse("CSE 110").isEmpty());
     }
 
@@ -189,18 +193,22 @@ class ModelTest {
     void createSeriesAndLinkAssignmentsCreatesSeriesAndLinksSelectedAssignments() {
         model.addCourse("CSE 110", "Software Engineering");
 
-        Assignment a1 = new Assignment(
-                "PA1", "CSE 110",
-                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
-                0, 0
-        );
-        Assignment a2 = new Assignment(
-                "PA2", "CSE 110",
-                java.time.LocalDateTime.of(2026, 2, 6, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 12, 23, 59),
-                0, 0
-        );
+        Assignment a1 = new AssignmentBuilder()
+                .setName("PA1")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(0)
+                .build();
+        Assignment a2 = new AssignmentBuilder()
+                .setName("PA2")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 6, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 12, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(0)
+                .build();
         assignmentRepository.addAssignment(a1);
         assignmentRepository.addAssignment(a2);
 
@@ -246,12 +254,15 @@ class ModelTest {
         Series series = new Series("pa-series", "CSE 110", "PAs", 2);
         model.addSeries(series);
 
-        Assignment a = new Assignment(
-                "PA1", "CSE 110", "pa-series",
-                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
-                series.getDefaultLateDays(), 2.0
-        );
+        Assignment a = new AssignmentBuilder()
+                .setName("PA1")
+                .setCourseId("CSE 110")
+                .setSeriesId("pa-series")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(series.getDefaultLateDays())
+                .setEstimatedHours(2.0)
+                .build();
         assignmentRepository.addAssignment(a);
 
         assertTrue(model.getSeries("pa-series").isPresent());
@@ -274,14 +285,14 @@ class ModelTest {
 
     @Test
     void selectedAssignmentRoundTrips() {
-        Assignment a = new Assignment(
-                "PA1",
-                "CSE 110",
-                java.time.LocalDateTime.of(2026, 2, 1, 9, 0),
-                java.time.LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                2.0
-        );
+        Assignment a = new AssignmentBuilder()
+                .setName("PA1")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(2.0)
+                .build();
 
         assertNull(model.getSelectedAssignment());
         model.setSelectedAssignment(a);

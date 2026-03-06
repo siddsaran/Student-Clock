@@ -364,78 +364,46 @@ public class AssignmentView extends BorderPane {
     }
 
     private void handleCreate() {
+        if (presenter == null) return;
+
         try {
-            String name = nameField.getText().trim();
-            double estimate = Double.parseDouble(estimatedHoursField.getText().trim());
-            String course = courseBox.getValue();
-
-            LocalDate startDate = startPicker.getValue();
-            LocalDate deadlineDate = deadlinePicker.getValue();
-
-            if (course == null || ALL_COURSES.equals(course) || startDate == null || deadlineDate == null) {
-                throw new IllegalArgumentException("All fields required");
-            }
-
-            String seriesChoice = seriesChoiceBox.getValue();
-
-            if (seriesChoice == null || SERIES_CHOICE_NONE.equals(seriesChoice)) {
-                presenter.createAssignment(
-                        name,
-                        course,
-                        startDate.atStartOfDay(),
-                        deadlineDate.atStartOfDay(),
-                        0,
-                        estimate,
-                        null
-                );
-            } else if (SERIES_CHOICE_NEW.equals(seriesChoice)) {
-                String seriesName = addFormNewSeriesNameField.getText().trim();
-                if (seriesName.isEmpty()) {
-                    throw new IllegalArgumentException("Series name is required when creating a new series");
-                }
-                String seriesId = addFormNewSeriesIdField.getText().trim();
-                if (seriesId.isEmpty()) {
-                    seriesId = "series-" + UUID.randomUUID().toString();
-                }
-                int defaultLateDays = 0;
-                String lateDaysStr = addFormNewDefaultLateDaysField.getText().trim();
-                if (!lateDaysStr.isEmpty()) {
-                    defaultLateDays = Integer.parseInt(lateDaysStr);
-                }
-                presenter.createSeries(seriesId, course, seriesName, defaultLateDays);
-                presenter.createAssignment(
-                        name,
-                        course,
-                        startDate.atStartOfDay(),
-                        deadlineDate.atStartOfDay(),
-                        defaultLateDays,
-                        estimate,
-                        seriesId
-                );
-                clearAddFormSeriesInputs();
-            } else if (SERIES_CHOICE_EXISTING.equals(seriesChoice)) {
-                Series selected = existingSeriesBox.getValue();
-                if (selected == null) {
-                    throw new IllegalArgumentException("Select a series to add this assignment to");
-                }
-                presenter.createAssignment(
-                        name,
-                        course,
-                        startDate.atStartOfDay(),
-                        deadlineDate.atStartOfDay(),
-                        selected.getDefaultLateDays(),
-                        estimate,
-                        selected.getId()
-                );
-            }
+            AssignmentCreateRequest request = buildCreateRequestFromForm();
+            presenter.onCreateAssignment(request);
 
             clearInputs();
+            clearAddFormSeriesInputs();
 
-        } catch (NumberFormatException ex) {
-            new Alert(Alert.AlertType.ERROR, "Enter valid numbers for estimated hours and late days").showAndWait();
         } catch (Exception ex) {
-            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+            showError(ex.getMessage());
         }
+    }
+
+    private AssignmentCreateRequest buildCreateRequestFromForm() {
+
+        AssignmentCreateRequest.SeriesChoice choice = AssignmentCreateRequest.SeriesChoice.NONE;
+        String seriesChoice = seriesChoiceBox.getValue();
+        if (SERIES_CHOICE_NEW.equals(seriesChoice)) {
+            choice = AssignmentCreateRequest.SeriesChoice.NEW_SERIES;
+        } else if (SERIES_CHOICE_EXISTING.equals(seriesChoice)) {
+            choice = AssignmentCreateRequest.SeriesChoice.EXISTING_SERIES;
+        }
+
+        return new AssignmentCreateRequest(
+                nameField.getText(),
+                courseBox.getValue(),
+                startPicker.getValue(),
+                deadlinePicker.getValue(),
+                estimatedHoursField.getText(),
+                choice,
+                addFormNewSeriesNameField.getText(),
+                addFormNewSeriesIdField.getText(),
+                addFormNewDefaultLateDaysField.getText(),
+                existingSeriesBox.getValue()
+        );
+    }
+
+    private void showError(String message) {
+        new Alert(Alert.AlertType.ERROR, message).showAndWait();
     }
 
     private void refreshExistingSeriesForCourse(String courseId) {

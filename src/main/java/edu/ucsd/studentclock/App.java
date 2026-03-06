@@ -1,31 +1,11 @@
 package edu.ucsd.studentclock;
 
-import edu.ucsd.studentclock.datasource.IDataSource;
-import edu.ucsd.studentclock.datasource.SqlDataSource;
-import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.service.ITimeService;
-import edu.ucsd.studentclock.service.TimeService;
-import edu.ucsd.studentclock.presenter.AssignmentPresenter;
-import edu.ucsd.studentclock.presenter.BigPicturePresenter;
-import edu.ucsd.studentclock.presenter.CoursePresenter;
-import edu.ucsd.studentclock.presenter.DashboardPresenter;
-import edu.ucsd.studentclock.presenter.PresenterManager;
-import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
-import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
-import edu.ucsd.studentclock.repository.CourseRepository;
-import edu.ucsd.studentclock.repository.SeriesRepository;
-import edu.ucsd.studentclock.repository.StudyAvailabilityRepository;
-import edu.ucsd.studentclock.repository.IAssignmentRepository;
-import edu.ucsd.studentclock.repository.ICourseRepository;
-import edu.ucsd.studentclock.repository.ISeriesRepository;
-import edu.ucsd.studentclock.repository.IStudyAvailabilityRepository;
-import edu.ucsd.studentclock.repository.WorkLogRepository;
-import edu.ucsd.studentclock.view.AssignmentView;
-import edu.ucsd.studentclock.view.BigPictureView;
-import edu.ucsd.studentclock.view.CourseView;
-import edu.ucsd.studentclock.view.DashboardView;
-import edu.ucsd.studentclock.view.StudyAvailabilityView;
+import edu.ucsd.studentclock.datasource.*;
+import edu.ucsd.studentclock.model.*;
+import edu.ucsd.studentclock.service.*;
+import edu.ucsd.studentclock.repository.*;
+import edu.ucsd.studentclock.view.*;
+import edu.ucsd.studentclock.presenter.*;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -40,42 +20,45 @@ public class App extends Application {
         // Single data source for all repositories
         IDataSource dataSource = new SqlDataSource("studentclock.db");
 
-        // Repositories (depend on IDataSource abstraction)
-        ICourseRepository courseRepository = new CourseRepository(dataSource);
-        ISeriesRepository seriesRepository = new SeriesRepository(dataSource);
-        IAssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
-        IStudyAvailabilityRepository studyAvailabilityRepository = new StudyAvailabilityRepository(dataSource);
+        // Repositories
+        RepositoryFactory repoFactory = new RepositoryFactory(dataSource);
 
-        AssignmentWorkLogRepository assignmentWorkLogRepository = new AssignmentWorkLogRepository(dataSource);
-        WorkLogRepository workLogRepository = new WorkLogRepository(dataSource);
+        ICourseRepository courseRepository = repoFactory.createCourseRepository();
+        ISeriesRepository seriesRepository = repoFactory.createSeriesRepository();
+        IAssignmentRepository assignmentRepository = repoFactory.createAssignmentRepository();
+        IStudyAvailabilityRepository studyAvailabilityRepository = repoFactory.createStudyAvailabilityRepository();
+        WorkLogRepository workLogRepository = repoFactory.createWorkLogRepository();
+        AssignmentWorkLogRepository assignmentWorkLogRepository = repoFactory.createAssignmentWorkLogRepository();
 
-        // Shared model (depends on repository and time-service abstractions)
+        // Shared model
         ITimeService timeService = new TimeService();
         Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository, timeService);
 
         // Views
-        CourseView courseView = new CourseView();
-        AssignmentView assignmentView = new AssignmentView();
-        StudyAvailabilityView studyAvailabilityView = new StudyAvailabilityView();
-        DashboardView dashboardView = new DashboardView();
-        BigPictureView bigPictureView = new BigPictureView();
+        ViewFactory viewFactory = new ViewFactory();
 
-        // Presenters
-        CoursePresenter coursePresenter =
-                new CoursePresenter(sharedModel, courseView);
+        CourseView courseView = viewFactory.createCourseView();
+        AssignmentView assignmentView = viewFactory.createAssignmentView();
+        StudyAvailabilityView studyAvailabilityView = viewFactory.createStudyAvailabilityView();
+        DashboardView dashboardView = viewFactory.createDashboardView();
+        BigPictureView bigPictureView = viewFactory.createBigPictureView();
 
-        AssignmentPresenter assignmentPresenter =
-                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository, workLogRepository, assignmentWorkLogRepository);
-        
+        // Presenters 
+        PresenterFactory factory = new PresenterFactory(
+                        sharedModel,
+                        courseRepository,
+                        assignmentRepository,
+                        studyAvailabilityRepository,
+                        workLogRepository,
+                        assignmentWorkLogRepository
+                );
+
+        CoursePresenter coursePresenter = factory.createCoursePresenter(courseView);
+        AssignmentPresenter assignmentPresenter = factory.createAssignmentPresenter(assignmentView);
         StudyAvailabilityPresenter studyAvailabilityPresenter =
-                new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
-        DashboardPresenter dashboardPresenter =
-            new DashboardPresenter(sharedModel, dashboardView, assignmentRepository, workLogRepository);
-        dashboardView.setPresenter(dashboardPresenter);
-
-        BigPicturePresenter bigPicturePresenter =
-            new BigPicturePresenter(sharedModel, bigPictureView, assignmentRepository, assignmentWorkLogRepository);
-        bigPictureView.setPresenter(bigPicturePresenter);
+                factory.createStudyAvailabilityPresenter(studyAvailabilityView);
+        DashboardPresenter dashboardPresenter = factory.createDashboardPresenter(dashboardView);
+        BigPicturePresenter bigPicturePresenter = factory.createBigPicturePresenter(bigPictureView);
 
 
 

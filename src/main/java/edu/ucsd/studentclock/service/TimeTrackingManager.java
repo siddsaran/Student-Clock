@@ -6,7 +6,9 @@ import java.time.Duration;
 import java.time.Instant;
 
 /**
- * Manages time tracking
+ * Manages time tracking for a single active assignment.
+ * Responsibility: track clock-in/out state and compute session duration.
+ * Time source is injected via ITimeService 
  */
 public class TimeTrackingManager {
 
@@ -14,10 +16,7 @@ public class TimeTrackingManager {
     private Assignment activeAssignment;
     private Instant clockInInstant;
 
-    public TimeTrackingManager() {
-        this(new TimeService());
-    }
-
+    // SRP fix: remove default constructor that creates TimeService.
     public TimeTrackingManager(ITimeService timeService) {
         if (timeService == null) {
             throw new NullPointerException("timeService must not be null");
@@ -36,7 +35,7 @@ public class TimeTrackingManager {
 
         if (activeAssignment != null) {
             throw new IllegalStateException(
-                "Already clocked into assignment: " + activeAssignment.getName()
+                    "Already clocked into assignment: " + activeAssignment.getName()
             );
         }
 
@@ -58,7 +57,6 @@ public class TimeTrackingManager {
         }
 
         Instant out = timeService.nowInstant();
-
         double hoursWorked = Duration.between(clockInInstant, out).toMinutes() / 60.0;
 
         activeAssignment.applyWork(hoursWorked);
@@ -78,16 +76,12 @@ public class TimeTrackingManager {
         return result;
     }
 
-    /**
-     * Returns true if an assignment is currently being tracked.
-     */
+    /** Returns true if an assignment is currently being tracked. */
     public boolean isTracking() {
         return activeAssignment != null;
     }
 
-    /**
-     * Returns the currently active assignment (null if none).
-     */
+    /** Returns the currently active assignment (null if none). */
     public Assignment getActiveAssignment() {
         return activeAssignment;
     }

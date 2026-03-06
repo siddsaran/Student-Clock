@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.service;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.model.AssignmentBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -8,10 +9,16 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TimeTrackingManagerTest {
+
     private static Assignment makeAssignment(double estimatedHours) {
-        LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
-        LocalDateTime deadline = LocalDateTime.of(2026, 2, 5, 23, 59);
-        return new Assignment("Quiz 2 Study", "CSE 110", start, deadline, 0, estimatedHours);
+        return new AssignmentBuilder()
+                .setName("Quiz 2 Study")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(estimatedHours)
+                .build();
     }
 
     private static LocalDateTime initMockTime(TimeService timeService) {
@@ -102,14 +109,7 @@ class TimeTrackingManagerTest {
         TimeTrackingManager manager = new TimeTrackingManager(timeService);
 
         Assignment a1 = makeAssignment(5.0);
-        Assignment a2 = new Assignment(
-                "PA1",
-                "CSE 110",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                5.0
-        );
+        Assignment a2 = makeAssignment(5.0);
 
         manager.clockIn(a1);
 
