@@ -56,14 +56,12 @@ public final class PresenterFactory {
     public DashboardPresenter createDashboardPresenter(DashboardView view) {
         DashboardPresenter presenter =
                 new DashboardPresenter(model, view, assignmentRepository, workLogRepository);
-        view.setPresenter(presenter);
         return presenter;
     }
 
     public BigPicturePresenter createBigPicturePresenter(BigPictureView view) {
         BigPicturePresenter presenter =
                 new BigPicturePresenter(model, view, assignmentRepository, assignmentWorkLogRepository);
-        view.setPresenter(presenter);
         return presenter;
     }
 }
