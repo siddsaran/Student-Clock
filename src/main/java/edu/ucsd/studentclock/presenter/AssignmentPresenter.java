@@ -2,9 +2,11 @@ package edu.ucsd.studentclock.presenter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.model.AssignmentBuilder;
 import edu.ucsd.studentclock.model.Course;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
@@ -12,23 +14,22 @@ import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.service.ClockOutResult;
-import edu.ucsd.studentclock.service.ITimeService;
-import edu.ucsd.studentclock.service.TimeTrackingManager;
+import edu.ucsd.studentclock.service.WorkSessionService;
 import edu.ucsd.studentclock.util.ValidationUtils;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
 import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.view.AssignmentCreateRequest;
+import edu.ucsd.studentclock.view.AssignmentCreateRequest.SeriesChoice;
 
 /**
  * Presenter for the Assignment screen.
  * Handles user actions and coordinates between AssignmentView and the assignment repository.
+ * Work-session concerns (clock in/out, manual hours) are delegated to {@link WorkSessionService}.
  */
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> implements IAssignmentScreenPresenter {
 
     private final IAssignmentRepository assignmentRepository;
-    private final WorkLogRepository workLogRepository;
-    private final AssignmentWorkLogRepository assignmentWorkLogRepository;
-    private final TimeTrackingManager timeTrackingManager;
-    private final ITimeService timeService;
+    private final WorkSessionService workSessionService;
 
     private Runnable onBack;
     private Runnable onCourses;
@@ -42,10 +43,10 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     /**
      * Creates an AssignmentPresenter.
      *
-     * @param model shared application model
-     * @param view assignment view
-     * @param assignmentRepository assignment repository
-     * @param workLogRepository work log repository
+     * @param model                       shared application model
+     * @param view                        assignment view
+     * @param assignmentRepository        assignment repository
+     * @param workLogRepository           work log repository
      * @param assignmentWorkLogRepository assignment work log repository
      */
     public AssignmentPresenter(
@@ -57,11 +58,12 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     ) {
         super(model, view);
         this.assignmentRepository = assignmentRepository;
-        this.workLogRepository = workLogRepository;
-        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
-
-        this.timeService = model.getTimeService();
-        this.timeTrackingManager = new TimeTrackingManager(this.timeService);
+        this.workSessionService = new WorkSessionService(
+                model.getTimeService(),
+                workLogRepository,
+                assignmentWorkLogRepository,
+                assignmentRepository
+        );
 
         view.setPresenter(this);
         view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
@@ -130,15 +132,16 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             effectiveLateDays = series.getDefaultLateDays();
         }
 
-        Assignment assignment = new Assignment(
-                name,
-                course,
-                effectiveSeriesId,
-                start,
-                deadline,
-                effectiveLateDays,
-                estimate
-        );
+        Assignment assignment = new AssignmentBuilder()
+                .setName(name)
+                .setCourseId(course)
+                .setSeriesId(effectiveSeriesId)
+                .setStart(start)
+                .setDeadline(deadline)
+                .setLateDaysAllowed(effectiveLateDays)
+                .setEstimatedHours(estimate)
+                .build();
+
         assignmentRepository.addAssignment(assignment);
         updateView();
     }
@@ -206,7 +209,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
                 .orElseThrow(() -> new IllegalArgumentException("Could not determine course for selected assignments"));
 
         boolean sameCourse = selectedAssignments.stream()
-                .allMatch(assignment -> courseId.equals(assignment.getCourseId()));
+                .allMatch(a -> courseId.equals(a.getCourseId()));
         if (!sameCourse) {
             throw new IllegalArgumentException("Selected assignments must be from the same course");
         }
@@ -218,80 +221,24 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
 
     private Assignment findAssignmentById(String assignmentId) {
         return assignmentRepository.getAllAssignments().stream()
-                .filter(assignment -> assignment.getId().equals(assignmentId))
+                .filter(a -> a.getId().equals(assignmentId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
     }
 
     public void clockIn(String assignmentId) {
-        Assignment assignment = findAssignmentById(assignmentId);
-        timeTrackingManager.clockIn(assignment);
+        workSessionService.clockIn(findAssignmentById(assignmentId));
         updateView();
     }
 
     public ClockOutResult clockOut(String assignmentId) {
-        Assignment activeAssignment = timeTrackingManager.getActiveAssignment();
-        if (activeAssignment == null) {
-            throw new IllegalStateException("Not currently clocked in");
-        }
-        if (!activeAssignment.getId().equals(assignmentId)) {
-            throw new IllegalArgumentException("Selected assignment is not the active clocked-in assignment");
-        }
-
-        ClockOutResult result = timeTrackingManager.clockOut();
-        LocalDateTime now = timeService.now();
-
-        workLogRepository.addWorkLog(result.getSessionHours(), now);
-        assignmentWorkLogRepository.addWorkLog(activeAssignment.getId(), result.getSessionHours(), now);
-
-        assignmentRepository.addAssignment(activeAssignment);
+        ClockOutResult result = workSessionService.clockOut(assignmentId);
         updateView();
-
         return result;
     }
 
-    public void setOnBack(Runnable onBack) {
-        this.onBack = onBack;
-    }
-
-    public void setOnCourses(Runnable onCourses) {
-        this.onCourses = onCourses;
-    }
-
-    public void setOnStudyAvailability(Runnable onStudyAvailability) {
-        this.onStudyAvailability = onStudyAvailability;
-    }
-
-    public void setOnDashboard(Runnable onDashboard) {
-        this.onDashboard = onDashboard;
-    }
-
-    public void setOnBigPicture(Runnable onBigPicture) {
-        this.onBigPicture = onBigPicture;
-    }
-
-    public void setShowOnlyOpen(boolean showOnlyOpen) {
-        this.showOnlyOpen = showOnlyOpen;
-        updateView();
-    }
-
-    public boolean isTracking() {
-        return timeTrackingManager.isTracking();
-    }
-
     public void applyManualHours(String assignmentId, double hours) {
-        if (hours < 0) {
-            throw new IllegalArgumentException("hours must be >= 0");
-        }
-
-        Assignment assignment = findAssignmentById(assignmentId);
-        assignment.applyWork(hours);
-
-        LocalDateTime now = timeService.now();
-        workLogRepository.addWorkLog(hours, now);
-        assignmentWorkLogRepository.addWorkLog(assignment.getId(), hours, now);
-
-        assignmentRepository.addAssignment(assignment);
+        workSessionService.applyManualHours(findAssignmentById(assignmentId), hours);
         updateView();
     }
 
@@ -302,7 +249,103 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         updateView();
     }
 
+    public boolean isTracking() {
+        return workSessionService.isTracking();
+    }
+
+    public void setOnBack(Runnable onBack) { this.onBack = onBack; }
+    public void setOnCourses(Runnable onCourses) { this.onCourses = onCourses; }
+    public void setOnStudyAvailability(Runnable onStudyAvailability) { this.onStudyAvailability = onStudyAvailability; }
+    public void setOnDashboard(Runnable onDashboard) { this.onDashboard = onDashboard; }
+    public void setOnBigPicture(Runnable onBigPicture) { this.onBigPicture = onBigPicture; }
+
+    public void setShowOnlyOpen(boolean showOnlyOpen) {
+        this.showOnlyOpen = showOnlyOpen;
+        updateView();
+    }
+
     public void back() {
         runIfSet(onBack);
+    }
+
+    public void onCreateAssignment(AssignmentCreateRequest req) {
+
+        if (req == null) throw new IllegalArgumentException("Missing form data");
+
+        String name = (req.getNameText() == null) ? "" : req.getNameText().trim();
+        String course = req.getCourseId();
+        if (course == null || course.isBlank() || AssignmentView.ALL_COURSES.equals(course)) {
+            throw new IllegalArgumentException("Course is required");
+        }
+        if (name.isEmpty()) {
+            throw new IllegalArgumentException("Assignment name is required");
+        }
+        if (req.getStartDate() == null || req.getDeadlineDate() == null) {
+            throw new IllegalArgumentException("Start date and due date are required");
+        }
+
+        double estimate;
+        try {
+            estimate = Double.parseDouble((req.getEstimatedHoursText() == null) ? "" : req.getEstimatedHoursText().trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Enter a valid number for estimated hours");
+        }
+        if (estimate < 0) {
+            throw new IllegalArgumentException("Estimated hours must be >= 0");
+        }
+
+        LocalDateTime start = req.getStartDate().atStartOfDay();
+        LocalDateTime deadline = req.getDeadlineDate().atStartOfDay();
+
+        SeriesChoice choice = req.getSeriesChoice();
+        if (choice == null) choice = SeriesChoice.NONE;
+
+        if (choice == SeriesChoice.NONE) {
+            createAssignment(name, course, start, deadline, 0, estimate, null);
+            return;
+        }
+
+        if (choice == SeriesChoice.EXISTING_SERIES) {
+            Series selected = req.getExistingSeries();
+            if (selected == null) {
+                throw new IllegalArgumentException("Select a series to add this assignment to");
+            }
+            createAssignment(
+                    name,
+                    course,
+                    start,
+                    deadline,
+                    selected.getDefaultLateDays(),
+                    estimate,
+                    selected.getId()
+            );
+            return;
+        }
+
+        String seriesName = (req.getNewSeriesNameText() == null) ? "" : req.getNewSeriesNameText().trim();
+        if (seriesName.isEmpty()) {
+            throw new IllegalArgumentException("Series name is required when creating a new series");
+        }
+
+        String seriesId = (req.getNewSeriesIdText() == null) ? "" : req.getNewSeriesIdText().trim();
+        if (seriesId.isEmpty()) {
+            seriesId = "series-" + UUID.randomUUID();
+        }
+
+        int defaultLateDays = 0;
+        String lateDaysText = (req.getNewSeriesDefaultLateDaysText() == null) ? "" : req.getNewSeriesDefaultLateDaysText().trim();
+        if (!lateDaysText.isEmpty()) {
+            try {
+                defaultLateDays = Integer.parseInt(lateDaysText);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Enter a valid integer for default late days");
+            }
+        }
+        if (defaultLateDays < 0) {
+            throw new IllegalArgumentException("Default late days must be >= 0");
+        }
+
+        createSeries(seriesId, course, seriesName, defaultLateDays);
+        createAssignment(name, course, start, deadline, defaultLateDays, estimate, seriesId);
     }
 }

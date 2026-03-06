@@ -6,6 +6,7 @@ import java.util.List;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.service.ClockOutResult;
+import edu.ucsd.studentclock.view.AssignmentCreateRequest;
 
 /**
  * Contract for the assignment screen presenter as used by AssignmentView.
@@ -52,4 +53,6 @@ public interface IAssignmentScreenPresenter {
     void applyManualHours(String assignmentId, double hours);
 
     void markDone(String assignmentId);
+
+    void onCreateAssignment(AssignmentCreateRequest request);
 }
