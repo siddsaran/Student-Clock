@@ -177,7 +177,7 @@ class WorkSessionServiceTest {
         service.clockIn(a);
         advanceMinutes(60);
         service.clockOut(a.getId());
-        assertEquals(1.0, workLogRepository.getTotalHoursLoggedThisWeek());
+        assertEquals(1.0, workLogRepository.getTotalHoursLoggedInWeek(timeService.now().toLocalDate()));
     }
 
     @Test
@@ -216,7 +216,7 @@ class WorkSessionServiceTest {
         Assignment a = makeAssignment(5.0);
         service.applyManualHours(a, 3.0);
 
-        assertEquals(3.0, workLogRepository.getTotalHoursLoggedThisWeek());
+        assertEquals(3.0, workLogRepository.getTotalHoursLoggedInWeek(timeService.now().toLocalDate()));
     }
 
     @Test
