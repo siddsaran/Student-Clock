@@ -67,7 +67,7 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
     }
 
     private void handleDelete() {
-        String id = view.getSelectedCourseId();
+        String id = CourseSelectionParser.parseCourseId(view.getSelectedItem());
         if (id == null) {
             new Alert(Alert.AlertType.WARNING, "Select a course to delete.").showAndWait();
             return;

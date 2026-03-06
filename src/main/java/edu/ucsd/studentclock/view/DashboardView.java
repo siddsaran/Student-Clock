@@ -1,16 +1,13 @@
 package edu.ucsd.studentclock.view;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentStatus;
-import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.presenter.IDashboardScreenPresenter;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -42,9 +39,7 @@ public class DashboardView extends BorderPane {
     private final Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, 0);
     private final Button setMockButton = new Button("Set Mock Date/Time");
 
-    // Used by row coloring so it reflects mock/real time (no LocalDateTime.now() here)
-    private final ObjectProperty<LocalDateTime> nowProperty =
-            new SimpleObjectProperty<>(LocalDateTime.now());
+    private Map<Assignment, String> rowStyles = Map.of();
 
     public DashboardView() {
 
@@ -113,32 +108,11 @@ public class DashboardView extends BorderPane {
             @Override
             protected void updateItem(Assignment a, boolean empty) {
                 super.updateItem(a, empty);
-
                 if (a == null || empty) {
                     setStyle("");
                     return;
                 }
-
-                LocalDateTime now = nowProperty.get();
-                if (now == null) now = LocalDateTime.now();
-
-                AssignmentStatus status =
-                        AssignmentStatusCalculator.behindStatus(a, now);
-
-                switch (status) {
-                    case RED:
-                        setStyle("-fx-background-color:#e75b67;");
-                        break;
-                    case ORANGE:
-                        setStyle("-fx-background-color:#f69d20;");
-                        break;
-                    case YELLOW:
-                        setStyle("-fx-background-color:#ffdf74;");
-                        break;
-                    default:
-                        setStyle("");
-                        break;
-                }
+                setStyle(rowStyles.getOrDefault(a, ""));
             }
         });
 
@@ -188,8 +162,8 @@ public class DashboardView extends BorderPane {
     }
 
     public void showAssignments(List<Assignment> assignments,
-                                LocalDateTime now) {
-        nowProperty.set(now);
+                                Map<Assignment, String> rowStyles) {
+        this.rowStyles = rowStyles != null ? rowStyles : Map.of();
         table.setItems(FXCollections.observableArrayList(assignments));
         table.refresh();
     }

@@ -47,10 +47,10 @@ public interface IAssignmentScreenPresenter {
 
     void createSeriesAndLinkSelected(String seriesId,
                                      String seriesName,
-                                     int defaultLateDays,
+                                     String defaultLateDaysText,
                                      List<String> assignmentIds);
 
-    void applyManualHours(String assignmentId, double hours);
+    void applyManualHours(String assignmentId, String hoursText);
 
     void markDone(String assignmentId);
 
