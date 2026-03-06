@@ -11,6 +11,8 @@ public final class Course {
 
     // unique identifier and display the label
     private final String id, name;
+    private final String id;
+    private final String name;
 
     public Course(String id, String name) {
         if (id == null) {
@@ -19,6 +21,7 @@ public final class Course {
         if (name == null) {
             throw new NullPointerException("name must not be null");
         }
+
         this.id = id;
         this.name = name;
     }
@@ -40,6 +43,15 @@ public final class Course {
             return false;
         } 
         Course course = (Course) o;
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        Course course = (Course) object;
         return Objects.equals(id, course.id);
     }
 

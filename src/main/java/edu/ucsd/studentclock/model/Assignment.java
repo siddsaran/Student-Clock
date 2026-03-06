@@ -1,7 +1,7 @@
 package edu.ucsd.studentclock.model;
 
-import java.util.Objects;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -19,15 +19,35 @@ public class Assignment {
 
     // Start date and deadline
     private final LocalDateTime start, deadline;
+    private final String id;
+    private final String name;
+    private final String courseId;
+    private final String seriesId;
+    private final int lateDaysAllowed;
 
-    // planning hours and progress
+    private final LocalDateTime start;
+    private final LocalDateTime deadline;
+
     private final double estimatedHours;
     private double remainingHours;
     private boolean done;
+    private double cumulativeHours;
 
     public Assignment(
             String name,
-            String courseID,
+            String courseId,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours
+    ) {
+        this(name, courseId, null, start, deadline, lateDaysAllowed, estimatedHours);
+    }
+
+    public Assignment(
+            String name,
+            String courseId,
+            String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDaysAllowed,
@@ -36,7 +56,7 @@ public class Assignment {
         if (name == null) {
             throw new NullPointerException("assignment must have a name");
         }
-        if (courseID == null) {
+        if (courseId == null) {
             throw new NullPointerException("must have a course");
         }
         if (start == null) {
@@ -55,66 +75,101 @@ public class Assignment {
             throw new IllegalArgumentException("estimated hours must be >= 0");
         }
 
-        // random unique id for each assignment
         this.id = UUID.randomUUID().toString();
         this.name = name;
-        this.courseID = courseID;
+        this.courseId = courseId;
+        this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
         this.lateDaysAllowed = lateDaysAllowed;
         this.estimatedHours = estimatedHours;
         this.remainingHours = estimatedHours;
+        this.cumulativeHours = 0.0;
         this.done = false;
     }
 
-    Assignment(
+    private Assignment(
             String id,
             String name,
-            String courseID,
+            String courseId,
+            String seriesId,
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDaysAllowed,
             double estimatedHours,
             double remainingHours,
+            double cumulativeHours,
             boolean done
     ) {
         this.id = id;
         this.name = name;
-        this.courseID = courseID;
+        this.courseId = courseId;
+        this.seriesId = seriesId;
         this.start = start;
         this.deadline = deadline;
         this.lateDaysAllowed = lateDaysAllowed;
         this.estimatedHours = estimatedHours;
         this.remainingHours = remainingHours;
+        this.cumulativeHours = cumulativeHours;
         this.done = done;
     }
 
     public static Assignment fromDatabase(
-        String id,
-        String name,
-        String courseID,
-        LocalDateTime start,
-        LocalDateTime deadline,
-        int lateDaysAllowed,
-        double estimatedHours,
-        double remainingHours,
-        boolean done
+            String id,
+            String name,
+            String courseId,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours,
+            double remainingHours,
+            double cumulativeHours,
+            boolean done
     ) {
-        return new Assignment(
+        return fromDatabase(
                 id,
                 name,
-                courseID,
+                courseId,
+                null,
                 start,
                 deadline,
                 lateDaysAllowed,
                 estimatedHours,
                 remainingHours,
+                cumulativeHours,
                 done
-            );
+        );
     }
 
+    public static Assignment fromDatabase(
+            String id,
+            String name,
+            String courseId,
+            String seriesId,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDaysAllowed,
+            double estimatedHours,
+            double remainingHours,
+            double cumulativeHours,
+            boolean done
+    ) {
+        return new Assignment(
+                id,
+                name,
+                courseId,
+                seriesId,
+                start,
+                deadline,
+                lateDaysAllowed,
+                estimatedHours,
+                remainingHours,
+                cumulativeHours,
+                done
+        );
+    }
 
-    public String getID() {
+    public String getId() {
         return id;
     }
 
@@ -122,8 +177,12 @@ public class Assignment {
         return name;
     }
 
-    public String getCourseID() {
-        return courseID;
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
     }
 
     public LocalDateTime getStart() {
@@ -150,12 +209,37 @@ public class Assignment {
         return done;
     }
 
+    public void setRemainingHours(double remainingHours) {
+        this.remainingHours = Math.max(0.0, remainingHours);
+    }
+
+    public void setDone(boolean done) {
+        this.done = done;
+    }
+
+    public double getCumulativeHours() {
+        return cumulativeHours;
+    }
+
+    public void markDone() {
+        this.done = true;
+        this.remainingHours = 0.0;
+    }
+
+    public void applyWork(double hours) {
+        if (hours < 0) {
+            throw new IllegalArgumentException("Hours cannot be negative");
+        }
+        this.cumulativeHours += hours;
+        this.remainingHours = Math.max(0.0, this.remainingHours - hours);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if ((o == null || getClass() != o.getClass())) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
         Assignment that = (Assignment) o;
@@ -169,18 +253,23 @@ public class Assignment {
 
     @Override
     public String toString() {
-        return "Assignment{" +
-                "id='" + id + '\'' +
-                ", courseId=" + courseID + '\'' +
-                ", name='" + name + '\'' +
-                ", start=" + start +
-                ", deadline=" + deadline +
-                ", lateDaysAllowed=" + lateDaysAllowed +
-                ", estimatedHours=" + estimatedHours +
-                ", remainingHours=" + remainingHours +
-                ", done=" + done +
-                '}';
+        return name + " (" + courseId + ")"
+                + " | Estimated: " + estimatedHours
+                + " | Remaining: " + remainingHours
+                + " | Hours Worked: " + cumulativeHours;
     }
 
-
+    public String toFullString() {
+        return "Assignment{"
+                + "id='" + id + '\''
+                + ", courseId='" + courseId + '\''
+                + ", name='" + name + '\''
+                + ", start=" + start
+                + ", deadline=" + deadline
+                + ", lateDaysAllowed=" + lateDaysAllowed
+                + ", estimatedHours=" + estimatedHours
+                + ", remainingHours=" + remainingHours
+                + ", done=" + done
+                + '}';
+    }
 }

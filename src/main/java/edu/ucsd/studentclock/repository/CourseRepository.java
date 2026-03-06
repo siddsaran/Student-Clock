@@ -1,5 +1,6 @@
 package edu.ucsd.studentclock.repository;
 
+import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.model.Course;
 
 import java.sql.Connection;
@@ -14,7 +15,7 @@ import java.util.Optional;
 /**
  * Persists and retrieves courses using JDBC with SQLite.
  */
-public class CourseRepository {
+public class CourseRepository implements ICourseRepository {
 
     private static final String CREATE_TABLE_SQL =
             "CREATE TABLE IF NOT EXISTS courses (id TEXT PRIMARY KEY, name TEXT NOT NULL)";
@@ -30,16 +31,15 @@ public class CourseRepository {
     private final Connection connection;
 
     /**
-     * Creates a repository that uses the given connection for all operations.
-     * The caller is responsible for closing the connection when appropriate (e.g. app shutdown).
+     * Creates a repository that uses the given data source for all operations.
      *
-     * @param connection a valid JDBC connection (e.g. to SQLite)
+     * @param dataSource a valid data source (e.g. SQLite)
      */
-    public CourseRepository(Connection connection) {
-        if (connection == null) {
-            throw new NullPointerException("connection must not be null");
+    public CourseRepository(IDataSource dataSource) {
+        if (dataSource == null) {
+            throw new NullPointerException("dataSource must not be null");
         }
-        this.connection = connection;
+        this.connection = dataSource.getConnection();
         createTableIfNotExists();
     }
 

@@ -134,4 +134,5 @@ class StudyAvailabilityTest {
         assertEquals(2, availability.hoursLeft(3));
     }
 
+
 }
