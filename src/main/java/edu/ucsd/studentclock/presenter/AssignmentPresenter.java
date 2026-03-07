@@ -189,11 +189,13 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     public void createSeriesAndLinkSelected(
             String seriesId,
             String seriesName,
-            int defaultLateDays,
+            String defaultLateDaysText,
             List<String> assignmentIds
     ) {
         String trimmedSeriesId = ValidationUtils.requireNonBlank(seriesId, "Series ID is required");
         String trimmedSeriesName = ValidationUtils.requireNonBlank(seriesName, "Series name is required");
+
+        int defaultLateDays = AssignmentInputParser.parseDefaultLateDays(defaultLateDaysText);
 
         if (assignmentIds == null || assignmentIds.isEmpty()) {
             throw new IllegalArgumentException("Select at least one assignment to link");
@@ -237,7 +239,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         return result;
     }
 
-    public void applyManualHours(String assignmentId, double hours) {
+    public void applyManualHours(String assignmentId, String hoursText) {
+        double hours = AssignmentInputParser.parseHours(hoursText);
         workSessionService.applyManualHours(findAssignmentById(assignmentId), hours);
         updateView();
     }

@@ -1,10 +1,8 @@
 package edu.ucsd.studentclock.view;
 
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
@@ -256,9 +254,9 @@ public class AssignmentView extends BorderPane {
                 Label mainLabel = new Label(mainText);
 
                 HBox row;
-                if (item.getDisplayName() != null) {
+                if (item.getDisplayName() != null && item.getTagColor() != null) {
                     Label tag = new Label(item.getDisplayName());
-                    String tagColor = tagColorForSeries(item.getDisplayName());
+                    String tagColor = item.getTagColor();
                     tag.setStyle("-fx-background-color: " + tagColor + "; "
                             + "-fx-background-radius: 9999px; "
                             + "-fx-padding: 4 10; -fx-font-size: 11px; "
@@ -436,12 +434,12 @@ public class AssignmentView extends BorderPane {
         try {
             String seriesId = seriesIdField.getText();
             String seriesName = seriesNameField.getText();
-            int defaultLateDays = Integer.parseInt(seriesDefaultLateDaysField.getText());
+            String defaultLateDaysText = seriesDefaultLateDaysField.getText();
             List<String> selectedAssignmentIds = getSelectedAssignmentIds();
 
             if (presenter == null) throw new IllegalStateException("Presenter is not attached");
 
-            presenter.createSeriesAndLinkSelected(seriesId, seriesName, defaultLateDays, selectedAssignmentIds);
+            presenter.createSeriesAndLinkSelected(seriesId, seriesName, defaultLateDaysText, selectedAssignmentIds);
             clearSeriesInputs();
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
@@ -469,11 +467,8 @@ public class AssignmentView extends BorderPane {
         if (selected == null) return;
 
         try {
-            double hours = Double.parseDouble(manualHoursField.getText().trim());
-            presenter.applyManualHours(selected.getId(), hours);
+            presenter.applyManualHours(selected.getId(), manualHoursField.getText());
             manualHoursField.clear();
-        } catch (NumberFormatException ex) {
-            new Alert(Alert.AlertType.ERROR, "Enter a valid number like 1.5").showAndWait();
         } catch (Exception ex) {
             new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
         }
@@ -543,16 +538,6 @@ public class AssignmentView extends BorderPane {
                 return;
             }
         }
-    }
-
-    private static final String[] SERIES_TAG_COLORS = {
-            "#4A90D9", "#7B68A6", "#50A060", "#C07850", "#B85450",
-            "#5B9AA0", "#E8A838", "#6B8E6B", "#9B6B8E", "#4A7C9E"
-    };
-
-    private static String tagColorForSeries(String seriesName) {
-        int index = Math.abs(seriesName.hashCode()) % SERIES_TAG_COLORS.length;
-        return SERIES_TAG_COLORS[index];
     }
 
     public Button getCoursesButton() { return courseButton; }

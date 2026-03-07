@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
@@ -127,7 +129,27 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
-        view.showAssignments(filtered, now);
+        Map<Assignment, String> rowStyles = new HashMap<>();
+        for (Assignment a : filtered) {
+            AssignmentStatus status = AssignmentStatusCalculator.behindStatus(a, now);
+            String style;
+            switch (status) {
+                case RED:
+                    style = "-fx-background-color:#e75b67;";
+                    break;
+                case ORANGE:
+                    style = "-fx-background-color:#f69d20;";
+                    break;
+                case YELLOW:
+                    style = "-fx-background-color:#ffdf74;";
+                    break;
+                default:
+                    style = "";
+                    break;
+            }
+            rowStyles.put(a, style);
+        }
+        view.showAssignments(filtered, rowStyles);
     }
 
     private double computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
