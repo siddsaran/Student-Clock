@@ -65,7 +65,7 @@ public class BigPictureView extends BorderPane {
         });
 
         chart = new LineChart<>(xAxis, yAxis);
-        chart.setLegendVisible(false);
+        chart.setLegendVisible(true);
         chart.setCreateSymbols(true);
         chart.setAnimated(false);
 

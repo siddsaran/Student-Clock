@@ -42,7 +42,7 @@ class BigPictureEffectiveRangesTest {
         assertEquals(LocalDate.of(2026, 2, 10), rEarlier[0]);
         assertEquals(LocalDate.of(2026, 2, 15), rEarlier[1]);
 
-        assertEquals(LocalDate.of(2026, 2, 15), rLater[0]);
+        assertEquals(LocalDate.of(2026, 2, 16), rLater[0]);
         assertEquals(LocalDate.of(2026, 2, 20), rLater[1]);
     }
 
@@ -74,7 +74,7 @@ class BigPictureEffectiveRangesTest {
         LocalDate[] rSecond = ranges.get(second);
 
         assertEquals(LocalDate.of(2026, 2, 1), rFirst[0]);
-        assertEquals(LocalDate.of(2026, 2, 12), rFirst[1]);
+        assertEquals(LocalDate.of(2026, 2, 25), rFirst[1]);
 
         assertEquals(LocalDate.of(2026, 2, 20), rSecond[0]);
         assertEquals(LocalDate.of(2026, 2, 25), rSecond[1]);

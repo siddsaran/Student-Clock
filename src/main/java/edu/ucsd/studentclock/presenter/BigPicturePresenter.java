@@ -2,6 +2,7 @@ package edu.ucsd.studentclock.presenter;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -10,9 +11,12 @@ import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
 import edu.ucsd.studentclock.repository.IAssignmentRepository;
+import edu.ucsd.studentclock.util.CourseColors;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.view.BigPictureView;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Tooltip;
@@ -22,6 +26,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     private final IAssignmentRepository assignmentRepository;
     private final AssignmentWorkLogRepository assignmentWorkLogRepository;
+    private final CourseColors courseColors = new CourseColors();
 
     private Runnable onBack;
     private Runnable onCourses;
@@ -63,18 +68,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
         return point;
     }
 
-    private double remainingHoursAt(
-            Assignment assignment,
-            LocalDate day,
-            Map<String, Double> cumulativeByEndOfDay
-    ) {
-        Double loggedHours = cumulativeByEndOfDay.get(assignment.getId());
-        if (loggedHours != null) {
-            return Math.max(0.0, assignment.getEstimatedHours() - loggedHours);
-        }
-        return assignment.getRemainingHours();
-    }
-
     @Override
     public void updateView() {
         List<Assignment> assignments = assignmentRepository.getAllAssignments().stream()
@@ -94,145 +87,102 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                 .min(LocalDate::compareTo)
                 .get();
 
-        LocalDate chartEnd = effectiveRanges.values().stream()
+        LocalDate chartEndFromRanges = effectiveRanges.values().stream()
                 .map(range -> range[1])
                 .max(LocalDate::compareTo)
                 .get();
 
-        XYChart.Series<String, Number> workloadSeries = new XYChart.Series<>();
-        workloadSeries.setName("Workload");
+        LocalDate today = model.getTimeService().now().toLocalDate();
+        LocalDate chartEnd = chartEndFromRanges.isBefore(today) ? today : chartEndFromRanges;
+
+        Map<String, List<Assignment>> byCourse = assignments.stream()
+                .collect(Collectors.groupingBy(Assignment::getCourseId));
 
         XYChart.Series<String, Number> burndownSeries = new XYChart.Series<>();
-        burndownSeries.setName("IdealBurndown");
+        burndownSeries.setName("Ideal Burndown");
 
-        double maxWork = buildWorkloadAndBurndownSeries(
-                assignments,
-                effectiveRanges,
-                chartStart,
-                chartEnd,
-                workloadSeries,
-                burndownSeries
-        );
+        List<XYChart.Series<String, Number>> courseSeriesList = new ArrayList<>();
+        double maxWork = 0.0;
+        final double courseNudge = 0.5;
+        int courseIndex = 0;
 
-        view.getChart().getData().setAll(List.of(workloadSeries, burndownSeries));
+        for (String courseId : byCourse.keySet().stream().sorted().collect(Collectors.toList())) {
+            List<Assignment> courseAssignments = byCourse.get(courseId);
+            XYChart.Series<String, Number> courseSeries = new XYChart.Series<>();
+            courseSeries.setName(courseId);
+
+            List<BigPictureCourseLineBuilder.ChartPoint> coursePoints = BigPictureCourseLineBuilder.build(
+                    courseAssignments,
+                    effectiveRanges,
+                    assignmentWorkLogRepository::getCumulativeHoursByEndOf,
+                    chartStart,
+                    chartEnd
+            );
+
+            double yNudge = courseIndex * courseNudge;
+            double courseMax = 0.0;
+            for (BigPictureCourseLineBuilder.ChartPoint cp : coursePoints) {
+                double y = cp.y > 0 ? cp.y + yNudge : 0.0;
+                courseSeries.getData().add(createDataPoint(cp.label, y, cp.activeAssignments));
+                courseMax = Math.max(courseMax, y);
+            }
+            maxWork = Math.max(maxWork, courseMax);
+            courseSeriesList.add(courseSeries);
+            courseIndex++;
+        }
+
+        maxWork = buildBurndownSeries(assignments, chartStart, chartEnd, maxWork, burndownSeries);
+
+        setXAxisCategoriesInOrder(chartStart, chartEnd);
+
+        List<XYChart.Series<String, Number>> allSeries = new ArrayList<>();
+        allSeries.add(burndownSeries);
+        allSeries.addAll(courseSeriesList);
+
+        view.getChart().getData().setAll(allSeries);
         applyYAxisBounds(maxWork);
 
         view.getChart().applyCss();
         view.getChart().layout();
 
-        applySeriesStyles(workloadSeries, burndownSeries);
-        installDataPointTooltips(workloadSeries);
+        applySeriesStyles(burndownSeries, courseSeriesList);
+        installDataPointTooltips(courseSeriesList);
     }
 
-    private double buildWorkloadAndBurndownSeries(
+
+    private double buildBurndownSeries(
             List<Assignment> assignments,
-            Map<Assignment, LocalDate[]> effectiveRanges,
             LocalDate chartStart,
             LocalDate chartEnd,
-            XYChart.Series<String, Number> workloadSeries,
+            double maxWorkSoFar,
             XYChart.Series<String, Number> burndownSeries
     ) {
         long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
-        double runningWorkload = 0.0;
-        double maxWorkload = 0.0;
+        double totalWorkAtStart = assignments.stream()
+                .mapToDouble(Assignment::getEstimatedHours)
+                .sum();
 
-        Map<String, Double> previousCumulative = Map.of();
+        double maxWork = Math.max(maxWorkSoFar, totalWorkAtStart);
 
-        for (int dayIndex = 0; dayIndex <= totalDays; dayIndex++) {
-            LocalDate day = chartStart.plusDays(dayIndex);
-            LocalDate previousDay = dayIndex > 0 ? chartStart.plusDays(dayIndex - 1) : null;
-
-            Map<String, Double> cumulativeWork = assignmentWorkLogRepository.getCumulativeHoursByEndOf(day);
-
-            List<Assignment> endsToday = assignments.stream()
-                    .filter(assignment -> effectiveRanges.get(assignment)[1].equals(day))
-                    .collect(Collectors.toList());
-
-            List<Assignment> startsToday = assignments.stream()
-                    .filter(assignment -> effectiveRanges.get(assignment)[0].equals(day))
-                    .collect(Collectors.toList());
-
-            List<Assignment> activeOnDay = assignments.stream()
-                    .filter(assignment -> {
-                        LocalDate[] range = effectiveRanges.get(assignment);
-                        return !day.isBefore(range[0]) && !day.isAfter(range[1]);
-                    })
-                    .collect(Collectors.toList());
-
-            String label = day.getMonthValue() + "/" + day.getDayOfMonth();
-
-            List<Assignment> activeAtStart = assignments.stream()
-                    .filter(assignment -> {
-                        LocalDate[] range = effectiveRanges.get(assignment);
-                        return day.compareTo(range[0]) > 0 && !day.isAfter(range[1]);
-                    })
-                    .collect(Collectors.toList());
-
-            boolean skipStartPoint = runningWorkload == 0.0 && !startsToday.isEmpty();
-            if (!skipStartPoint) {
-                workloadSeries.getData().add(createDataPoint(label, runningWorkload, activeOnDay));
-            }
-
-            if (previousDay != null) {
-                boolean workLoggedToday = false;
-
-                for (Assignment assignment : activeAtStart) {
-                    double remainingPrevious = remainingHoursAt(assignment, previousDay, previousCumulative);
-                    double remainingToday = remainingHoursAt(assignment, day, cumulativeWork);
-
-                    if (remainingToday != remainingPrevious) {
-                        runningWorkload += (remainingToday - remainingPrevious);
-                        workLoggedToday = true;
-                    }
-                }
-
-                if (workLoggedToday) {
-                    workloadSeries.getData().add(createDataPoint(label, runningWorkload, activeOnDay));
-                }
-            }
-
-            previousCumulative = cumulativeWork;
-
-            if (!endsToday.isEmpty()) {
-                for (Assignment assignment : endsToday) {
-                    runningWorkload -= remainingHoursAt(assignment, day, cumulativeWork);
-                }
-
-                List<Assignment> activeAfterEnds = activeOnDay.stream()
-                        .filter(assignment -> !endsToday.contains(assignment))
-                        .collect(Collectors.toList());
-
-                workloadSeries.getData().add(createDataPoint(label, runningWorkload, activeAfterEnds));
-            }
-
-            if (!startsToday.isEmpty()) {
-                for (Assignment assignment : startsToday) {
-                    runningWorkload += remainingHoursAt(assignment, day, cumulativeWork);
-                }
-                workloadSeries.getData().add(createDataPoint(label, runningWorkload, activeOnDay));
-            }
-
-            maxWorkload = Math.max(maxWorkload, runningWorkload);
-        }
-
-        double firstHeight = workloadSeries.getData().isEmpty()
-                ? 0.0
-                : workloadSeries.getData().get(0).getYValue().doubleValue();
-        double maxWork = Math.max(firstHeight, maxWorkload);
-
-        if (!workloadSeries.getData().isEmpty()) {
-            String first = workloadSeries.getData().get(0).getXValue();
-            String last = workloadSeries.getData().get(workloadSeries.getData().size() - 1).getXValue();
-            double finalWorkload = workloadSeries.getData()
-                    .get(workloadSeries.getData().size() - 1)
-                    .getYValue()
-                    .doubleValue();
-
+        if (totalDays >= 0) {
+            String first = String.format("%02d/%02d", chartStart.getMonthValue(), chartStart.getDayOfMonth());
+            String last = String.format("%02d/%02d", chartEnd.getMonthValue(), chartEnd.getDayOfMonth());
             burndownSeries.getData().add(new XYChart.Data<>(first, maxWork));
-            burndownSeries.getData().add(new XYChart.Data<>(last, finalWorkload));
+            burndownSeries.getData().add(new XYChart.Data<>(last, 0.0));
         }
 
         return maxWork;
+    }
+
+    private void setXAxisCategoriesInOrder(LocalDate chartStart, LocalDate chartEnd) {
+        CategoryAxis xAxis = (CategoryAxis) view.getChart().getXAxis();
+        List<String> labels = new ArrayList<>();
+        long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
+        for (long d = 0; d <= totalDays; d++) {
+            LocalDate day = chartStart.plusDays(d);
+            labels.add(String.format("%02d/%02d", day.getMonthValue(), day.getDayOfMonth()));
+        }
+        xAxis.setCategories(FXCollections.observableArrayList(labels));
     }
 
     private void applyYAxisBounds(double maxWork) {
@@ -244,20 +194,32 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
     }
 
     private void applySeriesStyles(
-            XYChart.Series<String, Number> workloadSeries,
-            XYChart.Series<String, Number> burndownSeries
+            XYChart.Series<String, Number> burndownSeries,
+            List<XYChart.Series<String, Number>> courseSeriesList
     ) {
-        if (workloadSeries.getNode() != null) {
-            workloadSeries.getNode().setStyle("-fx-stroke-width: 2;");
-        }
         if (burndownSeries.getNode() != null) {
             burndownSeries.getNode().setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
         }
+        burndownSeries.nodeProperty().addListener((obs, o, n) -> {
+            if (n != null) n.setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
+        });
+
+        for (XYChart.Series<String, Number> series : courseSeriesList) {
+            String color = courseColors.getColor(series.getName());
+            String style = "-fx-stroke: " + color + "; -fx-stroke-width: 2;";
+            if (series.getNode() != null) {
+                series.getNode().setStyle(style);
+            }
+            series.nodeProperty().addListener((obs, o, n) -> {
+                if (n != null) n.setStyle(style);
+            });
+        }
     }
 
-    private void installDataPointTooltips(XYChart.Series<String, Number> workloadSeries) {
+    private void installDataPointTooltips(List<XYChart.Series<String, Number>> courseSeriesList) {
         Platform.runLater(() -> {
-            for (XYChart.Data<String, Number> point : workloadSeries.getData()) {
+            for (XYChart.Series<String, Number> series : courseSeriesList) {
+                for (XYChart.Data<String, Number> point : series.getData()) {
                 if (point.getNode() == null) {
                     continue;
                 }
@@ -300,6 +262,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                 point.getNode().setStyle("-fx-cursor: hand;");
 
                 Tooltip.install(point.getNode(), tooltip);
+                }
             }
         });
     }

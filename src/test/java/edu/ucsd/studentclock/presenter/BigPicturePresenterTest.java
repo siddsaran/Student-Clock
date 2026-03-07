@@ -43,8 +43,8 @@ class BigPicturePresenterTest {
         assertEquals(e1.minusDays(5), rangeA[0]);
         assertEquals(e1, rangeA[1]);
 
-        // B's effective start = max(S2, E1) = max(Feb 10, Feb 15) = Feb 15
-        assertEquals(e1, rangeB[0], "B's effective start is first assignment's effective end when S2 < E1");
+        // B's effective start = day after A's deadline (Feb 16); previous stays active so hours add
+        assertEquals(e1.plusDays(1), rangeB[0], "B starts day after first's deadline when S2 < that");
         assertEquals(e2.plusDays(1), rangeB[1], "B's effective end is deadline + 1 late day");
     }
     @Test
