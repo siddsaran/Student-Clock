@@ -1,88 +1,79 @@
 package edu.ucsd.studentclock;
 
-import edu.ucsd.studentclock.datasource.IDataSource;
-import edu.ucsd.studentclock.datasource.SqlDataSource;
-import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.presenter.AssignmentPresenter;
-import edu.ucsd.studentclock.presenter.CoursePresenter;
-import edu.ucsd.studentclock.presenter.PresenterManager;
-import edu.ucsd.studentclock.presenter.StudyAvailabilityPresenter;
-import edu.ucsd.studentclock.repository.AssignmentRepository;
-import edu.ucsd.studentclock.repository.CourseRepository;
-import edu.ucsd.studentclock.view.AssignmentView;
-import edu.ucsd.studentclock.view.CourseView;
-import edu.ucsd.studentclock.view.StudyAvailabilityView;
+import edu.ucsd.studentclock.datasource.*;
+import edu.ucsd.studentclock.model.*;
+import edu.ucsd.studentclock.service.*;
+import edu.ucsd.studentclock.repository.*;
+import edu.ucsd.studentclock.view.*;
+import edu.ucsd.studentclock.presenter.*;
 import javafx.application.Application;
 import javafx.stage.Stage;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 /**
  * Entry point for Student Clock.
  */
 public class App extends Application {
 
-    private static final String JDBC_URL = "jdbc:sqlite:studentclock.db";
-
-    private Connection connection;
-
     @Override
     public void start(Stage primaryStage) {
 
-        // SQLite connection
-        try {
-            connection = DriverManager.getConnection(JDBC_URL);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to database", e);
-        }
-
-        // DataSource abstraction (your design)
-        IDataSource dataSource = new SqlDataSource(JDBC_URL);
+        // Single data source for all repositories
+        IDataSource dataSource = new SqlDataSource("studentclock.db");
 
         // Repositories
-        CourseRepository courseRepository = new CourseRepository(connection);
-        AssignmentRepository assignmentRepository = new AssignmentRepository(dataSource);
+        RepositoryFactory repoFactory = new RepositoryFactory(dataSource);
+
+        ICourseRepository courseRepository = repoFactory.createCourseRepository();
+        ISeriesRepository seriesRepository = repoFactory.createSeriesRepository();
+        IAssignmentRepository assignmentRepository = repoFactory.createAssignmentRepository();
+        IStudyAvailabilityRepository studyAvailabilityRepository = repoFactory.createStudyAvailabilityRepository();
+        WorkLogRepository workLogRepository = repoFactory.createWorkLogRepository();
+        AssignmentWorkLogRepository assignmentWorkLogRepository = repoFactory.createAssignmentWorkLogRepository();
 
         // Shared model
-        Model sharedModel = new Model(courseRepository);
+        ITimeService timeService = new TimeService();
+        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository, timeService);
 
         // Views
-        CourseView courseView = new CourseView();
-        AssignmentView assignmentView = new AssignmentView();
-        StudyAvailabilityView studyAvailabilityView = new StudyAvailabilityView();
+        ViewFactory viewFactory = new ViewFactory();
 
-        // Presenters
-        CoursePresenter coursePresenter =
-                new CoursePresenter(sharedModel, courseView);
+        CourseView courseView = viewFactory.createCourseView();
+        AssignmentView assignmentView = viewFactory.createAssignmentView();
+        StudyAvailabilityView studyAvailabilityView = viewFactory.createStudyAvailabilityView();
+        DashboardView dashboardView = viewFactory.createDashboardView();
+        BigPictureView bigPictureView = viewFactory.createBigPictureView();
 
-        AssignmentPresenter assignmentPresenter =
-                new AssignmentPresenter(sharedModel, assignmentView, assignmentRepository);
-        
+        // Presenters 
+        PresenterFactory factory = new PresenterFactory(
+                        sharedModel,
+                        courseRepository,
+                        assignmentRepository,
+                        studyAvailabilityRepository,
+                        workLogRepository,
+                        assignmentWorkLogRepository
+                );
+
+        CoursePresenter coursePresenter = factory.createCoursePresenter(courseView);
+        AssignmentPresenter assignmentPresenter = factory.createAssignmentPresenter(assignmentView);
         StudyAvailabilityPresenter studyAvailabilityPresenter =
-                new StudyAvailabilityPresenter(sharedModel, studyAvailabilityView);
+                factory.createStudyAvailabilityPresenter(studyAvailabilityView);
+        DashboardPresenter dashboardPresenter = factory.createDashboardPresenter(dashboardView);
+        BigPicturePresenter bigPicturePresenter = factory.createBigPicturePresenter(bigPictureView);
+
+
 
         // Navigation manager
         PresenterManager manager = new PresenterManager();
-        manager.defineInteractions(
+                manager.defineInteractions(
                 primaryStage,
                 "Student Clock",
+                dashboardPresenter,
                 coursePresenter,
                 assignmentPresenter,
-                studyAvailabilityPresenter
+                studyAvailabilityPresenter,
+                bigPicturePresenter
         );
-    }
 
-    @Override
-    public void stop() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                // ignore on shutdown
-            }
-        }
     }
 
     public static void main(String[] args) {

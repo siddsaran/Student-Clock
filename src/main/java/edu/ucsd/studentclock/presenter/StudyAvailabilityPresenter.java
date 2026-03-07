@@ -1,5 +1,7 @@
 package edu.ucsd.studentclock.presenter;
 
+import java.time.DayOfWeek;
+
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.view.StudyAvailabilityView;
@@ -8,7 +10,7 @@ import edu.ucsd.studentclock.view.StudyAvailabilityView;
  * Presenter for the Study Availability screen.
  */
 public class StudyAvailabilityPresenter
-        extends AbstractPresenter<StudyAvailabilityView> {
+        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter{
 
     private Runnable onBack;
 
@@ -22,6 +24,11 @@ public class StudyAvailabilityPresenter
                                       StudyAvailabilityView view) {
         super(model, view);
         view.setPresenter(this);
+
+        for (DayOfWeek d : DayOfWeek.values()) {
+            view.setOnDayToggled(d, () -> model.setAvailable(d, view.isDaySelected(d)));
+        }
+
         updateView();
     }
 
@@ -33,9 +40,15 @@ public class StudyAvailabilityPresenter
     @Override
     public void updateView() {
         StudyAvailability availability = model.getStudyAvailability();
+
         view.setWeeklyHoursText(
                 String.valueOf(availability.getTotalWeeklyHours())
         );
+
+        for (DayOfWeek d : DayOfWeek.values()) {
+            view.setDaySelected(d, availability.isAvailable(d));
+        }
+
         view.clearStatus();
     }
 
@@ -63,14 +76,22 @@ public class StudyAvailabilityPresenter
             return;
         }
 
+        // Update in-memory first (so we can validate before persisting)
         StudyAvailability availability = model.getStudyAvailability();
         availability.setTotalWeeklyHours(hours);
+
+        for (DayOfWeek d : DayOfWeek.values()) {
+            boolean selected = view.isDaySelected(d);
+            availability.setAvailable(d, selected);
+        }
 
         String validationError = availability.validate();
         if (validationError != null) {
             view.showError(validationError);
             return;
         }
+
+        model.saveStudyAvailability();
 
         view.showMessage("Saved weekly study hours: " + hours);
     }

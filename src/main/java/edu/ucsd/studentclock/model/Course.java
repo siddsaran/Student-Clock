@@ -9,8 +9,8 @@ import java.util.Objects;
  */
 public final class Course {
 
-    // unique identifier and display the label
-    private final String id, name;
+    private final String id;
+    private final String name;
 
     public Course(String id, String name) {
         if (id == null) {
@@ -19,6 +19,7 @@ public final class Course {
         if (name == null) {
             throw new NullPointerException("name must not be null");
         }
+
         this.id = id;
         this.name = name;
     }
@@ -32,14 +33,15 @@ public final class Course {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o){
+    public boolean equals(Object object) {
+        if (this == object) {
             return true;
-        } 
-        if (o == null || getClass() != o.getClass()){
+        }
+        if (object == null || getClass() != object.getClass()) {
             return false;
-        } 
-        Course course = (Course) o;
+        }
+
+        Course course = (Course) object;
         return Objects.equals(id, course.id);
     }
 
