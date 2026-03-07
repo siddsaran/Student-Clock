@@ -71,11 +71,19 @@ public class AssignmentRepository implements IAssignmentRepository {
     private void createTableIfNotExists() {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
-            statement.execute("ALTER TABLE assignments ADD COLUMN seriesId TEXT");
-            statement.execute("ALTER TABLE assignments ADD COLUMN cumulativeHours REAL");
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to create assignments table", e);
+        }
+        addColumnIfMissing("seriesId TEXT");
+        addColumnIfMissing("cumulativeHours REAL");
+    }
+
+    private void addColumnIfMissing(String columnDef) {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("ALTER TABLE assignments ADD COLUMN " + columnDef);
         } catch (SQLException e) {
             if (!e.getMessage().contains("duplicate column name")) {
-                throw new RuntimeException("Failed to create or migrate assignments table", e);
+                throw new RuntimeException("Failed to add column: " + columnDef, e);
             }
         }
     }

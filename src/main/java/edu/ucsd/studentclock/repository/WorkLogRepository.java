@@ -70,11 +70,12 @@ public class WorkLogRepository {
     }
 
     /**
-     * Returns total hours logged in the current week (Monday–Sunday, ISO week).
+     * Returns total hours logged in the week containing referenceDate (Monday–Sunday, ISO week).
+     *
+     * @param referenceDate the date whose week to query (use the app's current time, not LocalDate.now())
      */
-    public double getTotalHoursLoggedThisWeek() {
-        LocalDate today = LocalDate.now();
-        LocalDate weekStart = today.with(WeekFields.ISO.dayOfWeek(), 1);  // Monday
+    public double getTotalHoursLoggedInWeek(LocalDate referenceDate) {
+        LocalDate weekStart = referenceDate.with(WeekFields.ISO.dayOfWeek(), 1);  // Monday
         LocalDate weekEnd = weekStart.plusWeeks(1);
 
         String startStr = weekStart.atStartOfDay().toString();

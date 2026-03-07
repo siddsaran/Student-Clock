@@ -186,6 +186,7 @@ class AssignmentRepositoryTest {
         assertEquals("pa-series-1", byCourse.get(0).getSeriesId());
     }
 
+    @Test
     void deleteAssignmentsForCourseRemovesOnlyAssignmentsFromThatCourse() {
         Assignment a1 = build("Quiz 2 Study", "CSE 110", LocalDateTime.of(2026, 2, 3, 23, 59), 0, 0);
         Assignment a2 = build("MVP",          "CSE 110", LocalDateTime.of(2026, 2, 5, 23, 59), 2, 0);
