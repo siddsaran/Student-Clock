@@ -19,6 +19,8 @@ import javafx.collections.FXCollections;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Tooltip;
+import javafx.util.Duration;
 
 public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
 
@@ -77,11 +79,11 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
             return;
         }
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> effectiveRanges =
+        Map<Assignment, LocalDate[]> effectiveRanges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(assignments);
 
         LocalDate chartStart = effectiveRanges.values().stream()
-                .map(BigPictureEffectiveRanges.DateRange::start)
+                .map(range -> range[0])
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
