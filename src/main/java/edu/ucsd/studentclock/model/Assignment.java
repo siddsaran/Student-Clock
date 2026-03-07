@@ -11,6 +11,14 @@ import java.util.Objects;
  */
 public class Assignment {
 
+    // unique id to an assignment, name of the assignment, and course
+    private final String id, name, courseID;
+
+    // number of late days
+    private final int lateDaysAllowed;
+
+    // Start date and deadline
+    private final LocalDateTime start, deadline;
     private final String id;
     private final String name;
     private final String courseId;
