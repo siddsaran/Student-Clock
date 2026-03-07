@@ -19,8 +19,6 @@ import javafx.collections.FXCollections;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Tooltip;
-import javafx.util.Duration;
 
 public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
 
@@ -71,7 +69,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
     @Override
     public void updateView() {
         List<Assignment> assignments = assignmentRepository.getAllAssignments().stream()
-                .filter(assignment -> !assignment.isDone())
+                .filter(a -> !a.isDone())
                 .collect(Collectors.toList());
 
         if (assignments.isEmpty()) {
@@ -79,18 +77,18 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
             return;
         }
 
-        Map<Assignment, LocalDate[]> effectiveRanges =
+        Map<Assignment, BigPictureEffectiveRanges.DateRange> effectiveRanges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(assignments);
 
         LocalDate chartStart = effectiveRanges.values().stream()
-                .map(range -> range[0])
+                .map(BigPictureEffectiveRanges.DateRange::start)
                 .min(LocalDate::compareTo)
-                .get();
+                .orElseThrow();
 
         LocalDate chartEndFromRanges = effectiveRanges.values().stream()
                 .map(range -> range[1])
                 .max(LocalDate::compareTo)
-                .get();
+                .orElseThrow();
 
         LocalDate today = model.getTimeService().now().toLocalDate();
         LocalDate chartEnd = chartEndFromRanges.isBefore(today) ? today : chartEndFromRanges;

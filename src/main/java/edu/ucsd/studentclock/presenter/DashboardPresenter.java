@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
-import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
+import edu.ucsd.studentclock.model.AssignmentStatus;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
 import edu.ucsd.studentclock.repository.IAssignmentRepository;
@@ -119,7 +119,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         StudyAvailability sa = model.getStudyAvailability();
 
         int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
-        double totalLoggedThisWeek = workLogRepo.getTotalHoursLoggedThisWeek();
+        double totalLoggedThisWeek = workLogRepo.getTotalHoursLoggedInWeek(now.toLocalDate());
         int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);
 

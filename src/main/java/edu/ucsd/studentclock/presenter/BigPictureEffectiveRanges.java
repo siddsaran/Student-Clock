@@ -23,10 +23,26 @@ final class BigPictureEffectiveRanges {
 
     private BigPictureEffectiveRanges() {}
 
+    static final class DateRange {
+        private final LocalDate start;
+        private final LocalDate end;
+
+        DateRange(LocalDate start, LocalDate end) {
+            this.start = start;
+            this.end = end;
+        }
+
+        LocalDate start() { return start; }
+        LocalDate end() { return end; }
+    }
+
     /**
-     * Effective start/end for chart. End = deadline + lateDays; when lateAllowed > 0,
-     * we extend end to a far date so we never auto-end (only "marked finished" ends it).
-     * For series: next starts day after previous deadline.
+     * Computes effective (start, end) date for each assignment for chart display.
+     * Effective end = deadline + lateDaysAllowed. For series assignments, effective start
+     * is the previous assignment's effective end so they start automatically after it (order by deadline).
+     *
+     * @param assignments active assignments (non-done)
+     * @return map of assignment to effective date range (start, end)
      */
     static Map<Assignment, LocalDate[]> computeEffectiveRanges(List<Assignment> assignments) {
         Map<Assignment, LocalDate[]> out = new HashMap<>();

@@ -15,14 +15,14 @@ public class AssignmentStatusCalculatorTest {
             double estimated,
             double remaining
     ) {
-        Assignment a = new Assignment(
-                "Test",
-                "CSE110",
-                start,
-                deadline,
-                0,
-                estimated
-        );
+        Assignment a = new AssignmentBuilder()
+                .setName("Test")
+                .setCourseId("CSE110")
+                .setStart(start)
+                .setDeadline(deadline)
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(estimated)
+                .build();
 
         a.setRemainingHours(remaining);
         return a;
@@ -64,7 +64,7 @@ public class AssignmentStatusCalculatorTest {
                 now.minusHours(5),
                 now.plusHours(5),
                 10,
-                2  
+                2
         );
 
         assertEquals(AssignmentStatus.NONE,
@@ -84,7 +84,7 @@ public class AssignmentStatusCalculatorTest {
 
         assertEquals(AssignmentStatus.YELLOW,
                 AssignmentStatusCalculator.behindStatus(a, now));
-}
+    }
 
     @Test
     void moderatelyBehindIsOrange() {
@@ -99,8 +99,7 @@ public class AssignmentStatusCalculatorTest {
 
         assertEquals(AssignmentStatus.ORANGE,
                 AssignmentStatusCalculator.behindStatus(a, now));
-        }
-
+    }
 
     @Test
     void veryBehindIsRed() {

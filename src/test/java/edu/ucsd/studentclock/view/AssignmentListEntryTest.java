@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.view;
 
 import edu.ucsd.studentclock.model.Assignment;
+import edu.ucsd.studentclock.model.AssignmentBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,17 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AssignmentListEntryTest {
+
+    private Assignment makeAssignment() {
+        return new AssignmentBuilder()
+                .setName("PA1")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(2.0)
+                .build();
+    }
 
     @Test
     void headerEntry_isHeaderAndHasHeaderText() {
@@ -20,15 +32,7 @@ class AssignmentListEntryTest {
 
     @Test
     void rowWithoutTag_isNotHeaderAndStoresAssignment() {
-        Assignment a = new Assignment(
-                "PA1",
-                "CSE 110",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                2.0
-        );
-
+        Assignment a = makeAssignment();
         AssignmentListEntry row = AssignmentListEntry.forRowWithoutTag(a);
 
         assertFalse(row.isHeader());
@@ -38,15 +42,7 @@ class AssignmentListEntryTest {
 
     @Test
     void rowWithTag_isNotHeaderAndStoresAssignmentAndTag() {
-        Assignment a = new Assignment(
-                "PA1",
-                "CSE 110",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                2.0
-        );
-
+        Assignment a = makeAssignment();
         AssignmentListEntry row = AssignmentListEntry.forRow(a, "Programming Assignments");
 
         assertFalse(row.isHeader());
@@ -67,14 +63,6 @@ class AssignmentListEntryTest {
 
     @Test
     void forRow_nullTagThrows() {
-        Assignment a = new Assignment(
-                "PA1",
-                "CSE 110",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                2.0
-        );
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(a, null));
+        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), null));
     }
 }

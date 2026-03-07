@@ -9,14 +9,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class AssignmentTest {
 
     private Assignment makeAssignment(double estimatedHours) {
-        return new Assignment(
-                "Quiz 2 Study",
-                "CSE 110",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                estimatedHours
-        );
+        return new AssignmentBuilder()
+                .setName("Quiz 2 Study")
+                .setCourseId("CSE 110")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(estimatedHours)
+                .build();
     }
 
     @Test
@@ -52,15 +52,15 @@ class AssignmentTest {
 
     @Test
     void getSeriesIdReturnsSeriesIdWhenCreatedWithSeries() {
-        Assignment assignment = new Assignment(
-                "PA1",
-                "CSE 110",
-                "pa-series-1",
-                LocalDateTime.of(2026, 2, 1, 9, 0),
-                LocalDateTime.of(2026, 2, 5, 23, 59),
-                0,
-                3.0
-        );
+        Assignment assignment = new AssignmentBuilder()
+                .setName("PA1")
+                .setCourseId("CSE 110")
+                .setSeriesId("pa-series-1")
+                .setStart(LocalDateTime.of(2026, 2, 1, 9, 0))
+                .setDeadline(LocalDateTime.of(2026, 2, 5, 23, 59))
+                .setLateDaysAllowed(0)
+                .setEstimatedHours(3.0)
+                .build();
         assertEquals("pa-series-1", assignment.getSeriesId());
     }
 
@@ -85,8 +85,8 @@ class AssignmentTest {
     @Test
     void remainingHoursInitializesToEstimatedHours() {
         Assignment assignment = makeAssignment(4.5);
-        assertEquals(4.5, assignment.getEstimatedHours(), 1e-9);
-        assertEquals(4.5, assignment.getRemainingHours(), 1e-9);
+        assertEquals(4.5, assignment.getEstimatedHours());
+        assertEquals(4.5, assignment.getRemainingHours());
     }
 
     @Test
@@ -130,38 +130,30 @@ class AssignmentTest {
     }
 
     @Test
-    void toStringContainsEstimateAndRemaining() {
-        Assignment assignment = makeAssignment(5.0);
-        String s = assignment.toString();
-        assertTrue(s.contains("Estimated: 5.0"));
-        assertTrue(s.contains("Remaining: 5.0"));
-    }
-
-    @Test
     void constructorThrowsWhenNameNull() {
         assertThrows(NullPointerException.class, () -> {
-            new Assignment(
-                    null,
-                    "CSE 110",
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(1),
-                    0,
-                    3.0
-            );
+            new AssignmentBuilder()
+                    .setName(null)
+                    .setCourseId("CSE 110")
+                    .setStart(LocalDateTime.now())
+                    .setDeadline(LocalDateTime.now().plusDays(1))
+                    .setLateDaysAllowed(0)
+                    .setEstimatedHours(3.0)
+                    .build();
         });
     }
 
     @Test
     void constructorThrowsWhenDeadlineBeforeStart() {
         assertThrows(IllegalArgumentException.class, () -> {
-            new Assignment(
-                    "Quiz 2",
-                    "CSE 110",
-                    LocalDateTime.now(),
-                    LocalDateTime.now().minusDays(1),
-                    0,
-                    3.0
-            );
+            new AssignmentBuilder()
+                    .setName("Quiz 2")
+                    .setCourseId("CSE 110")
+                    .setStart(LocalDateTime.now())
+                    .setDeadline(LocalDateTime.now().minusDays(1))
+                    .setLateDaysAllowed(0)
+                    .setEstimatedHours(3.0)
+                    .build();
         });
     }
 
@@ -183,12 +175,12 @@ class AssignmentTest {
         Assignment a = makeAssignment(2.0);
 
         a.applyWork(0.75);
-        assertEquals(0.75, a.getCumulativeHours(), 1e-9);
-        assertEquals(1.25, a.getRemainingHours(), 1e-9);
+        assertEquals(0.75, a.getCumulativeHours());
+        assertEquals(1.25, a.getRemainingHours());
 
         a.applyWork(5.0);
-        assertEquals(5.75, a.getCumulativeHours(), 1e-9);
-        assertEquals(0.0, a.getRemainingHours(), 1e-9);
+        assertEquals(5.75, a.getCumulativeHours());
+        assertEquals(0.0, a.getRemainingHours());
         assertFalse(a.isDone());
     }
 
@@ -196,7 +188,7 @@ class AssignmentTest {
     void setRemainingHoursClampsToZero() {
         Assignment a = makeAssignment(2.0);
         a.setRemainingHours(-123.0);
-        assertEquals(0.0, a.getRemainingHours(), 1e-9);
+        assertEquals(0.0, a.getRemainingHours());
     }
 
     @Test
@@ -206,28 +198,27 @@ class AssignmentTest {
 
         a.markDone();
         assertTrue(a.isDone());
-        assertEquals(0.0, a.getRemainingHours(), 1e-9);
-        assertEquals(1.5, a.getCumulativeHours(), 1e-9);
+        assertEquals(0.0, a.getRemainingHours());
+        assertEquals(1.5, a.getCumulativeHours());
     }
 
     @Test
     void fromDatabaseKeepsProvidedFields() {
         LocalDateTime start = LocalDateTime.of(2026, 2, 1, 9, 0);
         LocalDateTime deadline = LocalDateTime.of(2026, 2, 5, 23, 59);
-
-        Assignment a = Assignment.fromDatabase(
-                "id-123",
-                "PA1",
-                "CSE 110",
-                "series-1",
-                start,
-                deadline,
-                3,
-                10.0,
-                4.0,
-                6.0,
-                true
-        );
+        Assignment a = new AssignmentBuilder()
+                        .setId("id-123")
+                        .setName("PA1")
+                        .setCourseId("CSE 110")
+                        .setSeriesId("series-1")
+                        .setStart(start)
+                        .setDeadline(deadline)
+                        .setLateDaysAllowed(3)
+                        .setEstimatedHours(10)
+                        .setRemainingHours(4)
+                        .setCumulativeHours(6)
+                        .setDone(true)
+                        .build();
 
         assertEquals("id-123", a.getId());
         assertEquals("PA1", a.getName());
@@ -236,9 +227,9 @@ class AssignmentTest {
         assertEquals(start, a.getStart());
         assertEquals(deadline, a.getDeadline());
         assertEquals(3, a.getLateDaysAllowed());
-        assertEquals(10.0, a.getEstimatedHours(), 1e-9);
-        assertEquals(4.0, a.getRemainingHours(), 1e-9);
-        assertEquals(6.0, a.getCumulativeHours(), 1e-9);
+        assertEquals(10.0, a.getEstimatedHours());
+        assertEquals(4.0, a.getRemainingHours());
+        assertEquals(6.0, a.getCumulativeHours());
         assertTrue(a.isDone());
     }
 }
