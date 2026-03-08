@@ -19,7 +19,17 @@ import edu.ucsd.studentclock.view.AssignmentListEntry;
  */
 public final class AssignmentListGrouper {
 
+    private static final String[] TAG_COLORS = {
+        "#4A90D9", "#7B68A6", "#50A060", "#C07850", "#B85450",
+        "#5B9AA0", "#E8A838", "#6B8E6B", "#9B6B8E", "#4A7C9E"
+    };
+
     private AssignmentListGrouper() {
+    }
+
+    private static String colorForSeries(String displayName) {
+        int index = Math.abs(displayName.hashCode()) % TAG_COLORS.length;
+        return TAG_COLORS[index];
     }
 
     /**
@@ -112,8 +122,9 @@ public final class AssignmentListGrouper {
                     continue;
                 }
 
+                String tagColor = colorForSeries(displayName);
                 for (Assignment assignment : seriesAssignments) {
-                    groupedList.add(AssignmentListEntry.forRow(assignment, displayName));
+                    groupedList.add(AssignmentListEntry.forRow(assignment, displayName, tagColor));
                 }
             }
         }
