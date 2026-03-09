@@ -11,8 +11,7 @@ public final class Course {
 
     // unique identifier and display the label
     private final String id, name;
-    private final String id;
-    private final String name;
+
 
     public Course(String id, String name) {
         if (id == null) {
@@ -35,14 +34,6 @@ public final class Course {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o){
-            return true;
-        } 
-        if (o == null || getClass() != o.getClass()){
-            return false;
-        } 
-        Course course = (Course) o;
     public boolean equals(Object object) {
         if (this == object) {
             return true;

@@ -113,25 +113,19 @@ class StudyAvailabilityTest {
     @Test
     void CountDownSameVal(){
         availability.setTotalWeeklyHours(5);
-        assertEquals(0, availability.hoursLeft(5));
+        assertEquals(0, availability.getRemainingHoursForWeek(5));
     }
 
     @Test
     void CountDownCurrentLarger(){
         availability.setTotalWeeklyHours(5);
-        try{
-            availability.hoursLeft(7);
-        }
-        catch(Exception e){
-                assertEquals("Current hour must not exceed the total weekly hours.", e.getMessage());
-
-        }
+        assertEquals(0, availability.getRemainingHoursForWeek(7));
     }
 
     @Test
     void CountDownNormal(){
         availability.setTotalWeeklyHours(5);
-        assertEquals(2, availability.hoursLeft(3));
+        assertEquals(2, availability.getRemainingHoursForWeek(3));
     }
 
 
