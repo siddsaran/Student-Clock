@@ -49,7 +49,7 @@ class AssignmentListGrouperTest {
         seriesRepo = new SeriesRepository(dataSource);
         var saRepo = new StudyAvailabilityRepository(dataSource);
         assignmentRepo = new AssignmentRepository(dataSource);
-        model = new Model(courseRepo, assignmentRepo, seriesRepo, saRepo, new TimeService());
+        model = new Model(courseRepo, assignmentRepo, seriesRepo, saRepo, new edu.ucsd.studentclock.repository.WorkLogRepository(dataSource), new edu.ucsd.studentclock.repository.AssignmentWorkLogRepository(dataSource), new TimeService());
     }
 
     @AfterEach

@@ -15,9 +15,6 @@ import javafx.scene.chart.XYChart;
 
 public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
 
-    private final IAssignmentRepository assignmentRepository;
-    private final AssignmentWorkLogRepository assignmentWorkLogRepository;
-
     private final BigPictureChartCalculator calculator = new BigPictureChartCalculator();
     private final BigPictureTooltipInstaller tooltipInstaller = new BigPictureTooltipInstaller();
 
@@ -29,13 +26,9 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     public BigPicturePresenter(
             Model model,
-            BigPictureView view,
-            IAssignmentRepository assignmentRepository,
-            AssignmentWorkLogRepository assignmentWorkLogRepository
+            BigPictureView view
     ) {
         super(model, view);
-        this.assignmentRepository = assignmentRepository;
-        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
 
         view.getBackButton().setOnAction(event -> runIfSet(onBack));
         view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
@@ -53,7 +46,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = assignmentRepository.getAllAssignments().stream()
+        List<Assignment> assignments = model.getAllAssignments().stream()
                 .filter(a -> !a.isDone())
                 .collect(Collectors.toList());
 
@@ -77,7 +70,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
         // Use top-level provider types (no nested classes)
         CumulativeHoursProvider provider =
-                new MemoizedCumulativeHoursProvider(assignmentWorkLogRepository::getCumulativeHoursByEndOf);
+                new MemoizedCumulativeHoursProvider(model::getCumulativeHoursByEndOf);
 
         BigPictureChartModel chartModel = calculator.build(
                 assignments,

@@ -134,4 +134,12 @@ public class CourseView extends BorderPane {
         idField.clear();
         nameField.clear();
     }
+
+    public void showError(String msg) {
+        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, msg).showAndWait();
+    }
+
+    public void showWarning(String msg) {
+        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING, msg).showAndWait();
+    }
 }

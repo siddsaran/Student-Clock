@@ -16,11 +16,6 @@ public final class PresenterFactory {
 
     private final Model model;
 
-    private final IAssignmentRepository assignmentRepository;
-
-    private final WorkLogRepository workLogRepository;
-    private final AssignmentWorkLogRepository assignmentWorkLogRepository;
-
     public PresenterFactory(
             Model model,
             ICourseRepository courseRepository,
@@ -30,9 +25,6 @@ public final class PresenterFactory {
             AssignmentWorkLogRepository assignmentWorkLogRepository
     ) {
         this.model = model;
-        this.assignmentRepository = assignmentRepository;
-        this.workLogRepository = workLogRepository;
-        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
     }
 
     public CoursePresenter createCoursePresenter(CourseView view) {
@@ -40,13 +32,7 @@ public final class PresenterFactory {
     }
 
     public AssignmentPresenter createAssignmentPresenter(AssignmentView view) {
-        return new AssignmentPresenter(
-                model,
-                view,
-                assignmentRepository,
-                workLogRepository,
-                assignmentWorkLogRepository
-        );
+        return new AssignmentPresenter(model, view);
     }
 
     public StudyAvailabilityPresenter createStudyAvailabilityPresenter(StudyAvailabilityView view) {
@@ -54,14 +40,12 @@ public final class PresenterFactory {
     }
 
     public DashboardPresenter createDashboardPresenter(DashboardView view) {
-        DashboardPresenter presenter =
-                new DashboardPresenter(model, view, assignmentRepository, workLogRepository);
+        DashboardPresenter presenter = new DashboardPresenter(model, view);
         return presenter;
     }
 
     public BigPicturePresenter createBigPicturePresenter(BigPictureView view) {
-        BigPicturePresenter presenter =
-                new BigPicturePresenter(model, view, assignmentRepository, assignmentWorkLogRepository);
+        BigPicturePresenter presenter = new BigPicturePresenter(model, view);
         return presenter;
     }
 }

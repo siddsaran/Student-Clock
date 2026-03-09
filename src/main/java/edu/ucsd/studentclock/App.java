@@ -32,7 +32,7 @@ public class App extends Application {
 
         // Shared model
         ITimeService timeService = new TimeService();
-        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository, timeService);
+        Model sharedModel = new Model(courseRepository, assignmentRepository, seriesRepository, studyAvailabilityRepository, workLogRepository, assignmentWorkLogRepository, timeService);
 
         // Views
         ViewFactory viewFactory = new ViewFactory();
