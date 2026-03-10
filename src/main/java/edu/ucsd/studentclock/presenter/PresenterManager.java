@@ -46,13 +46,12 @@ public class PresenterManager {
 
         // Dashboard-specific actions (Show Open, Big Picture buttons on dashboard)
         dashboardPresenter.setOnShowOpenAssignments(() -> {
-            assignmentPresenter.setShowOnlyOpen(true);
-            assignmentPresenter.setCourseFilter(AssignmentView.ALL_COURSES);
+            assignmentPresenter.showOpenAssignments();
             switcher.switchTo(assignmentPresenter);
         });
 
         dashboardPresenter.setOnAllAssignments(() -> {
-            assignmentPresenter.setShowOnlyOpen(false);
+            assignmentPresenter.showAllAssignments();
             switcher.switchTo(assignmentPresenter);
         });
 

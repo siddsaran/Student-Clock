@@ -58,7 +58,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = assignmentRepository.getAllAssignments().stream()
+        List<Assignment> assignments = model.getAllAssignments().stream()
                 .filter(a -> !a.isDone())
                 .collect(Collectors.toList());
 

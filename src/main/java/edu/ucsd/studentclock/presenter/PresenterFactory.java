@@ -15,10 +15,7 @@ import edu.ucsd.studentclock.view.StudyAvailabilityView;
 public final class PresenterFactory {
 
     private final Model model;
-
     private final IAssignmentRepository assignmentRepository;
-
-    private final WorkLogRepository workLogRepository;
     private final AssignmentWorkLogRepository assignmentWorkLogRepository;
 
     public PresenterFactory(
@@ -31,7 +28,6 @@ public final class PresenterFactory {
     ) {
         this.model = model;
         this.assignmentRepository = assignmentRepository;
-        this.workLogRepository = workLogRepository;
         this.assignmentWorkLogRepository = assignmentWorkLogRepository;
     }
 
@@ -40,13 +36,7 @@ public final class PresenterFactory {
     }
 
     public AssignmentPresenter createAssignmentPresenter(AssignmentView view) {
-        return new AssignmentPresenter(
-                model,
-                view,
-                assignmentRepository,
-                workLogRepository,
-                assignmentWorkLogRepository
-        );
+        return new AssignmentPresenter(model, view);
     }
 
     public StudyAvailabilityPresenter createStudyAvailabilityPresenter(StudyAvailabilityView view) {
@@ -54,14 +44,11 @@ public final class PresenterFactory {
     }
 
     public DashboardPresenter createDashboardPresenter(DashboardView view) {
-        DashboardPresenter presenter =
-                new DashboardPresenter(model, view, assignmentRepository, workLogRepository);
+        DashboardPresenter presenter = new DashboardPresenter(model, view);
         return presenter;
     }
 
     public BigPicturePresenter createBigPicturePresenter(BigPictureView view) {
-        BigPicturePresenter presenter =
-                new BigPicturePresenter(model, view, assignmentRepository, assignmentWorkLogRepository);
-        return presenter;
+        return new BigPicturePresenter(model, view, assignmentRepository, assignmentWorkLogRepository);
     }
 }
