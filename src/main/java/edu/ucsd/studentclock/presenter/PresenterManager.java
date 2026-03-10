@@ -1,5 +1,7 @@
 package edu.ucsd.studentclock.presenter;
 
+import edu.ucsd.studentclock.view.AssignmentView;
+import edu.ucsd.studentclock.view.MainLayoutView;
 import javafx.stage.Stage;
 
 /**
@@ -12,44 +14,37 @@ public class PresenterManager {
      *
      * @param stage application stage
      * @param appName application name
+     * @param mainLayout shared layout with nav bar
+     * @param dashboardPresenter presenter for dashboard
      * @param coursePresenter presenter for course screen
      * @param assignmentPresenter presenter for assignment screen
+     * @param studyAvailabilityPresenter presenter for study availability
+     * @param bigPicturePresenter presenter for big picture
      */
     public void defineInteractions(Stage stage,
                                    String appName,
+                                   MainLayoutView mainLayout,
                                    DashboardPresenter dashboardPresenter,
                                    CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter,
                                    StudyAvailabilityPresenter studyAvailabilityPresenter,
                                    BigPicturePresenter bigPicturePresenter) {
 
-        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
+        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName, mainLayout);
 
-        // Navigate from courses to assignments
-        coursePresenter.setOnNavigateToAssignments(() -> {
-            assignmentPresenter.showAllAssignments();
+        // Global nav bar - same on every page
+        mainLayout.getDashboardButton().setOnAction(e -> switcher.switchTo(dashboardPresenter));
+        mainLayout.getCoursesButton().setOnAction(e -> switcher.switchTo(coursePresenter));
+        mainLayout.getAssignmentsButton().setOnAction(e -> {
+            assignmentPresenter.setShowOnlyOpen(false);
             switcher.switchTo(assignmentPresenter);
         });
-        
-        // Navigate from courses to study availability
-        coursePresenter.setOnNavigateToStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
+        mainLayout.getStudyAvailabilityButton().setOnAction(e -> switcher.switchTo(studyAvailabilityPresenter));
+        mainLayout.getBigPictureButton().setOnAction(e -> switcher.switchTo(bigPicturePresenter));
 
-        // Navigate from courses to dashboard
-        coursePresenter.setOnNavigateToDashboard(() -> switcher.switchTo(dashboardPresenter));
-
-        // Navigate from assignment back to courses
-        assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
-
-        // Topbar assignments page
-        assignmentPresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
-        assignmentPresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
-        assignmentPresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
-        assignmentPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
-
-        // Navigate from study availability back to courses
         studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
 
-        // Navigate from dashboard to courses
+        // Dashboard-specific actions (Show Open, Big Picture buttons on dashboard)
         dashboardPresenter.setOnShowOpenAssignments(() -> {
             assignmentPresenter.showOpenAssignments();
             switcher.switchTo(assignmentPresenter);
@@ -60,17 +55,7 @@ public class PresenterManager {
             switcher.switchTo(assignmentPresenter);
         });
 
-        // Navigate from dashboard to BigPictureView
         dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
-
-        // Big Picture global nav
-        bigPicturePresenter.setOnBack(() -> switcher.switchTo(dashboardPresenter));
-        bigPicturePresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
-        bigPicturePresenter.setOnAssignments(() -> switcher.switchTo(assignmentPresenter));
-        bigPicturePresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
-        bigPicturePresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
-
-
 
 
         // Initial screen

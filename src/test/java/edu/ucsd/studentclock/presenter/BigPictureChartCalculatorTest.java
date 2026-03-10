@@ -24,11 +24,11 @@ class BigPictureChartCalculatorTest {
                 .setEstimatedHours(10.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
-        LocalDate chartStart = ranges.get(a).start();
-        LocalDate chartEnd = ranges.get(a).end();
+        LocalDate chartStart = ranges.get(a)[0];
+        LocalDate chartEnd = ranges.get(a)[1];
 
         // Provider: no work logged at all
         CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
@@ -57,7 +57,7 @@ class BigPictureChartCalculatorTest {
                 .setEstimatedHours(5.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
         CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
@@ -66,8 +66,8 @@ class BigPictureChartCalculatorTest {
                 new BigPictureChartCalculator().build(
                         List.of(a),
                         ranges,
-                        ranges.get(a).start(),
-                        ranges.get(a).end(),
+                        ranges.get(a)[0],
+                        ranges.get(a)[1],
                         provider
                 );
 
@@ -105,7 +105,7 @@ class BigPictureChartCalculatorTest {
                 .setEstimatedHours(5.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
         CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
@@ -114,8 +114,8 @@ class BigPictureChartCalculatorTest {
                 new BigPictureChartCalculator().build(
                         List.of(a),
                         ranges,
-                        ranges.get(a).start(),
-                        ranges.get(a).end(),
+                        ranges.get(a)[0],
+                        ranges.get(a)[1],
                         provider
                 );
 

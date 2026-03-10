@@ -15,6 +15,8 @@ import edu.ucsd.studentclock.view.StudyAvailabilityView;
 public final class PresenterFactory {
 
     private final Model model;
+    private final IAssignmentRepository assignmentRepository;
+    private final AssignmentWorkLogRepository assignmentWorkLogRepository;
 
     public PresenterFactory(
             Model model,
@@ -25,6 +27,8 @@ public final class PresenterFactory {
             AssignmentWorkLogRepository assignmentWorkLogRepository
     ) {
         this.model = model;
+        this.assignmentRepository = assignmentRepository;
+        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
     }
 
     public CoursePresenter createCoursePresenter(CourseView view) {
@@ -45,7 +49,6 @@ public final class PresenterFactory {
     }
 
     public BigPicturePresenter createBigPicturePresenter(BigPictureView view) {
-        BigPicturePresenter presenter = new BigPicturePresenter(model, view);
-        return presenter;
+        return new BigPicturePresenter(model, view, assignmentRepository, assignmentWorkLogRepository);
     }
 }

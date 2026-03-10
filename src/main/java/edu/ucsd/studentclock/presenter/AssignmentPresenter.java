@@ -42,10 +42,6 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         super(model, view);
 
         view.setPresenter(this);
-        view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
-        view.getStudyAvailabilityButton().setOnAction(event -> runIfSet(onStudyAvailability));
-        view.getDashboardButton().setOnAction(event -> runIfSet(onDashboard));
-        view.getBigPictureButton().setOnAction(event -> runIfSet(onBigPicture));
 
         updateView();
     }
@@ -212,21 +208,9 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         return model.isTracking();
     }
 
-    public void setOnBack(Runnable onBack) { this.onBack = onBack; }
-    public void setOnCourses(Runnable onCourses) { this.onCourses = onCourses; }
-    public void setOnStudyAvailability(Runnable onStudyAvailability) { this.onStudyAvailability = onStudyAvailability; }
-    public void setOnDashboard(Runnable onDashboard) { this.onDashboard = onDashboard; }
-    public void setOnBigPicture(Runnable onBigPicture) { this.onBigPicture = onBigPicture; }
-
-    public void showOpenAssignments() {
-        this.showOnlyOpen = true;
-        this.courseFilter = AssignmentView.ALL_COURSES;
-        updateView();
-    }
-
-    public void showAllAssignments() {
-        this.showOnlyOpen = false;
-        updateView();
+    @Override
+    public void back() {
+        // Navigation handled by global nav bar
     }
 
     public void setShowOnlyOpen(boolean showOnlyOpen) {
@@ -234,8 +218,13 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         updateView();
     }
 
-    public void back() {
-        runIfSet(onBack);
+    public void showOpenAssignments() {
+        setShowOnlyOpen(true);
+        setCourseFilter(AssignmentView.ALL_COURSES);
+    }
+
+    public void showAllAssignments() {
+        setShowOnlyOpen(false);
     }
 
     public void onCreateAssignment(AssignmentCreateRequest req) {
