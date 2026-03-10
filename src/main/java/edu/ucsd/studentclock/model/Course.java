@@ -9,8 +9,9 @@ import java.util.Objects;
  */
 public final class Course {
 
-    private final String id;
-    private final String name;
+    // unique identifier and display the label
+    private final String id, name;
+
 
     public Course(String id, String name) {
         if (id == null) {
