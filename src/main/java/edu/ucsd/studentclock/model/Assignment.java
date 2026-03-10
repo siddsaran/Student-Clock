@@ -11,6 +11,9 @@ import java.util.Objects;
  */
 public class Assignment {
 
+    private static final double MIN_HOURS = 0.0;
+    private static final String NEGATIVE_HOURS_MESSAGE = "Hours cannot be negative";
+
     private final String id;
     private final String name;
     private final String courseId;
@@ -44,7 +47,7 @@ public class Assignment {
         this.deadline = deadline;
         this.lateDaysAllowed = lateDaysAllowed;
         this.estimatedHours = estimatedHours;
-        this.remainingHours = remainingHours;
+        this.remainingHours = clampHoursAtZero(remainingHours);
         this.cumulativeHours = cumulativeHours;
         this.done = done;
     }
@@ -62,7 +65,7 @@ public class Assignment {
     public double getCumulativeHours() { return cumulativeHours; }
 
     public void setRemainingHours(double remainingHours) {
-        this.remainingHours = Math.max(0.0, remainingHours);
+        this.remainingHours = clampHoursAtZero(remainingHours);
     }
 
     public void setDone(boolean done) {
@@ -71,15 +74,23 @@ public class Assignment {
 
     public void markDone() {
         this.done = true;
-        this.remainingHours = 0.0;
+        this.remainingHours = MIN_HOURS;
     }
 
     public void applyWork(double hours) {
-        if (hours < 0) {
-            throw new IllegalArgumentException("Hours cannot be negative");
-        }
+        requireNonNegativeHours(hours);
         this.cumulativeHours += hours;
-        this.remainingHours = Math.max(0.0, this.remainingHours - hours);
+        this.remainingHours = clampHoursAtZero(this.remainingHours - hours);
+    }
+
+    private static void requireNonNegativeHours(double hours) {
+        if (hours < MIN_HOURS) {
+            throw new IllegalArgumentException(NEGATIVE_HOURS_MESSAGE);
+        }
+    }
+
+    private static double clampHoursAtZero(double hours) {
+        return Math.max(MIN_HOURS, hours);
     }
 
     @Override

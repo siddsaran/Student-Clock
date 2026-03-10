@@ -15,10 +15,34 @@ public final class ValidationUtils {
      * @return the trimmed value (never null or blank)
      */
     public static String requireNonBlank(String value, String messageIfBlank) {
-        String trimmed = value == null ? null : value.trim();
-        if (trimmed == null || trimmed.isEmpty()) {
+        String trimmed = normalizeNullable(value);
+        if (trimmed == null) {
             throw new IllegalArgumentException(messageIfBlank);
         }
         return trimmed;
+    }
+
+    /**
+     * Trims the value and returns null if it is null or blank after trimming.
+     *
+     * @param value input string (may be null)
+     * @return trimmed string, or null when the value is null/blank
+     */
+    public static String normalizeNullable(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /**
+     * Returns true when the input is null or blank after trimming.
+     *
+     * @param value input string (may be null)
+     * @return whether the input is null/blank
+     */
+    public static boolean isNullOrBlank(String value) {
+        return normalizeNullable(value) == null;
     }
 }

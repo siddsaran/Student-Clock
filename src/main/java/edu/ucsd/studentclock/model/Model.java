@@ -158,12 +158,8 @@ public class Model {
      * @param id the course id to delete
      */
     public void deleteCourse(String id) {
-        if (id == null) {
-            return;
-        }
-
-        String trimmedId = id.trim();
-        if (trimmedId.isEmpty()) {
+        String trimmedId = ValidationUtils.normalizeNullable(id);
+        if (trimmedId == null) {
             return;
         }
 
@@ -220,11 +216,7 @@ public class Model {
     }
 
     public void clockIn(String id) {
-        Assignment a = assignmentRepository.getAllAssignments().stream()
-                .filter(x -> x.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        workSessionService.clockIn(a);
+        workSessionService.clockIn(findAssignmentById(id));
     }
 
     public edu.ucsd.studentclock.service.ClockOutResult clockOut(String id) {
@@ -232,20 +224,13 @@ public class Model {
     }
 
     public void applyManualHours(String id, double hours) {
-        Assignment a = assignmentRepository.getAllAssignments().stream()
-                .filter(x -> x.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        workSessionService.applyManualHours(a, hours);
+        workSessionService.applyManualHours(findAssignmentById(id), hours);
     }
 
     public void markDone(String id) {
-        Assignment a = assignmentRepository.getAllAssignments().stream()
-                .filter(x -> x.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + id));
-        a.markDone();
-        assignmentRepository.addAssignment(a);
+        Assignment assignment = findAssignmentById(id);
+        assignment.markDone();
+        assignmentRepository.addAssignment(assignment);
     }
 
     public double getTotalHoursLoggedInWeek(java.time.LocalDate date) {
@@ -258,5 +243,13 @@ public class Model {
 
     public boolean isTracking() {
         return workSessionService.isTracking();
+    }
+
+    private Assignment findAssignmentById(String id) {
+        String trimmedId = ValidationUtils.requireNonBlank(id, "Assignment ID is required");
+        return assignmentRepository.getAllAssignments().stream()
+                .filter(assignment -> assignment.getId().equals(trimmedId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + trimmedId));
     }
 }
