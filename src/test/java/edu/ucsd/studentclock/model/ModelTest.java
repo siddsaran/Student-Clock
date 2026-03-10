@@ -28,6 +28,8 @@ class ModelTest {
     private SeriesRepository seriesRepository;
     private AssignmentRepository assignmentRepository;
     private StudyAvailabilityRepository saRepository;
+    private edu.ucsd.studentclock.repository.WorkLogRepository workLogRepository;
+    private edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository;
     private Model model;
 
     @BeforeEach
@@ -38,7 +40,9 @@ class ModelTest {
         seriesRepository = new SeriesRepository(dataSource);
         saRepository = new StudyAvailabilityRepository(dataSource);
         assignmentRepository = new AssignmentRepository(dataSource);
-        model = new Model(repository, assignmentRepository, seriesRepository, saRepository, new TimeService());
+        workLogRepository = new edu.ucsd.studentclock.repository.WorkLogRepository(dataSource);
+        assignmentWorkLogRepository = new edu.ucsd.studentclock.repository.AssignmentWorkLogRepository(dataSource);
+        model = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService());
     }
 
     @AfterEach
@@ -84,22 +88,96 @@ class ModelTest {
 
     @Test
     void modelWithNullCourseRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, seriesRepository, saRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(null, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
     void modelWithNullSeriesRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, null, null, saRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, null, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
     void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, null, null, saRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(repository, null, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
     void modelWithNullTimeServiceThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, seriesRepository, saRepository, null));
+        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, null));
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - createAssignment delegates to repository")
+    void createAssignmentDelegatesToRepository() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+
+        List<Assignment> assignments = model.getAllAssignments();
+        assertEquals(1, assignments.size());
+        assertEquals("PA1", assignments.get(0).getName());
+        assertEquals("CSE 110", assignments.get(0).getCourseId());
+        assertEquals(5.0, assignments.get(0).getEstimatedHours());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - deleteAssignment delegates to repository")
+    void deleteAssignmentDelegatesToRepository() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+
+        List<Assignment> assignments = model.getAllAssignments();
+        assertEquals(1, assignments.size());
+        String assignmentId = assignments.get(0).getId();
+
+        model.deleteAssignment(assignmentId);
+        assertTrue(model.getAllAssignments().isEmpty());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - markDone delegates to repository")
+    void markDoneDelegatesToRepository() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+
+        Assignment assignment = model.getAllAssignments().get(0);
+        assertFalse(assignment.isDone());
+
+        model.markDone(assignment.getId());
+
+        Assignment updated = model.getAllAssignments().get(0);
+        assertTrue(updated.isDone());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - clockIn and clockOut delegate to work session service")
+    void clockInAndOutDelegatesToService() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+
+        Assignment assignment = model.getAllAssignments().get(0);
+
+        assertFalse(model.isTracking());
+        model.clockIn(assignment.getId());
+        assertTrue(model.isTracking());
+
+        edu.ucsd.studentclock.service.ClockOutResult result = model.clockOut(assignment.getId());
+        assertNotNull(result);
+        assertFalse(model.isTracking());
+    }
+
+    @Test
+    @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - applyManualHours delegates to service")
+    void applyManualHoursDelegatesToService() {
+        model.addCourse("CSE 110", "Software Engineering");
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+
+        Assignment assignment = model.getAllAssignments().get(0);
+        assertEquals(0.0, assignment.getCumulativeHours());
+
+        model.applyManualHours(assignment.getId(), 2.5);
+
+        Assignment updated = model.getAllAssignments().get(0);
+        assertEquals(2.5, updated.getCumulativeHours());
     }
 
     @Test
@@ -213,7 +291,7 @@ class ModelTest {
         assignmentRepository.addAssignment(a2);
 
         Series series = new Series("pa-series", "CSE 110", "PAs", 2);
-        model.createSeriesAndLinkAssignments(series, List.of(a1.getId()));
+        model.createSeriesAndLinkAssignments(series.getId(), series.getCourseId(), series.getName(), series.getDefaultLateDays(), List.of(a1.getId()));
 
         Optional<Series> storedSeries = model.getSeries("pa-series");
         assertTrue(storedSeries.isPresent());
@@ -327,7 +405,7 @@ class ModelTest {
         preset.setDailyLimit(DayOfWeek.WEDNESDAY, 2);
         saRepository.save(preset);
 
-        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository, new TimeService());
+        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService());
         StudyAvailability a = reloaded.getStudyAvailability();
         assertEquals(7, a.getTotalWeeklyHours());
         assertTrue(a.isAvailable(DayOfWeek.WEDNESDAY));

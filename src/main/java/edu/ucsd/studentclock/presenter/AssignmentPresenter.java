@@ -28,9 +28,6 @@ import edu.ucsd.studentclock.view.AssignmentCreateRequest.SeriesChoice;
  */
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> implements IAssignmentScreenPresenter {
 
-    private final IAssignmentRepository assignmentRepository;
-    private final WorkSessionService workSessionService;
-
     private Runnable onBack;
     private Runnable onCourses;
     private Runnable onStudyAvailability;
@@ -45,25 +42,12 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
      *
      * @param model                       shared application model
      * @param view                        assignment view
-     * @param assignmentRepository        assignment repository
-     * @param workLogRepository           work log repository
-     * @param assignmentWorkLogRepository assignment work log repository
      */
     public AssignmentPresenter(
             Model model,
-            AssignmentView view,
-            IAssignmentRepository assignmentRepository,
-            WorkLogRepository workLogRepository,
-            AssignmentWorkLogRepository assignmentWorkLogRepository
+            AssignmentView view
     ) {
         super(model, view);
-        this.assignmentRepository = assignmentRepository;
-        this.workSessionService = new WorkSessionService(
-                model.getTimeService(),
-                workLogRepository,
-                assignmentWorkLogRepository,
-                assignmentRepository
-        );
 
         view.setPresenter(this);
         view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
@@ -89,7 +73,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         view.setSelectedCourse(courseFilter);
 
         List<AssignmentListEntry> groupedAssignments = AssignmentListGrouper.buildGroupedList(
-                assignmentRepository.getAllAssignments(),
+                model.getAllAssignments(),
                 showOnlyOpen,
                 courseFilter,
                 AssignmentView.ALL_COURSES,
@@ -132,17 +116,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             effectiveLateDays = series.getDefaultLateDays();
         }
 
-        Assignment assignment = new AssignmentBuilder()
-                .setName(name)
-                .setCourseId(course)
-                .setSeriesId(effectiveSeriesId)
-                .setStart(start)
-                .setDeadline(deadline)
-                .setLateDaysAllowed(effectiveLateDays)
-                .setEstimatedHours(estimate)
-                .build();
-
-        assignmentRepository.addAssignment(assignment);
+        model.createAssignment(name, course, effectiveSeriesId, start, deadline, effectiveLateDays, estimate);
         updateView();
     }
 
@@ -162,8 +136,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             throw new IllegalArgumentException("Default late days must be >= 0");
         }
 
-        Series series = new Series(trimmedId, courseId, trimmedName, defaultLateDays);
-        model.addSeries(series);
+        model.createSeries(trimmedId, courseId, trimmedName, defaultLateDays);
     }
 
     public List<Series> getSeriesForCourse(String courseId) {
@@ -182,7 +155,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         if (assignment == null) {
             return;
         }
-        assignmentRepository.deleteAssignment(assignment.getId());
+        model.deleteAssignment(assignment.getId());
         updateView();
     }
 
@@ -216,44 +189,41 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             throw new IllegalArgumentException("Selected assignments must be from the same course");
         }
 
-        Series series = new Series(trimmedSeriesId, courseId, trimmedSeriesName, defaultLateDays);
-        model.createSeriesAndLinkAssignments(series, assignmentIds);
+        model.createSeriesAndLinkAssignments(trimmedSeriesId, courseId, trimmedSeriesName, defaultLateDays, assignmentIds);
         updateView();
     }
 
     private Assignment findAssignmentById(String assignmentId) {
-        return assignmentRepository.getAllAssignments().stream()
+        return model.getAllAssignments().stream()
                 .filter(a -> a.getId().equals(assignmentId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + assignmentId));
     }
 
     public void clockIn(String assignmentId) {
-        workSessionService.clockIn(findAssignmentById(assignmentId));
+        model.clockIn(assignmentId);
         updateView();
     }
 
     public ClockOutResult clockOut(String assignmentId) {
-        ClockOutResult result = workSessionService.clockOut(assignmentId);
+        ClockOutResult result = model.clockOut(assignmentId);
         updateView();
         return result;
     }
 
     public void applyManualHours(String assignmentId, String hoursText) {
         double hours = AssignmentInputParser.parseHours(hoursText);
-        workSessionService.applyManualHours(findAssignmentById(assignmentId), hours);
+        model.applyManualHours(assignmentId, hours);
         updateView();
     }
 
     public void markDone(String assignmentId) {
-        Assignment assignment = findAssignmentById(assignmentId);
-        assignment.markDone();
-        assignmentRepository.addAssignment(assignment);
+        model.markDone(assignmentId);
         updateView();
     }
 
     public boolean isTracking() {
-        return workSessionService.isTracking();
+        return model.isTracking();
     }
 
     public void setOnBack(Runnable onBack) { this.onBack = onBack; }
@@ -261,6 +231,17 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     public void setOnStudyAvailability(Runnable onStudyAvailability) { this.onStudyAvailability = onStudyAvailability; }
     public void setOnDashboard(Runnable onDashboard) { this.onDashboard = onDashboard; }
     public void setOnBigPicture(Runnable onBigPicture) { this.onBigPicture = onBigPicture; }
+
+    public void showOpenAssignments() {
+        this.showOnlyOpen = true;
+        this.courseFilter = AssignmentView.ALL_COURSES;
+        updateView();
+    }
+
+    public void showAllAssignments() {
+        this.showOnlyOpen = false;
+        updateView();
+    }
 
     public void setShowOnlyOpen(boolean showOnlyOpen) {
         this.showOnlyOpen = showOnlyOpen;
