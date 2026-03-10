@@ -19,8 +19,9 @@ public class Assignment {
     private final String courseId;
     private final String seriesId;
     private final int lateDaysAllowed;
-    private final LocalDateTime start;
-    private final LocalDateTime deadline;
+
+    // Start date and deadline
+    private final LocalDateTime start, deadline;
     private final double estimatedHours;
     private double remainingHours;
     private boolean done;
