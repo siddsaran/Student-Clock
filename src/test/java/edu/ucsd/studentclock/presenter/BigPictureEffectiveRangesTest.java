@@ -35,17 +35,17 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(1.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(later, earlier));
 
-        BigPictureEffectiveRanges.DateRange rEarlier = ranges.get(earlier);
-        BigPictureEffectiveRanges.DateRange rLater = ranges.get(later);
+        LocalDate[] rEarlier = ranges.get(earlier);
+        LocalDate[] rLater = ranges.get(later);
 
         assertNotNull(rEarlier);
         assertNotNull(rLater);
 
-        assertEquals(LocalDate.of(2026, 2, 10), rEarlier.start());
-        assertEquals(LocalDate.of(2026, 2, 15), rEarlier.end());
+        assertEquals(LocalDate.of(2026, 2, 10), rEarlier[0]);
+        assertEquals(LocalDate.of(2026, 2, 15), rEarlier[1]);
 
         assertEquals(LocalDate.of(2026, 2, 16), rLater[0]);
         assertEquals(LocalDate.of(2026, 2, 20), rLater[1]);
@@ -73,17 +73,17 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(1.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(first, second));
 
-        BigPictureEffectiveRanges.DateRange rFirst = ranges.get(first);
-        BigPictureEffectiveRanges.DateRange rSecond = ranges.get(second);
+        LocalDate[] rFirst = ranges.get(first);
+        LocalDate[] rSecond = ranges.get(second);
 
         assertEquals(LocalDate.of(2026, 2, 1), rFirst[0]);
         assertEquals(LocalDate.of(2026, 2, 25), rFirst[1]);
 
-        assertEquals(LocalDate.of(2026, 2, 20), rSecond.start());
-        assertEquals(LocalDate.of(2026, 2, 25), rSecond.end());
+        assertEquals(LocalDate.of(2026, 2, 20), rSecond[0]);
+        assertEquals(LocalDate.of(2026, 2, 25), rSecond[1]);
     }
 
     @Test
@@ -106,14 +106,14 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(1.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a, b));
 
-        assertEquals(LocalDate.of(2026, 2, 1), ranges.get(a).start());
-        assertEquals(LocalDate.of(2026, 2, 5), ranges.get(a).end());
+        assertEquals(LocalDate.of(2026, 2, 1), ranges.get(a)[0]);
+        assertEquals(LocalDate.of(2026, 2, 5), ranges.get(a)[1]);
 
-        assertEquals(LocalDate.of(2026, 2, 2), ranges.get(b).start());
-        assertEquals(LocalDate.of(2026, 2, 9), ranges.get(b).end());
+        assertEquals(LocalDate.of(2026, 2, 2), ranges.get(b)[0]);
+        assertEquals(LocalDate.of(2026, 2, 9), ranges.get(b)[1]);
     }
 
     @Test
@@ -128,12 +128,12 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(5.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
-        BigPictureEffectiveRanges.DateRange range = ranges.get(a);
-        assertEquals(d.minusDays(2), range.start(), "effective start is stored start");
-        assertEquals(d.plusDays(2), range.end(), "effective end is deadline + lateDaysAllowed (D+2)");
+        LocalDate[] range = ranges.get(a);
+        assertEquals(d.minusDays(2), range[0], "effective start is stored start");
+        assertEquals(d.plusDays(2), range[1], "effective end is deadline + lateDaysAllowed (D+2)");
     }
 
     @Test
@@ -162,18 +162,18 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(4.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a, b));
 
-        BigPictureEffectiveRanges.DateRange rangeA = ranges.get(a);
-        BigPictureEffectiveRanges.DateRange rangeB = ranges.get(b);
+        LocalDate[] rangeA = ranges.get(a);
+        LocalDate[] rangeB = ranges.get(b);
 
-        assertEquals(e1.minusDays(5), rangeA.start());
-        assertEquals(e1, rangeA.end());
+        assertEquals(e1.minusDays(5), rangeA[0]);
+        assertEquals(e1, rangeA[1]);
 
-        // B's effective start = max(S2, E1) = max(Feb 10, Feb 15) = Feb 15
-        assertEquals(e1, rangeB.start(), "B's effective start is first assignment's effective end when S2 < E1");
-        assertEquals(e2.plusDays(1), rangeB.end(), "B's effective end is deadline + 1 late day");
+        // B's effective start = day after A's deadline = Feb 15 + 1 = Feb 16
+        assertEquals(e1.plusDays(1), rangeB[0], "B's effective start is day after first assignment's deadline when S2 < E1");
+        assertEquals(e2.plusDays(1), rangeB[1], "B's effective end is deadline + 1 late day");
     }
 
     @Test
@@ -199,10 +199,10 @@ class BigPictureEffectiveRangesTest {
                 .setEstimatedHours(4.0)
                 .build();
 
-        Map<Assignment, BigPictureEffectiveRanges.DateRange> ranges =
+        Map<Assignment, LocalDate[]> ranges =
                 BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a, b));
 
-        assertEquals(d1.minusDays(2), ranges.get(a).start());
-        assertEquals(d2.minusDays(2), ranges.get(b).start());
+        assertEquals(d1.minusDays(2), ranges.get(a)[0]);
+        assertEquals(d2.minusDays(2), ranges.get(b)[0]);
     }
 }

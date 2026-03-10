@@ -24,7 +24,7 @@ public final class BigPictureChartCalculator {
 
     public BigPictureChartModel build(
             List<Assignment> assignments,
-            Map<Assignment, BigPictureEffectiveRanges.DateRange> effectiveRanges,
+            Map<Assignment, LocalDate[]> effectiveRanges,
             LocalDate chartStart,
             LocalDate chartEnd,
             CumulativeHoursProvider cumulativeHoursProvider
@@ -50,7 +50,7 @@ public final class BigPictureChartCalculator {
 
     private double buildWorkloadAndBurndown(
             List<Assignment> assignments,
-            Map<Assignment, BigPictureEffectiveRanges.DateRange> effectiveRanges,
+            Map<Assignment, LocalDate[]> effectiveRanges,
             LocalDate chartStart,
             LocalDate chartEnd,
             CumulativeHoursProvider cumulativeHoursProvider,
@@ -70,11 +70,11 @@ public final class BigPictureChartCalculator {
             Map<String, Double> cumulativeWork = cumulativeHoursProvider.getCumulativeHoursByEndOf(day);
 
             List<Assignment> endsToday = assignments.stream()
-                    .filter(a -> effectiveRanges.get(a).end().equals(day))
+                    .filter(a -> effectiveRanges.get(a)[1].equals(day))
                     .collect(Collectors.toList());
 
             List<Assignment> startsToday = assignments.stream()
-                    .filter(a -> effectiveRanges.get(a).start().equals(day))
+                    .filter(a -> effectiveRanges.get(a)[0].equals(day))
                     .collect(Collectors.toList());
 
             List<Assignment> activeOnDay = assignments.stream()
@@ -154,12 +154,12 @@ public final class BigPictureChartCalculator {
         return maxWork;
     }
 
-    private static boolean isActiveOnDay(BigPictureEffectiveRanges.DateRange r, LocalDate day) {
-        return !day.isBefore(r.start()) && !day.isAfter(r.end());
+    private static boolean isActiveOnDay(LocalDate[] r, LocalDate day) {
+        return !day.isBefore(r[0]) && !day.isAfter(r[1]);
     }
 
-    private static boolean isActiveAtStart(BigPictureEffectiveRanges.DateRange r, LocalDate day) {
-        return day.compareTo(r.start()) > 0 && !day.isAfter(r.end());
+    private static boolean isActiveAtStart(LocalDate[] r, LocalDate day) {
+        return day.compareTo(r[0]) > 0 && !day.isAfter(r[1]);
     }
 
     private static String formatLabel(LocalDate day) {
