@@ -137,10 +137,6 @@ public class AssignmentRepository implements IAssignmentRepository {
                     double remainingHours = 0.0;
                     boolean done = false;
 
-
-                    assignmentList.add(
-                            Assignment.fromDatabase(id, name, cid, start, deadline, lateDays, estimatedHours, remainingHours, done)
-                    );
                     assignmentList.add(mapRow(resultSet));
                 }
             }
@@ -195,19 +191,6 @@ public class AssignmentRepository implements IAssignmentRepository {
                 double remainingHours = 0.0;
                 boolean done = false;
 
-                assignmentList.add(
-                        Assignment.fromDatabase(
-                                id,
-                                name,
-                                cid,
-                                start,
-                                deadline,
-                                lateDays,
-                                estimatedHours,
-                                remainingHours,
-                                done
-                        )
-                );
                 assignmentList.add(mapRow(resultSet));
             }
             return List.copyOf(assignmentList);
