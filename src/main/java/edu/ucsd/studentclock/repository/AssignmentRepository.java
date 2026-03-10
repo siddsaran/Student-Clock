@@ -12,28 +12,29 @@ import java.util.List;
 import edu.ucsd.studentclock.datasource.IDataSource;
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentBuilder;
+import edu.ucsd.studentclock.util.ValidationUtils;
 
 public class AssignmentRepository implements IAssignmentRepository {
 
     private static final String CREATE_TABLE_SQL =
-        "CREATE TABLE IF NOT EXISTS assignments (" +
-                "id TEXT PRIMARY KEY, " +
-                "name TEXT NOT NULL, " +
-                "courseID TEXT NOT NULL, " +
-                "seriesId TEXT, " +
-                "start TEXT NOT NULL, " +
-                "deadline TEXT NOT NULL, " +
-                "lateDaysAllowed INTEGER, " +
-                "estimatedHours REAL, " +
-                "remainingHours REAL, " +
-                "cumulativeHours REAL, " +
-                "done INTEGER)";
+            "CREATE TABLE IF NOT EXISTS assignments (" +
+                    "id TEXT PRIMARY KEY, " +
+                    "name TEXT NOT NULL, " +
+                    "courseID TEXT NOT NULL, " +
+                    "seriesId TEXT, " +
+                    "start TEXT NOT NULL, " +
+                    "deadline TEXT NOT NULL, " +
+                    "lateDaysAllowed INTEGER, " +
+                    "estimatedHours REAL, " +
+                    "remainingHours REAL, " +
+                    "cumulativeHours REAL, " +
+                    "done INTEGER)";
 
     private static final String INSERT_SQL =
-        "INSERT OR REPLACE INTO assignments " +
-                "(id, name, courseID, seriesId, start, deadline, " +
-                "lateDaysAllowed, estimatedHours, remainingHours, cumulativeHours, done) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "INSERT OR REPLACE INTO assignments " +
+                    "(id, name, courseID, seriesId, start, deadline, " +
+                    "lateDaysAllowed, estimatedHours, remainingHours, cumulativeHours, done) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private static final String SELECT_BY_COURSE_SQL =
             "SELECT * FROM assignments WHERE courseID = ?";
@@ -42,13 +43,13 @@ public class AssignmentRepository implements IAssignmentRepository {
             "SELECT * FROM assignments";
 
     private static final String DELETE_BY_ID_SQL =
-        "DELETE FROM assignments WHERE id = ?";
+            "DELETE FROM assignments WHERE id = ?";
 
     private static final String DELETE_BY_COURSEID_SQL =
-        "DELETE FROM assignments WHERE courseID = ?";
+            "DELETE FROM assignments WHERE courseID = ?";
 
     private static final String UPDATE_SERIES_BY_ID_SQL =
-        "UPDATE assignments SET seriesId = ?, lateDaysAllowed = ? WHERE id = ?";
+            "UPDATE assignments SET seriesId = ?, lateDaysAllowed = ? WHERE id = ?";
 
     private static final String SELECT_BY_SERIES_SQL =
             "SELECT * FROM assignments WHERE seriesId = ?";
@@ -71,11 +72,19 @@ public class AssignmentRepository implements IAssignmentRepository {
     private void createTableIfNotExists() {
         try (Statement statement = connection.createStatement()) {
             statement.execute(CREATE_TABLE_SQL);
-            statement.execute("ALTER TABLE assignments ADD COLUMN seriesId TEXT");
-            statement.execute("ALTER TABLE assignments ADD COLUMN cumulativeHours REAL");
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to create assignments table", e);
+        }
+        addColumnIfMissing("seriesId TEXT");
+        addColumnIfMissing("cumulativeHours REAL");
+    }
+
+    private void addColumnIfMissing(String columnDef) {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("ALTER TABLE assignments ADD COLUMN " + columnDef);
         } catch (SQLException e) {
             if (!e.getMessage().contains("duplicate column name")) {
-                throw new RuntimeException("Failed to create or migrate assignments table", e);
+                throw new RuntimeException("Failed to add column: " + columnDef, e);
             }
         }
     }
@@ -103,12 +112,13 @@ public class AssignmentRepository implements IAssignmentRepository {
     }
 
     public void deleteAssignment(String id) {
-        if (id == null) return;
-        String trimmed = id.trim();
-        if (trimmed.isEmpty()) return;
+        String trimmedId = ValidationUtils.normalizeNullable(id);
+        if (trimmedId == null) {
+            return;
+        }
 
         try (PreparedStatement statement = connection.prepareStatement(DELETE_BY_ID_SQL)) {
-            statement.setString(1, trimmed);
+            statement.setString(1, trimmedId);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete assignment", e);
@@ -117,10 +127,13 @@ public class AssignmentRepository implements IAssignmentRepository {
 
     public List<Assignment> getAssignmentsForCourse(String courseID) {
         List<Assignment> assignmentList = new ArrayList<>();
-        if (courseID == null) return List.of();
+        String trimmedCourseId = ValidationUtils.normalizeNullable(courseID);
+        if (trimmedCourseId == null) {
+            return List.of();
+        }
 
         try (PreparedStatement statement = connection.prepareStatement(SELECT_BY_COURSE_SQL)) {
-            statement.setString(1, courseID);
+            statement.setString(1, trimmedCourseId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     String id = resultSet.getString("id");
@@ -147,9 +160,12 @@ public class AssignmentRepository implements IAssignmentRepository {
     }
 
     public void deleteAssignmentsForCourse(String courseID) {
-        if (courseID == null || courseID.isBlank()) return;
+        String trimmedCourseId = ValidationUtils.normalizeNullable(courseID);
+        if (trimmedCourseId == null) {
+            return;
+        }
         try (PreparedStatement ps = connection.prepareStatement(DELETE_BY_COURSEID_SQL)) {
-            ps.setString(1, courseID);
+            ps.setString(1, trimmedCourseId);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete assignments for course", e);
@@ -157,15 +173,20 @@ public class AssignmentRepository implements IAssignmentRepository {
     }
 
     public void setSeriesForAssignments(String seriesId, int defaultLateDays, List<String> assignmentIds) {
-        if (seriesId == null || seriesId.isBlank()) return;
-        if (assignmentIds == null || assignmentIds.isEmpty()) return;
+        String trimmedSeriesId = ValidationUtils.normalizeNullable(seriesId);
+        if (trimmedSeriesId == null || assignmentIds == null || assignmentIds.isEmpty()) {
+            return;
+        }
 
         try (PreparedStatement statement = connection.prepareStatement(UPDATE_SERIES_BY_ID_SQL)) {
             for (String assignmentId : assignmentIds) {
-                if (assignmentId == null || assignmentId.isBlank()) continue;
-                statement.setString(1, seriesId);
+                String trimmedAssignmentId = ValidationUtils.normalizeNullable(assignmentId);
+                if (trimmedAssignmentId == null) {
+                    continue;
+                }
+                statement.setString(1, trimmedSeriesId);
                 statement.setInt(2, defaultLateDays);
-                statement.setString(3, assignmentId);
+                statement.setString(3, trimmedAssignmentId);
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -200,10 +221,13 @@ public class AssignmentRepository implements IAssignmentRepository {
     }
 
     public List<Assignment> getAssignmentsBySeries(String seriesId) {
-        if (seriesId == null) return List.of();
+        String trimmedSeriesId = ValidationUtils.normalizeNullable(seriesId);
+        if (trimmedSeriesId == null) {
+            return List.of();
+        }
         List<Assignment> assignmentList = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(SELECT_BY_SERIES_SQL)) {
-            statement.setString(1, seriesId);
+            statement.setString(1, trimmedSeriesId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     assignmentList.add(mapRow(resultSet));

@@ -104,15 +104,11 @@ public class CourseView extends BorderPane {
     }
 
     /**
-     * Returns the course id of the selected list item, or null if none selected.
-     * List items are in the form "id - name"; the part before " - " is the id.
+     * Returns the raw selected list item (format: "id - name"), or null if none selected.
+     * Parsing is left to the presenter.
      */
-    public String getSelectedCourseId() {
-        String selected = courseList.getSelectionModel().getSelectedItem();
-        if (selected == null || !selected.contains(" - ")) {
-            return null;
-        }
-        return selected.substring(0, selected.indexOf(" - ")).trim();
+    public String getSelectedItem() {
+        return courseList.getSelectionModel().getSelectedItem();
     }
 
     public Button getAddButton() {
@@ -137,5 +133,13 @@ public class CourseView extends BorderPane {
     public void clearForm() {
         idField.clear();
         nameField.clear();
+    }
+
+    public void showError(String msg) {
+        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, msg).showAndWait();
+    }
+
+    public void showWarning(String msg) {
+        new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING, msg).showAndWait();
     }
 }

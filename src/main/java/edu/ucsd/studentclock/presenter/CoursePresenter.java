@@ -2,7 +2,6 @@ package edu.ucsd.studentclock.presenter;
 
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.view.CourseView;
-import javafx.scene.control.Alert;
 
 /**
  * Presenter for the course management screen.
@@ -62,14 +61,14 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
             view.clearForm();
             updateView();
         } catch (IllegalArgumentException ex) {
-            new Alert(Alert.AlertType.ERROR, ex.getMessage()).showAndWait();
+            view.showError(ex.getMessage());
         }
     }
 
     private void handleDelete() {
-        String id = view.getSelectedCourseId();
+        String id = CourseSelectionParser.parseCourseId(view.getSelectedItem());
         if (id == null) {
-            new Alert(Alert.AlertType.WARNING, "Select a course to delete.").showAndWait();
+            view.showWarning("Select a course to delete.");
             return;
         }
         model.deleteCourse(id);

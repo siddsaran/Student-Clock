@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
@@ -23,8 +25,6 @@ import javafx.util.Duration;
 
 public class DashboardPresenter extends AbstractPresenter<DashboardView> implements IDashboardScreenPresenter {
 
-    private final IAssignmentRepository assignmentRepo;
-    private final WorkLogRepository workLogRepo;
     private final ITimeService timeService;
 
     private Runnable onBack;
@@ -38,13 +38,9 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
     private final Timeline ticker;
 
     public DashboardPresenter(Model model,
-                              DashboardView view,
-                              IAssignmentRepository assignmentRepo,
-                              WorkLogRepository workLogRepo) {
+                              DashboardView view) {
 
         super(model, view);
-        this.assignmentRepo = assignmentRepo;
-        this.workLogRepo = workLogRepo;
         this.timeService = model.getTimeService();
 
         view.setPresenter(this);
@@ -94,7 +90,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         String mode = timeService.isUsingMock() ? " (MOCK)" : " (REAL)";
         view.setDateTimeText(now.format(clockFmt) + mode);
 
-        List<Assignment> filtered = assignmentRepo.getAllAssignments().stream()
+        List<Assignment> filtered = model.getAllAssignments().stream()
             .filter(a -> !a.isDone())
             .filter(a -> {
                 boolean urgent = AssignmentStatusCalculator.isUrgent(a, now);
@@ -119,15 +115,35 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         StudyAvailability sa = model.getStudyAvailability();
 
         int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
-        double totalLoggedThisWeek = workLogRepo.getTotalHoursLoggedThisWeek();
+        double totalLoggedThisWeek = model.getTotalHoursLoggedInWeek(now.toLocalDate());
         int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);
 
-        double workNext7Days = computeRemainingWorkNext7Days(assignmentRepo.getAllAssignments(), now);
+        double workNext7Days = computeRemainingWorkNext7Days(model.getAllAssignments(), now);
         AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
-        view.showAssignments(filtered, now);
+        Map<Assignment, String> rowStyles = new HashMap<>();
+        for (Assignment a : filtered) {
+            AssignmentStatus status = AssignmentStatusCalculator.behindStatus(a, now);
+            String style;
+            switch (status) {
+                case RED:
+                    style = "-fx-background-color:#e75b67;";
+                    break;
+                case ORANGE:
+                    style = "-fx-background-color:#f69d20;";
+                    break;
+                case YELLOW:
+                    style = "-fx-background-color:#ffdf74;";
+                    break;
+                default:
+                    style = "";
+                    break;
+            }
+            rowStyles.put(a, style);
+        }
+        view.showAssignments(filtered, rowStyles);
     }
 
     private double computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {

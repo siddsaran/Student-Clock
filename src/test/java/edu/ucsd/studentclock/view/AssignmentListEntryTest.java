@@ -41,13 +41,21 @@ class AssignmentListEntryTest {
     }
 
     @Test
-    void rowWithTag_isNotHeaderAndStoresAssignmentAndTag() {
+    void rowWithTag_isNotHeaderAndStoresAssignmentTagAndColor() {
         Assignment a = makeAssignment();
-        AssignmentListEntry row = AssignmentListEntry.forRow(a, "Programming Assignments");
+        AssignmentListEntry row = AssignmentListEntry.forRow(a, "Programming Assignments", "#4A90D9");
 
         assertFalse(row.isHeader());
         assertEquals(a, row.getAssignment());
         assertEquals("Programming Assignments", row.getDisplayName());
+        assertEquals("#4A90D9", row.getTagColor());
+    }
+
+    @Test
+    void rowWithoutTag_hasNullTagColor() {
+        Assignment a = makeAssignment();
+        AssignmentListEntry row = AssignmentListEntry.forRowWithoutTag(a);
+        assertNull(row.getTagColor());
     }
 
     @Test
@@ -58,11 +66,16 @@ class AssignmentListEntryTest {
     @Test
     void forRow_nullAssignmentThrows() {
         assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRowWithoutTag(null));
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(null, "x"));
+        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(null, "x", "#4A90D9"));
     }
 
     @Test
     void forRow_nullTagThrows() {
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), null));
+        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), null, "#4A90D9"));
+    }
+
+    @Test
+    void forRow_nullTagColorThrows() {
+        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), "PAs", null));
     }
 }

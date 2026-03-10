@@ -17,7 +17,10 @@ public class Model {
     private final ISeriesRepository seriesRepository;
     private final IAssignmentRepository assignmentRepository;
     private final IStudyAvailabilityRepository studyAvailabilityRepository;
+    private final edu.ucsd.studentclock.repository.WorkLogRepository workLogRepository;
+    private final edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository;
     private final ITimeService timeService;
+    private final edu.ucsd.studentclock.service.WorkSessionService workSessionService;
 
     private final StudyAvailability studyAvailability;
     private Assignment selectedAssignment;
@@ -29,6 +32,8 @@ public class Model {
      * @param assignmentRepository assignment repository
      * @param seriesRepository series repository
      * @param studyAvailabilityRepository study availability repository
+     * @param workLogRepository work log repository
+     * @param assignmentWorkLogRepository assignment work log repository
      * @param timeService time service (must not be null)
      */
     public Model(
@@ -36,6 +41,8 @@ public class Model {
             IAssignmentRepository assignmentRepository,
             ISeriesRepository seriesRepository,
             IStudyAvailabilityRepository studyAvailabilityRepository,
+            edu.ucsd.studentclock.repository.WorkLogRepository workLogRepository,
+            edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository,
             ITimeService timeService
     ) {
         if (courseRepository == null) {
@@ -50,6 +57,12 @@ public class Model {
         if (studyAvailabilityRepository == null) {
             throw new NullPointerException("studyAvailabilityRepository must not be null");
         }
+        if (workLogRepository == null) {
+            throw new NullPointerException("workLogRepository must not be null");
+        }
+        if (assignmentWorkLogRepository == null) {
+            throw new NullPointerException("assignmentWorkLogRepository must not be null");
+        }
         if (timeService == null) {
             throw new NullPointerException("timeService must not be null");
         }
@@ -58,7 +71,12 @@ public class Model {
         this.assignmentRepository = assignmentRepository;
         this.seriesRepository = seriesRepository;
         this.studyAvailabilityRepository = studyAvailabilityRepository;
+        this.workLogRepository = workLogRepository;
+        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
         this.timeService = timeService;
+        this.workSessionService = new edu.ucsd.studentclock.service.WorkSessionService(
+                timeService, workLogRepository, assignmentWorkLogRepository, assignmentRepository
+        );
 
         this.studyAvailability = studyAvailabilityRepository.load().orElseGet(StudyAvailability::new);
     }
@@ -94,6 +112,11 @@ public class Model {
         return courseRepository.getAllCourses();
     }
 
+    public void createSeries(String id, String courseId, String name, int defaultLateDays) {
+        Series series = new Series(id, courseId, name, defaultLateDays);
+        seriesRepository.addSeries(series);
+    }
+
     public void addSeries(Series series) {
         seriesRepository.addSeries(series);
     }
@@ -109,10 +132,14 @@ public class Model {
     /**
      * Creates a series and links selected existing assignments to it.
      *
-     * @param series series to create
+     * @param seriesId series id
+     * @param courseId course id
+     * @param name series name
+     * @param defaultLateDays default late days
      * @param assignmentIds selected assignment ids to link
      */
-    public void createSeriesAndLinkAssignments(Series series, List<String> assignmentIds) {
+    public void createSeriesAndLinkAssignments(String seriesId, String courseId, String name, int defaultLateDays, List<String> assignmentIds) {
+        Series series = new Series(seriesId, courseId, name, defaultLateDays);
         seriesRepository.addSeries(series);
         assignmentRepository.setSeriesForAssignments(
                 series.getId(),
@@ -131,12 +158,8 @@ public class Model {
      * @param id the course id to delete
      */
     public void deleteCourse(String id) {
-        if (id == null) {
-            return;
-        }
-
-        String trimmedId = id.trim();
-        if (trimmedId.isEmpty()) {
+        String trimmedId = ValidationUtils.normalizeNullable(id);
+        if (trimmedId == null) {
             return;
         }
 
@@ -156,6 +179,19 @@ public class Model {
         return assignmentRepository.getAllAssignments();
     }
 
+    public void createAssignment(String name, String courseId, String seriesId, java.time.LocalDateTime start, java.time.LocalDateTime deadline, int lateDaysAllowed, double estimatedHours) {
+        Assignment assignment = new AssignmentBuilder()
+                .setName(name)
+                .setCourseId(courseId)
+                .setSeriesId(seriesId)
+                .setStart(start)
+                .setDeadline(deadline)
+                .setLateDaysAllowed(lateDaysAllowed)
+                .setEstimatedHours(estimatedHours)
+                .build();
+        assignmentRepository.addAssignment(assignment);
+    }
+
     public void saveStudyAvailability() {
         studyAvailabilityRepository.save(studyAvailability);
     }
@@ -173,5 +209,47 @@ public class Model {
     public void setDailyLimit(DayOfWeek day, int hours) {
         studyAvailability.setDailyLimit(day, hours);
         saveStudyAvailability();
+    }
+
+    public void deleteAssignment(String id) {
+        assignmentRepository.deleteAssignment(id);
+    }
+
+    public void clockIn(String id) {
+        workSessionService.clockIn(findAssignmentById(id));
+    }
+
+    public edu.ucsd.studentclock.service.ClockOutResult clockOut(String id) {
+        return workSessionService.clockOut(id);
+    }
+
+    public void applyManualHours(String id, double hours) {
+        workSessionService.applyManualHours(findAssignmentById(id), hours);
+    }
+
+    public void markDone(String id) {
+        Assignment assignment = findAssignmentById(id);
+        assignment.markDone();
+        assignmentRepository.addAssignment(assignment);
+    }
+
+    public double getTotalHoursLoggedInWeek(java.time.LocalDate date) {
+        return workLogRepository.getTotalHoursLoggedInWeek(date);
+    }
+
+    public java.util.Map<String, Double> getCumulativeHoursByEndOf(java.time.LocalDate date) {
+        return assignmentWorkLogRepository.getCumulativeHoursByEndOf(date);
+    }
+
+    public boolean isTracking() {
+        return workSessionService.isTracking();
+    }
+
+    private Assignment findAssignmentById(String id) {
+        String trimmedId = ValidationUtils.requireNonBlank(id, "Assignment ID is required");
+        return assignmentRepository.getAllAssignments().stream()
+                .filter(assignment -> assignment.getId().equals(trimmedId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Assignment not found: " + trimmedId));
     }
 }
