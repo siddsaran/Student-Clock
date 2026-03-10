@@ -31,12 +31,6 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     private final IAssignmentRepository assignmentRepository;
     private final WorkSessionService workSessionService;
 
-    private Runnable onBack;
-    private Runnable onCourses;
-    private Runnable onStudyAvailability;
-    private Runnable onDashboard;
-    private Runnable onBigPicture;
-
     private String courseFilter = AssignmentView.ALL_COURSES;
     private boolean showOnlyOpen = false;
 
@@ -66,10 +60,6 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         );
 
         view.setPresenter(this);
-        view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
-        view.getStudyAvailabilityButton().setOnAction(event -> runIfSet(onStudyAvailability));
-        view.getDashboardButton().setOnAction(event -> runIfSet(onDashboard));
-        view.getBigPictureButton().setOnAction(event -> runIfSet(onBigPicture));
 
         updateView();
     }
@@ -256,19 +246,14 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         return workSessionService.isTracking();
     }
 
-    public void setOnBack(Runnable onBack) { this.onBack = onBack; }
-    public void setOnCourses(Runnable onCourses) { this.onCourses = onCourses; }
-    public void setOnStudyAvailability(Runnable onStudyAvailability) { this.onStudyAvailability = onStudyAvailability; }
-    public void setOnDashboard(Runnable onDashboard) { this.onDashboard = onDashboard; }
-    public void setOnBigPicture(Runnable onBigPicture) { this.onBigPicture = onBigPicture; }
+    @Override
+    public void back() {
+        // Navigation handled by global nav bar
+    }
 
     public void setShowOnlyOpen(boolean showOnlyOpen) {
         this.showOnlyOpen = showOnlyOpen;
         updateView();
-    }
-
-    public void back() {
-        runIfSet(onBack);
     }
 
     public void onCreateAssignment(AssignmentCreateRequest req) {

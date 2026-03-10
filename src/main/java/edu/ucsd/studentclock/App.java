@@ -43,7 +43,9 @@ public class App extends Application {
         DashboardView dashboardView = viewFactory.createDashboardView();
         BigPictureView bigPictureView = viewFactory.createBigPictureView();
 
-        // Presenters 
+        MainLayoutView mainLayout = new MainLayoutView();
+
+        // Presenters
         PresenterFactory factory = new PresenterFactory(
                         sharedModel,
                         courseRepository,
@@ -62,18 +64,22 @@ public class App extends Application {
 
 
 
+        // Single scene with shared nav bar
+        javafx.scene.Scene scene = new javafx.scene.Scene(mainLayout, 1200, 800);
+        primaryStage.setScene(scene);
+
         // Navigation manager
         PresenterManager manager = new PresenterManager();
-                manager.defineInteractions(
+        manager.defineInteractions(
                 primaryStage,
                 "Student Clock",
+                mainLayout,
                 dashboardPresenter,
                 coursePresenter,
                 assignmentPresenter,
                 studyAvailabilityPresenter,
                 bigPicturePresenter
         );
-
     }
 
     public static void main(String[] args) {

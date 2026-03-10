@@ -4,6 +4,7 @@ import edu.ucsd.studentclock.model.Model;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 
+
 public abstract class AbstractPresenter<V extends Region> {
     protected Model model;
     protected V view;
@@ -35,6 +36,11 @@ public abstract class AbstractPresenter<V extends Region> {
 
     public Scene getScene() {
         return this.scene;
+    }
+
+    /** Returns the view (content region) for embedding in a shared layout. */
+    public Region getView() {
+        return view;
     }
 }
 

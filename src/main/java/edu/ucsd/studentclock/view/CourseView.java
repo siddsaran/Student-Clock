@@ -4,7 +4,6 @@ import java.util.List;
 
 import edu.ucsd.studentclock.model.Course;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -22,14 +21,9 @@ public class CourseView extends BorderPane {
 
     private final TextField idField = new TextField();
     private final TextField nameField = new TextField();
-    private final Button dashboardButton = new Button("Dashboard");
     private final Button addButton = new Button("Add Course");
     private final Button deleteButton = new Button("Delete Selected");
-    private final Button assignmentsButton = new Button("Go to Assignments");
-    private final Button studyAvailabilityButton = new Button("Go to Study Availability");
     private final ListView<String> courseList = new ListView<>();
-    private final Button bigPictureButton = new Button("Big Picture");
-
 
     public CourseView() {
         setPadding(new Insets(20));
@@ -47,17 +41,6 @@ public class CourseView extends BorderPane {
         form.add(idField, 1, 0);
         form.add(new Label("Course Name"), 0, 1);
         form.add(nameField, 1, 1);
-
-        HBox navBar = new HBox(10,
-                assignmentsButton,
-                studyAvailabilityButton,
-                dashboardButton
-        );
-        navBar.setAlignment(Pos.CENTER_LEFT);
-
-        VBox topContainer = new VBox(navBar);
-        topContainer.setPadding(new Insets(0, 0, 20, 0));
-        setTop(topContainer);
 
         VBox courseButtons = new VBox(8, addButton, deleteButton);
         VBox leftPanel = new VBox(30,
@@ -79,11 +62,6 @@ public class CourseView extends BorderPane {
 
         VBox.setVgrow(courseList, Priority.ALWAYS);
     }
-    public Button getBigPictureButton() {
-        return bigPictureButton;
-    }
-
-
 
     /**
      * Displays the given courses in the list (format: "id - name").
@@ -117,17 +95,6 @@ public class CourseView extends BorderPane {
 
     public Button getDeleteButton() {
         return deleteButton;
-    }
-
-    public Button getAssignmentsButton() {
-        return assignmentsButton;
-    }
-
-    public Button getStudyAvailabilityButton() {
-        return studyAvailabilityButton;
-    }
-    public Button getDashboardButton() {
-        return dashboardButton;
     }
 
     public void clearForm() {

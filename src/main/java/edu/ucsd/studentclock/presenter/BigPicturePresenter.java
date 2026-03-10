@@ -28,12 +28,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
     private final AssignmentWorkLogRepository assignmentWorkLogRepository;
     private final CourseColors courseColors = new CourseColors();
 
-    private Runnable onBack;
-    private Runnable onCourses;
-    private Runnable onAssignments;
-    private Runnable onStudyAvailability;
-    private Runnable onDashboard;
-
     public BigPicturePresenter(
             Model model,
             BigPictureView view,
@@ -43,12 +37,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
         super(model, view);
         this.assignmentRepository = assignmentRepository;
         this.assignmentWorkLogRepository = assignmentWorkLogRepository;
-
-        view.getBackButton().setOnAction(event -> runIfSet(onBack));
-        view.getCoursesButton().setOnAction(event -> runIfSet(onCourses));
-        view.getAssignmentsButton().setOnAction(event -> runIfSet(onAssignments));
-        view.getStudyAvailabilityButton().setOnAction(event -> runIfSet(onStudyAvailability));
-        view.getDashboardButton().setOnAction(event -> runIfSet(onDashboard));
 
         updateView();
     }
@@ -265,25 +253,5 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                 }
             }
         });
-    }
-
-    public void setOnBack(Runnable onBack) {
-        this.onBack = onBack;
-    }
-
-    public void setOnCourses(Runnable onCourses) {
-        this.onCourses = onCourses;
-    }
-
-    public void setOnAssignments(Runnable onAssignments) {
-        this.onAssignments = onAssignments;
-    }
-
-    public void setOnStudyAvailability(Runnable onStudyAvailability) {
-        this.onStudyAvailability = onStudyAvailability;
-    }
-
-    public void setOnDashboard(Runnable onDashboard) {
-        this.onDashboard = onDashboard;
     }
 }

@@ -9,20 +9,10 @@ import javafx.scene.control.Alert;
  */
 public class CoursePresenter extends AbstractPresenter<CourseView> {
 
-    private Runnable onNavigateToAssignments;
-    private Runnable onNavigateToStudyAvailability; 
-    private Runnable onNavigateToDashboard;
-    private Runnable onBigPicture;
-
-
     public CoursePresenter(Model model, CourseView view) {
         super(model, view);
         view.getAddButton().setOnAction(e -> handleAdd());
         view.getDeleteButton().setOnAction(e -> handleDelete());
-        view.getAssignmentsButton().setOnAction(e -> runIfSet(onNavigateToAssignments));
-        view.getStudyAvailabilityButton().setOnAction(e -> runIfSet(onNavigateToStudyAvailability));
-        view.getDashboardButton().setOnAction(e -> runIfSet(onNavigateToDashboard));
-        view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
         updateView();
     }
 
@@ -35,24 +25,6 @@ public class CoursePresenter extends AbstractPresenter<CourseView> {
     public void updateView() {
         view.showCourses(model.getAllCourses());
     }
-
-    /**
-     * Registers the callback for navigating to the Assignments screen.
-     */
-    public void setOnNavigateToAssignments(Runnable runnable) {
-        this.onNavigateToAssignments = runnable;
-    }
-
-    public void setOnNavigateToStudyAvailability(Runnable runnable) {
-        this.onNavigateToStudyAvailability = runnable;
-    }
-    public void setOnNavigateToDashboard(Runnable action) {
-        this.onNavigateToDashboard = action;
-    }
-    public void setOnBigPicture(Runnable r) {
-        onBigPicture = r;
-    }
-
 
     private void handleAdd() {
         try {
