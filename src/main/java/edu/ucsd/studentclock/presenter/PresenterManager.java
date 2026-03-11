@@ -1,5 +1,8 @@
 package edu.ucsd.studentclock.presenter;
 
+import edu.ucsd.studentclock.view.MainLayoutView;
+import edu.ucsd.studentclock.view.DashboardView;
+import edu.ucsd.studentclock.view.StudyAvailabilityView;
 import javafx.stage.Stage;
 
 /**
@@ -12,66 +15,51 @@ public class PresenterManager {
      *
      * @param stage application stage
      * @param appName application name
+     * @param mainLayout shared layout with nav bar
+     * @param dashboardPresenter presenter for dashboard
      * @param coursePresenter presenter for course screen
      * @param assignmentPresenter presenter for assignment screen
+     * @param studyAvailabilityPresenter presenter for study availability
+     * @param bigPicturePresenter presenter for big picture
      */
     public void defineInteractions(Stage stage,
                                    String appName,
+                                   MainLayoutView mainLayout,
                                    DashboardPresenter dashboardPresenter,
                                    CoursePresenter coursePresenter,
                                    AssignmentPresenter assignmentPresenter,
                                    StudyAvailabilityPresenter studyAvailabilityPresenter,
                                    BigPicturePresenter bigPicturePresenter) {
 
-        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName);
+        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName, mainLayout);
 
-        // Navigate from courses to assignments
-        coursePresenter.setOnNavigateToAssignments(() -> {
-            assignmentPresenter.showAllAssignments();
-            switcher.switchTo(assignmentPresenter);
-        });
-        
-        // Navigate from courses to study availability
-        coursePresenter.setOnNavigateToStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
+        // Centralized navigation rules
+        NavigationRouter router = new NavigationRouter(
+                () -> switcher.switchTo(dashboardPresenter),
+                () -> switcher.switchTo(coursePresenter),
+                () -> switcher.switchTo(studyAvailabilityPresenter),
+                () -> switcher.switchTo(bigPicturePresenter),
+                () -> switcher.switchTo(assignmentPresenter),
+                assignmentPresenter::showAllAssignments,
+                assignmentPresenter::showOpenAssignments
+        );
 
-        // Navigate from courses to dashboard
-        coursePresenter.setOnNavigateToDashboard(() -> switcher.switchTo(dashboardPresenter));
+        // Global nav bar - same on every page
+        mainLayout.getDashboardButton().setOnAction(e -> router.toDashboard());
+        mainLayout.getCoursesButton().setOnAction(e -> router.toCourses());
+        mainLayout.getAssignmentsButton().setOnAction(e -> router.toAssignmentsAll());
+        mainLayout.getStudyAvailabilityButton().setOnAction(e -> router.toStudyAvailability());
+        mainLayout.getBigPictureButton().setOnAction(e -> router.toBigPicture());
 
-        // Navigate from assignment back to courses
-        assignmentPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
+        // Study Availability specific navigation (Back button)
+        StudyAvailabilityView studyAvailabilityView =
+                (StudyAvailabilityView) studyAvailabilityPresenter.getView();
+        studyAvailabilityView.getBackButton().setOnAction(e -> router.toCourses());
 
-        // Topbar assignments page
-        assignmentPresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
-        assignmentPresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
-        assignmentPresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
-        assignmentPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
-
-        // Navigate from study availability back to courses
-        studyAvailabilityPresenter.setOnBack(() -> switcher.switchTo(coursePresenter));
-
-        // Navigate from dashboard to courses
-        dashboardPresenter.setOnShowOpenAssignments(() -> {
-            assignmentPresenter.showOpenAssignments();
-            switcher.switchTo(assignmentPresenter);
-        });
-
-        dashboardPresenter.setOnAllAssignments(() -> {
-            assignmentPresenter.showAllAssignments();
-            switcher.switchTo(assignmentPresenter);
-        });
-
-        // Navigate from dashboard to BigPictureView
-        dashboardPresenter.setOnBigPicture(() -> switcher.switchTo(bigPicturePresenter));
-
-        // Big Picture global nav
-        bigPicturePresenter.setOnBack(() -> switcher.switchTo(dashboardPresenter));
-        bigPicturePresenter.setOnCourses(() -> switcher.switchTo(coursePresenter));
-        bigPicturePresenter.setOnAssignments(() -> switcher.switchTo(assignmentPresenter));
-        bigPicturePresenter.setOnStudyAvailability(() -> switcher.switchTo(studyAvailabilityPresenter));
-        bigPicturePresenter.setOnDashboard(() -> switcher.switchTo(dashboardPresenter));
-
-
-
+        // Dashboard-specific actions (Show Open, Big Picture buttons on dashboard)
+        DashboardView dashboardView = (DashboardView) dashboardPresenter.getView();
+        dashboardView.getShowOpenButton().setOnAction(e -> router.toAssignmentsOpen());
+        dashboardView.getBigPictureButton().setOnAction(e -> router.toBigPicture());
 
         // Initial screen
         switcher.switchTo(dashboardPresenter);

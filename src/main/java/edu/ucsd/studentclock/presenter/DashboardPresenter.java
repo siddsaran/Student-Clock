@@ -24,11 +24,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
     private final ITimeService timeService;
 
-    private Runnable onBack;
-    private Runnable onBigPicture;
-    private Runnable onShowOpenAssignments;
-    private Runnable onAllAssignments;
-
     private final DateTimeFormatter clockFmt =
             DateTimeFormatter.ofPattern("MMMM d, yyyy — h:mm a");
 

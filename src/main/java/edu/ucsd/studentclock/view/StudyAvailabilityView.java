@@ -44,10 +44,6 @@ public class StudyAvailabilityView extends VBox {
             if (presenter != null) presenter.onSave();
         });
 
-        backButton.setOnAction(e -> {
-            if (presenter != null) presenter.onBack();
-        });
-
         getChildren().addAll(
                 titleLabel,
                 promptLabel,
@@ -115,5 +111,9 @@ public class StudyAvailabilityView extends VBox {
     public void setOnDayToggled(DayOfWeek day, Runnable action) {
         CheckBox cb = dayCheckboxes.get(day);
         if (cb != null) cb.setOnAction(e -> action.run());
+    }
+
+    public Button getBackButton() {
+        return backButton;
     }
 }

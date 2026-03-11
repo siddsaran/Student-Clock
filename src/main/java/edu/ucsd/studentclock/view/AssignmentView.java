@@ -56,17 +56,12 @@ public class AssignmentView extends BorderPane {
     private final Button addButton = new Button("Add Assignment");
     private final Button deleteButton = new Button("Delete Assignment");
     private final Button createSeriesButton = new Button("Create Series + Link Selected");
-    private final Button backButton = new Button("Back");
     private final Button clockButton = new Button("Clock In");
     private final Button markDoneButton = new Button("Mark Done");
 
     private final TextField manualHoursField = new TextField();
     private final Button applyHoursButton = new Button("Apply Hours");
 
-    private final Button dashboardButton = new Button("Dashboard");
-    private final Button courseButton = new Button("Go to Courses");
-    private final Button studyAvailabilityButton = new Button("Go to Study Availability");
-    private final Button bigPictureButton = new Button("Big Picture");
     private final Button showAllAssignmentsButton = new Button("Show All Assignments");
 
     private final ListView<AssignmentListEntry> assignmentList = new ListView<>();
@@ -176,18 +171,6 @@ public class AssignmentView extends BorderPane {
         VBox seriesOptionsContainer = new VBox(10);
         seriesOptionsContainer.getChildren().addAll(addFormNewSeriesPanel, addFormExistingSeriesRow);
         form.add(seriesOptionsContainer, 1, 6);
-
-        HBox navBar = new HBox(10,
-                courseButton,
-                studyAvailabilityButton,
-                dashboardButton,
-                bigPictureButton
-        );
-        navBar.setAlignment(Pos.CENTER_LEFT);
-
-        VBox topContainer = new VBox(navBar);
-        topContainer.setPadding(new Insets(0, 0, 20, 0));
-        setTop(topContainer);
 
         VBox assignmentButtons = new VBox(10, addButton, deleteButton);
 
@@ -305,11 +288,6 @@ public class AssignmentView extends BorderPane {
 
         HBox.setHgrow(rightPanel, Priority.ALWAYS);
 
-        HBox bottom = new HBox(backButton);
-        bottom.setAlignment(Pos.CENTER_LEFT);
-        bottom.setPadding(new Insets(10, 0, 0, 0));
-        setBottom(bottom);
-
         courseBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (SERIES_CHOICE_EXISTING.equals(seriesChoiceBox.getValue()) && presenter != null && newVal != null && !newVal.isBlank()) {
                 refreshExistingSeriesForCourse(newVal);
@@ -322,9 +300,6 @@ public class AssignmentView extends BorderPane {
         clockButton.setOnAction(e -> handleClockButton());
         applyHoursButton.setOnAction(e -> handleApplyHours());
         markDoneButton.setOnAction(e -> handleMarkDone());
-        backButton.setOnAction(e -> {
-            if (presenter != null) presenter.back();
-        });
 
         courseBox.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (suppressCourseListener) return;
@@ -337,8 +312,6 @@ public class AssignmentView extends BorderPane {
             }
         });
     }
-
-    public Button getBigPictureButton() { return bigPictureButton; }
 
     private void handleClockButton() {
         Assignment selected = getFirstSelectedAssignment();
@@ -540,9 +513,4 @@ public class AssignmentView extends BorderPane {
         }
     }
 
-    public Button getCoursesButton() { return courseButton; }
-    public Button getStudyAvailabilityButton() { return studyAvailabilityButton; }
-    public Button getDashboardButton() { return dashboardButton; }
-
-    public Button getBackButton() { return backButton; }
 }
