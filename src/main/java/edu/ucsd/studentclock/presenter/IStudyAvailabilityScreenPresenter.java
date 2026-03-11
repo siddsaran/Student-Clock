@@ -6,6 +6,4 @@ package edu.ucsd.studentclock.presenter;
 public interface IStudyAvailabilityScreenPresenter {
 
     void onSave();
-
-    void onBack();
 }
