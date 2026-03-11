@@ -9,8 +9,6 @@ import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
-import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.util.CourseColors;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import edu.ucsd.studentclock.view.BigPictureView;
@@ -24,19 +22,13 @@ import javafx.util.Duration;
 
 public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
 
-    private final IAssignmentRepository assignmentRepository;
-    private final AssignmentWorkLogRepository assignmentWorkLogRepository;
     private final CourseColors courseColors = new CourseColors();
 
     public BigPicturePresenter(
             Model model,
-            BigPictureView view,
-            IAssignmentRepository assignmentRepository,
-            AssignmentWorkLogRepository assignmentWorkLogRepository
+            BigPictureView view
     ) {
         super(model, view);
-        this.assignmentRepository = assignmentRepository;
-        this.assignmentWorkLogRepository = assignmentWorkLogRepository;
 
         updateView();
     }
@@ -102,7 +94,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
             List<BigPictureCourseLineBuilder.ChartPoint> coursePoints = BigPictureCourseLineBuilder.build(
                     courseAssignments,
                     effectiveRanges,
-                    assignmentWorkLogRepository::getCumulativeHoursByEndOf,
+                    model::getCumulativeHoursByEndOf,
                     chartStart,
                     chartEnd
             );
