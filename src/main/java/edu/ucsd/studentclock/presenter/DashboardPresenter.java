@@ -8,15 +8,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
-import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.AssignmentStatus;
+import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.StudyAvailability;
-import edu.ucsd.studentclock.repository.IAssignmentRepository;
-import edu.ucsd.studentclock.repository.WorkLogRepository;
 import edu.ucsd.studentclock.service.ITimeService;
 import edu.ucsd.studentclock.view.DashboardView;
 import javafx.animation.KeyFrame;
@@ -37,15 +34,12 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
     private final Timeline ticker;
 
-    public DashboardPresenter(Model model,
-                              DashboardView view) {
-
+    public DashboardPresenter(Model model, DashboardView view) {
         super(model, view);
         this.timeService = model.getTimeService();
 
         view.setPresenter(this);
 
-        // toggle real/mock time
         view.syncMockToggleState(timeService.isUsingMock());
         view.getMockToggle().setOnAction(e -> {
             boolean useMock = view.getMockToggle().isSelected();
@@ -58,7 +52,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
             updateView();
         });
 
-        // set mock date/time
         view.getSetMockButton().setOnAction(e -> {
             try {
                 LocalDate d = view.getMockDatePicker().getValue();
@@ -75,42 +68,19 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         view.getShowOpenButton().setOnAction(e -> runIfSet(onShowOpenAssignments));
         view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
 
-        // keep dashboard clock fresh (and also refresh urgency coloring)
         ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateView()));
         ticker.setCycleCount(Timeline.INDEFINITE);
         ticker.play();
-        
     }
 
     @Override
     public void updateView() {
         LocalDateTime now = timeService.now();
 
-        // show date/time + mode on dashboard
         String mode = timeService.isUsingMock() ? " (MOCK)" : " (REAL)";
         view.setDateTimeText(now.format(clockFmt) + mode);
 
-        List<Assignment> filtered = model.getAllAssignments().stream()
-            .filter(a -> !a.isDone())
-            .filter(a -> {
-                boolean urgent = AssignmentStatusCalculator.isUrgent(a, now);
-                AssignmentStatus status =
-                        AssignmentStatusCalculator.behindStatus(a, now);
-
-                return urgent
-                        || status == AssignmentStatus.RED
-                        || status == AssignmentStatus.ORANGE
-                        || status == AssignmentStatus.YELLOW;
-            })
-            .sorted((a, b) -> {
-                int sa = severityScore(a, now);
-                int sb = severityScore(b, now);
-
-                if (sa != sb) return Integer.compare(sb, sa);
-
-                return a.getDeadline().compareTo(b.getDeadline());
-            })
-            .collect(Collectors.toList());
+        List<Assignment> filtered = AssignmentFilters.dashboardAssignments(model.getAllAssignments(), now);
 
         StudyAvailability sa = model.getStudyAvailability();
 
@@ -119,13 +89,16 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);
 
-        double workNext7Days = computeRemainingWorkNext7Days(model.getAllAssignments(), now);
+        double workNext7Days = computeRemainingWorkNext7Days(
+                AssignmentFilters.openAssignments(model.getAllAssignments()),
+                now
+        );
         AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
         Map<Assignment, String> rowStyles = new HashMap<>();
-        for (Assignment a : filtered) {
-            AssignmentStatus status = AssignmentStatusCalculator.behindStatus(a, now);
+        for (Assignment assignment : filtered) {
+            AssignmentStatus status = AssignmentStatusCalculator.behindStatus(assignment, now);
             String style;
             switch (status) {
                 case RED:
@@ -141,24 +114,25 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
                     style = "";
                     break;
             }
-            rowStyles.put(a, style);
+            rowStyles.put(assignment, style);
         }
+
         view.showAssignments(filtered, rowStyles);
     }
 
-    private double computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
+    private double computeRemainingWorkNext7Days(List<Assignment> assignments, LocalDateTime now) {
         LocalDate today = now.toLocalDate();
         LocalDate end = today.plusDays(7);
 
         double sum = 0;
-        for (Assignment a : all) {
-            if (a.isDone()) continue;
-            if (a.getDeadline() == null) continue;
+        for (Assignment assignment : assignments) {
+            if (assignment.getDeadline() == null) {
+                continue;
+            }
 
-            LocalDate due = a.getDeadline().toLocalDate();
-            // due in [today, today+7]
+            LocalDate due = assignment.getDeadline().toLocalDate();
             if (!due.isBefore(today) && !due.isAfter(end)) {
-                sum += a.getRemainingHours();
+                sum += assignment.getRemainingHours();
             }
         }
         return sum;
@@ -201,19 +175,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         return AssignmentStatus.GREEN;
     }
 
-    private int severityScore(Assignment a, LocalDateTime now) {
-        if (AssignmentStatusCalculator.isUrgent(a, now)) return 4;
-
-        AssignmentStatus status =
-                AssignmentStatusCalculator.behindStatus(a, now);
-
-        if (status == AssignmentStatus.RED) return 3;
-        if (status == AssignmentStatus.ORANGE) return 2;
-        if (status == AssignmentStatus.YELLOW) return 1;
-
-        return 0;
-    }
-
     public void openAssignment(Assignment assignment) {
         model.setSelectedAssignment(assignment);
         runIfSet(onBack);
@@ -222,9 +183,11 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
     public void setOnBack(Runnable action) {
         this.onBack = action;
     }
+
     public void setOnBigPicture(Runnable r) {
         onBigPicture = r;
     }
+
     public void setOnShowOpenAssignments(Runnable r) {
         onShowOpenAssignments = r;
     }

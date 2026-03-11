@@ -3,12 +3,9 @@ package edu.ucsd.studentclock.presenter;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.repository.AssignmentWorkLogRepository;
-import edu.ucsd.studentclock.repository.IAssignmentRepository;
 import edu.ucsd.studentclock.view.BigPictureView;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -24,10 +21,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
     private Runnable onStudyAvailability;
     private Runnable onDashboard;
 
-    public BigPicturePresenter(
-            Model model,
-            BigPictureView view
-    ) {
+    public BigPicturePresenter(Model model, BigPictureView view) {
         super(model, view);
 
         view.getBackButton().setOnAction(event -> runIfSet(onBack));
@@ -46,9 +40,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = model.getAllAssignments().stream()
-                .filter(a -> !a.isDone())
-                .collect(Collectors.toList());
+        List<Assignment> assignments = AssignmentFilters.openAssignments(model.getAllAssignments());
 
         if (assignments.isEmpty()) {
             view.getChart().getData().clear();
@@ -68,7 +60,6 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                 .max(LocalDate::compareTo)
                 .orElseThrow();
 
-        // Use top-level provider types (no nested classes)
         CumulativeHoursProvider provider =
                 new MemoizedCumulativeHoursProvider(model::getCumulativeHoursByEndOf);
 
