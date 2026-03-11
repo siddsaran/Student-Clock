@@ -15,11 +15,20 @@ import javafx.scene.layout.StackPane;
  */
 public class MainLayoutView extends BorderPane {
 
+    private static final String ACTIVE_STYLE =
+            "-fx-background-color: #e0e0e0; -fx-font-weight: bold;";
+    private static final String INACTIVE_STYLE = "";
+
     private final Button dashboardButton = new Button("Dashboard");
     private final Button coursesButton = new Button("Courses");
     private final Button assignmentsButton = new Button("Assignments");
     private final Button studyAvailabilityButton = new Button("Study Availability");
     private final Button bigPictureButton = new Button("Big Picture");
+
+    private final Button[] navButtons = {
+            dashboardButton, coursesButton, assignmentsButton,
+            studyAvailabilityButton, bigPictureButton
+    };
 
     private final StackPane contentArea = new StackPane();
 
@@ -55,6 +64,17 @@ public class MainLayoutView extends BorderPane {
             contentArea.getChildren().add(content);
             content.setMaxWidth(Double.MAX_VALUE);
             content.setMaxHeight(Double.MAX_VALUE);
+        }
+    }
+
+    /**
+     * Highlights the nav button for the current page.
+     *
+     * @param viewTitle the title of the current view (e.g. "Dashboard", "Courses")
+     */
+    public void setActivePage(String viewTitle) {
+        for (Button b : navButtons) {
+            b.setStyle(b.getText().equals(viewTitle) ? ACTIVE_STYLE : INACTIVE_STYLE);
         }
     }
 
