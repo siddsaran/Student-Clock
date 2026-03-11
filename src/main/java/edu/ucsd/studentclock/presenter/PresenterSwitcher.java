@@ -18,6 +18,7 @@ public class PresenterSwitcher {
         presenter.updateView();
         stage.setTitle(appName + ": " + presenter.getViewTitle());
         mainLayout.setContent(presenter.getView());
+        mainLayout.setActivePage(presenter.getViewTitle());
         stage.show();
     }
 }
