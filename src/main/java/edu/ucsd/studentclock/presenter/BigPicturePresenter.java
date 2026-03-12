@@ -24,10 +24,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     private final CourseColors courseColors = new CourseColors();
 
-    public BigPicturePresenter(
-            Model model,
-            BigPictureView view
-    ) {
+    public BigPicturePresenter(Model model, BigPictureView view) {
         super(model, view);
 
         updateView();
@@ -50,9 +47,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     @Override
     public void updateView() {
-        List<Assignment> assignments = model.getAllAssignments().stream()
-                .filter(a -> !a.isDone())
-                .collect(Collectors.toList());
+        List<Assignment> assignments = AssignmentFilters.openAssignments(model.getAllAssignments());
 
         if (assignments.isEmpty()) {
             view.getChart().getData().clear();

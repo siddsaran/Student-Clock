@@ -13,15 +13,11 @@ import edu.ucsd.studentclock.model.Model;
 import edu.ucsd.studentclock.model.Series;
 import edu.ucsd.studentclock.view.AssignmentListEntry;
 
-/**
- * Builds a grouped list of assignment list entries (by course, then by series) for display.
- * Keeps list-building logic out of the presenter.
- */
 public final class AssignmentListGrouper {
 
     private static final String[] TAG_COLORS = {
-        "#4A90D9", "#7B68A6", "#50A060", "#C07850", "#B85450",
-        "#5B9AA0", "#E8A838", "#6B8E6B", "#9B6B8E", "#4A7C9E"
+            "#4A90D9", "#7B68A6", "#50A060", "#C07850", "#B85450",
+            "#5B9AA0", "#E8A838", "#6B8E6B", "#9B6B8E", "#4A7C9E"
     };
 
     private AssignmentListGrouper() {
@@ -32,17 +28,6 @@ public final class AssignmentListGrouper {
         return TAG_COLORS[index];
     }
 
-    /**
-     * Builds a list of assignment rows with course headers. No-series assignments have no tag;
-     * series assignments have a tag. Order: no series first, then each series by name.
-     *
-     * @param allAssignments   all assignments (e.g. from repository)
-     * @param showOnlyOpen     if true, filter to non-done assignments only
-     * @param courseFilter     course id to filter by, or allCoursesLabel to show all
-     * @param allCoursesLabel  value that means "no course filter" (e.g. "All Courses")
-     * @param model            used to resolve series display names
-     * @return list of headers and rows for the assignment list
-     */
     public static List<AssignmentListEntry> buildGroupedList(
             List<Assignment> allAssignments,
             boolean showOnlyOpen,
@@ -50,21 +35,13 @@ public final class AssignmentListGrouper {
             String allCoursesLabel,
             Model model
     ) {
-        List<Assignment> assignments = allAssignments;
+        List<Assignment> assignments = List.copyOf(allAssignments);
 
         if (showOnlyOpen) {
-            assignments = assignments.stream()
-                    .filter(assignment -> !assignment.isDone())
-                    .collect(Collectors.toList());
+            assignments = AssignmentFilters.openAssignments(assignments);
         }
 
-        if (courseFilter != null
-                && !allCoursesLabel.equals(courseFilter)
-                && !courseFilter.isBlank()) {
-            assignments = assignments.stream()
-                    .filter(assignment -> courseFilter.equals(assignment.getCourseId()))
-                    .collect(Collectors.toList());
-        }
+        assignments = AssignmentFilters.filterByCourse(assignments, courseFilter, allCoursesLabel);
 
         Map<String, String> seriesIdToName = new HashMap<>();
         for (Assignment assignment : assignments) {
@@ -79,6 +56,7 @@ public final class AssignmentListGrouper {
 
         Map<String, List<Assignment>> assignmentsByCourse = assignments.stream()
                 .collect(Collectors.groupingBy(Assignment::getCourseId));
+
         List<String> courseIds = assignmentsByCourse.keySet().stream()
                 .sorted()
                 .collect(Collectors.toList());
