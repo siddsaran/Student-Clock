@@ -104,13 +104,13 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
         StudyAvailability sa = model.getStudyAvailability();
 
-        int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
+        int availableFromToday = DashboardStudyHoursCalculator.computeWeeklyHoursLeftFromToday(sa, now);
         double totalLoggedThisWeek = model.getTotalHoursLoggedInWeek(now.toLocalDate());
         int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);
 
-        double workNext7Days = computeRemainingWorkNext7Days(model.getAllAssignments(), now);
-        AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
+        double workNext7Days = DashboardStudyHoursCalculator.computeRemainingWorkNext7Days(model.getAllAssignments(), now);
+        AssignmentStatus overallStatus = DashboardStudyHoursCalculator.statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
         Map<Assignment, String> rowStyles = new HashMap<>();
@@ -134,61 +134,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
             rowStyles.put(a, style);
         }
         view.showAssignments(filtered, rowStyles);
-    }
-
-    private double computeRemainingWorkNext7Days(List<Assignment> all, LocalDateTime now) {
-        LocalDate today = now.toLocalDate();
-        LocalDate end = today.plusDays(7);
-
-        double sum = 0;
-        for (Assignment a : all) {
-            if (a.isDone()) continue;
-            if (a.getDeadline() == null) continue;
-
-            LocalDate due = a.getDeadline().toLocalDate();
-            // due in [today, today+7]
-            if (!due.isBefore(today) && !due.isAfter(end)) {
-                sum += a.getRemainingHours();
-            }
-        }
-        return sum;
-    }
-
-    private int computeWeeklyHoursLeftFromToday(StudyAvailability sa, LocalDateTime now) {
-        int weekly = sa.getTotalWeeklyHours();
-        if (weekly <= 0) return 0;
-
-        int availableDaysInWeek = 0;
-        for (DayOfWeek d : DayOfWeek.values()) {
-            if (sa.isAvailable(d)) availableDaysInWeek++;
-        }
-        if (availableDaysInWeek == 0) return 0;
-
-        int perAvailableDay = weekly / availableDaysInWeek;
-
-        DayOfWeek today = now.getDayOfWeek();
-
-        int remainingAvailableDays = 0;
-        for (DayOfWeek d : DayOfWeek.values()) {
-            if (d.getValue() >= today.getValue() && sa.isAvailable(d)) {
-                remainingAvailableDays++;
-            }
-        }
-
-        return perAvailableDay * remainingAvailableDays;
-    }
-
-    private AssignmentStatus statusFrom(double work, int available) {
-        if (available <= 0) {
-            return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
-        }
-
-        double ratio = work / (double) available;
-
-        if (ratio >= 1.0) return AssignmentStatus.RED;
-        if (ratio >= 0.80) return AssignmentStatus.ORANGE;
-        if (ratio >= 0.60) return AssignmentStatus.YELLOW;
-        return AssignmentStatus.GREEN;
     }
 
     private int severityScore(Assignment a, LocalDateTime now) {

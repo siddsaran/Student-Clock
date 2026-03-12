@@ -27,8 +27,9 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for AssignmentListGrouper. DS6-2: verifies that series rows receive
- * presenter-provided tag colors (View is passive; color logic lives in presenter layer).
+ * Tests for AssignmentListGrouper.
+ * DS6-2: series rows receive presenter-provided tag colors.
+ * Regression: showOnlyOpen excludes completed assignments.
  */
 @DisplayName("AssignmentListGrouper")
 class AssignmentListGrouperTest {
@@ -149,6 +150,36 @@ class AssignmentListGrouperTest {
             assertNotNull(rowEntry);
             assertNull(rowEntry.getDisplayName());
             assertNull(rowEntry.getTagColor());
+        }
+    }
+
+    @Nested
+    @DisplayName("regression: showOnlyOpen excludes completed")
+    class ShowOnlyOpenRegression {
+
+        @Test
+        @DisplayName("showOnlyOpen excludes completed assignments after grouping")
+        void showOnlyOpen_excludesDoneAssignments() {
+            courseRepo.addCourse(new Course("CSE 110", "Software Engineering"));
+            Assignment open = makeAssignment("Open", "CSE 110", null);
+            Assignment done = makeAssignment("Done", "CSE 110", null);
+            done.markDone();
+            assignmentRepo.addAssignment(open);
+            assignmentRepo.addAssignment(done);
+
+            List<AssignmentListEntry> entries = AssignmentListGrouper.buildGroupedList(
+                    assignmentRepo.getAllAssignments(),
+                    true,
+                    "All Courses",
+                    "All Courses",
+                    model
+            );
+
+            List<AssignmentListEntry> rows = entries.stream()
+                    .filter(e -> !e.isHeader() && e.getAssignment() != null)
+                    .collect(Collectors.toList());
+            assertEquals(1, rows.size());
+            assertEquals("Open", rows.get(0).getAssignment().getName());
         }
     }
 }
