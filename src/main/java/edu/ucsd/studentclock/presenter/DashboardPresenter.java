@@ -1,5 +1,12 @@
 package edu.ucsd.studentclock.presenter;
 
+import edu.ucsd.studentclock.model.*;
+import edu.ucsd.studentclock.service.ITimeService;
+import edu.ucsd.studentclock.view.DashboardView;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,17 +15,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import edu.ucsd.studentclock.model.Assignment;
-import edu.ucsd.studentclock.model.AssignmentStatus;
-import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
-import edu.ucsd.studentclock.model.Model;
-import edu.ucsd.studentclock.model.StudyAvailability;
-import edu.ucsd.studentclock.service.ITimeService;
-import edu.ucsd.studentclock.view.DashboardView;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 
 public class DashboardPresenter extends AbstractPresenter<DashboardView> implements IDashboardScreenPresenter {
 
@@ -59,9 +55,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
                 view.showError(ex.getMessage());
             }
         });
-
-        view.getShowOpenButton().setOnAction(e -> runIfSet(onShowOpenAssignments));
-        view.getBigPictureButton().setOnAction(e -> runIfSet(onBigPicture));
 
         ticker = new Timeline(new KeyFrame(Duration.seconds(1), e -> updateView()));
         ticker.setCycleCount(Timeline.INDEFINITE);
@@ -172,23 +165,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
     public void openAssignment(Assignment assignment) {
         model.setSelectedAssignment(assignment);
-        runIfSet(onBack);
-    }
-
-    public void setOnBack(Runnable action) {
-        this.onBack = action;
-    }
-
-    public void setOnBigPicture(Runnable r) {
-        onBigPicture = r;
-    }
-
-    public void setOnShowOpenAssignments(Runnable r) {
-        onShowOpenAssignments = r;
-    }
-
-    public void setOnAllAssignments(Runnable r) {
-        onAllAssignments = r;
     }
 
     @Override
