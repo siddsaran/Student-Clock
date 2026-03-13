@@ -7,11 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (Assignment).
- * MS1: US2 (Add assignments with start dates and deadlines), US2-1, US2-2, US2-3.
- */
-@DisplayName("DS7-2: Assignment")
+@DisplayName("Assignment")
 class AssignmentTest {
 
     private Assignment makeAssignment(double estimatedHours) {

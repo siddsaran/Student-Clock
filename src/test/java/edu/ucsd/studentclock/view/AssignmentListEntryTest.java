@@ -9,11 +9,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for view/domain logic (AssignmentListEntry).
- * MS1: US2 (Add assignments), US9 (View all open assignments).
- */
-@DisplayName("DS7-2: AssignmentListEntry")
+@DisplayName("AssignmentListEntry")
 class AssignmentListEntryTest {
 
     private Assignment makeAssignment() {

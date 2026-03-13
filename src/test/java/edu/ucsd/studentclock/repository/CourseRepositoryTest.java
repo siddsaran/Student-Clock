@@ -14,11 +14,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (CourseRepository).
- * MS1: US1 (Create and view courses), US1-6 (Test course creation and persistence behavior).
- */
-@DisplayName("DS7-2: CourseRepository")
+@DisplayName("CourseRepository")
 class CourseRepositoryTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Story DS6, Task 2: Tests that form input is parsed in presenter layer.
- * MS1: US2 (Add assignments with start dates and deadlines).
- * Original bug: View did Integer.parseInt / Double.parseDouble before calling Presenter.
+ * DS6-2: Tests that form input is parsed in presenter layer.
+ * Original bug: View did Integer.parseInt / Double.parseDouble before calling
+ * Presenter.
  */
-@DisplayName("DS6-2: AssignmentInputParser")
+@DisplayName("AssignmentInputParser")
 class AssignmentInputParserTest {
 
     @Nested

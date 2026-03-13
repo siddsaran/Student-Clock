@@ -12,11 +12,7 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 3: Presenter tests for core user actions (BigPictureCourseLineBuilder).
- * MS1: US10 (View a Big Picture workload visualization).
- */
-@DisplayName("DS7-3: BigPictureCourseLineBuilder")
+@DisplayName("BigPictureCourseLineBuilder")
 class BigPictureCourseLineBuilderTest {
 
         private Assignment makeAssignment(

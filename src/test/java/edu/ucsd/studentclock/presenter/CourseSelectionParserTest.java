@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 3: Presenter tests for core user actions (CourseSelectionParser).
- * MS1: US1 (Create and view courses).
- */
-@DisplayName("DS7-3: CourseSelectionParser")
+@DisplayName("CourseSelectionParser")
 class CourseSelectionParserTest {
 
     @Test

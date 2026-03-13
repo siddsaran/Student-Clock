@@ -14,11 +14,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (StudyAvailabilityRepository).
- * MS1: US5 (Define weekly study availability).
- */
-@DisplayName("DS7-2: StudyAvailabilityRepository")
+@DisplayName("StudyAvailabilityRepository")
 class StudyAvailabilityRepositoryTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

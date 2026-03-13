@@ -10,11 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Story DS7, Task 3: Presenter tests for core user actions (AssignmentFilters).
- * MS1: US9 (View all open assignments).
- */
-@DisplayName("DS7-3: AssignmentFilters")
+@DisplayName("AssignmentFilters")
 class AssignmentFiltersTest {
 
         private Assignment makeAssignment(

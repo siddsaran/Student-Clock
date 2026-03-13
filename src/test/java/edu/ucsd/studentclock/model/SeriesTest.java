@@ -5,11 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (Series).
- * MS1: US3 (Group related assignments into a series), US3-1 (Define assignment series data structure).
- */
-@DisplayName("DS7-2: Series")
 class SeriesTest {
 
     @Test

@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (CourseColors).
- * MS1: Supports US1, US3, US9 (course display and assignment list styling).
- */
-@DisplayName("DS7-2: CourseColors")
+@DisplayName("CourseColors")
 class CourseColorsTest {
 
     @Test

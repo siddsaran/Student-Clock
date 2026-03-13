@@ -9,11 +9,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (TimeTrackingManager).
- * MS1: US7 (Track time spent working on assignments).
- */
-@DisplayName("DS7-2: TimeTrackingManager")
+@DisplayName("TimeTrackingManager")
 class TimeTrackingManagerTest {
 
     private static Assignment makeAssignment(double estimatedHours) {

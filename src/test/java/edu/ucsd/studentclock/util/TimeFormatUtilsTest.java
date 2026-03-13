@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (TimeFormatUtils).
- * MS1: Supports US4, US7 (work estimates and time tracking display).
- */
-@DisplayName("DS7-2: TimeFormatUtils")
+@DisplayName("TimeFormatUtils")
 class TimeFormatUtilsTest {
 
     @Test

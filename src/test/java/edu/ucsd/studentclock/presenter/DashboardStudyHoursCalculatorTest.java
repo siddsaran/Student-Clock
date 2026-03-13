@@ -13,11 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * Story DS7, Task 3: Presenter tests for core user actions (DashboardStudyHoursCalculator).
- * MS1: US6 (View dashboard highlighting urgent or behind assignments), US8 (View overall study status).
- */
-@DisplayName("DS7-3: DashboardStudyHoursCalculator")
+@DisplayName("DashboardStudyHoursCalculator")
 class DashboardStudyHoursCalculatorTest {
 
     private Assignment makeAssignment(String name, LocalDateTime deadline, double estimated, double remaining) {

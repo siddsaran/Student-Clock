@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Story DS7, Task 2: Unit tests for domain and model logic (ValidationUtils).
- * MS1: Supports US1, US2 (course/assignment input validation).
- */
-@DisplayName("DS7-2: ValidationUtils")
+@DisplayName("ValidationUtils")
 class ValidationUtilsTest {
 
     @Test
