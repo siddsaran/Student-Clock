@@ -5,7 +5,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Course")
+/**
+ * Story DS7, Task 2: Unit tests for domain and model logic (Course).
+ * MS1: US1 (Create and view courses), US1-6 (Test course creation and persistence behavior).
+ */
+@DisplayName("DS7-2: Course")
 class CourseTest {
 
     @Test

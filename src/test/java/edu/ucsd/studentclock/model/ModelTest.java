@@ -20,7 +20,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Model")
+/**
+ * Story DS6, Task 3: Refactor presenters to mediate correctly; model delegation tests.
+ * MS1: US1, US2, US3 (course/assignment/series creation, persistence, delegation).
+ */
+@DisplayName("DS6-3: Model")
 class ModelTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

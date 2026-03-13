@@ -16,7 +16,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("AssignmentRepository")
+/**
+ * Story DS7, Task 2: Unit tests for domain and model logic (AssignmentRepository).
+ * MS1: US2 (Add assignments with start dates and deadlines), US2-1, US2-2, US2-3.
+ */
+@DisplayName("DS7-2: AssignmentRepository")
 class AssignmentRepositoryTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

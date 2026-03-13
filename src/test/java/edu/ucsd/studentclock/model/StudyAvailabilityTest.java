@@ -8,6 +8,11 @@ import java.time.DayOfWeek;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Story DS7, Task 2: Unit tests for domain and model logic (StudyAvailability).
+ * MS1: US5 (Define weekly study availability).
+ */
+@DisplayName("DS7-2: StudyAvailability")
 class StudyAvailabilityTest {
 
     private StudyAvailability availability;

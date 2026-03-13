@@ -19,7 +19,11 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("WorkSessionService")
+/**
+ * Story DS7, Task 2: Unit tests for domain and model logic (WorkSessionService).
+ * MS1: US7 (Track time spent working on assignments).
+ */
+@DisplayName("DS7-2: WorkSessionService")
 class WorkSessionServiceTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

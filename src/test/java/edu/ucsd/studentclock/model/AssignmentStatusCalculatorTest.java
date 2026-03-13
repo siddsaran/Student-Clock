@@ -9,7 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-@DisplayName("AssignmentStatusCalculator")
+/**
+ * Story DS7, Task 2: Unit tests for domain and model logic (AssignmentStatusCalculator).
+ * MS1: US4 (Estimate total work required), US6 (Dashboard urgent/behind), US8 (Overall study status).
+ */
+@DisplayName("DS7-2: AssignmentStatusCalculator")
 public class AssignmentStatusCalculatorTest {
 
         private Assignment makeAssignment(
