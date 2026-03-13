@@ -10,7 +10,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("BigPictureTooltipPayloadFactory")
+/**
+ * Story DS7, Task 3: Presenter tests for core user actions (BigPictureTooltipPayloadFactory).
+ * MS1: US10 (View a Big Picture workload visualization).
+ */
+@DisplayName("DS7-3: BigPictureTooltipPayloadFactory")
 class BigPictureTooltipPayloadFactoryTest {
 
     private Assignment makeAssignment(

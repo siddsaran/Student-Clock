@@ -27,7 +27,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@DisplayName("AssignmentListGrouper regression")
+/**
+ * Story DS7, Task 4: Regression tests for known bugs (AssignmentListGrouper).
+ * MS1: US9 (View all open assignments) regression protection.
+ */
+@DisplayName("DS7-4: AssignmentListGrouper regression")
 class AssignmentListGrouperRegressionTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

@@ -9,11 +9,15 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@DisplayName("NavigationRouter")
-class NavigationRouterTest {
+/**
+ * Story DS6, Task 5 (Enforce facade): Unit tests for NavigationFacade.
+ * MS1: US6 (Dashboard), US9 (Assignments view), US10 (Big Picture) navigation.
+ */
+@DisplayName("DS6-5: NavigationFacade")
+class NavigationFacadeTest {
 
-    private NavigationRouter createRouter(List<String> calls) {
-        return new NavigationRouter(
+    private NavigationFacade createFacade(List<String> calls) {
+        return new NavigationFacade(
                 () -> calls.add("dashboard"),
                 () -> calls.add("courses"),
                 () -> calls.add("study"),
@@ -24,9 +28,9 @@ class NavigationRouterTest {
     }
 
     @Test
-    @DisplayName("Constructor throws when dashboard runnable is null")
+    @DisplayName("DS6-5: Constructor throws when dashboard runnable is null")
     void constructorThrowsWhenDashboardRunnableNull() {
-        assertThrows(NullPointerException.class, () -> new NavigationRouter(
+        assertThrows(NullPointerException.class, () -> new NavigationFacade(
                 null,
                 () -> {
                 },
@@ -43,9 +47,9 @@ class NavigationRouterTest {
     }
 
     @Test
-    @DisplayName("Constructor throws when switchToAssignments runnable is null")
+    @DisplayName("DS6-5: Constructor throws when switchToAssignments runnable is null")
     void constructorThrowsWhenSwitchToAssignmentsRunnableNull() {
-        assertThrows(NullPointerException.class, () -> new NavigationRouter(
+        assertThrows(NullPointerException.class, () -> new NavigationFacade(
                 () -> {
                 },
                 () -> {
@@ -62,9 +66,9 @@ class NavigationRouterTest {
     }
 
     @Test
-    @DisplayName("Constructor throws when prepareAssignmentsAll runnable is null")
+    @DisplayName("DS6-5: Constructor throws when prepareAssignmentsAll runnable is null")
     void constructorThrowsWhenPrepareAssignmentsAllRunnableNull() {
-        assertThrows(NullPointerException.class, () -> new NavigationRouter(
+        assertThrows(NullPointerException.class, () -> new NavigationFacade(
                 () -> {
                 },
                 () -> {
@@ -81,9 +85,9 @@ class NavigationRouterTest {
     }
 
     @Test
-    @DisplayName("Constructor throws when prepareAssignmentsOpen runnable is null")
+    @DisplayName("DS6-5: Constructor throws when prepareAssignmentsOpen runnable is null")
     void constructorThrowsWhenPrepareAssignmentsOpenRunnableNull() {
-        assertThrows(NullPointerException.class, () -> new NavigationRouter(
+        assertThrows(NullPointerException.class, () -> new NavigationFacade(
                 () -> {
                 },
                 () -> {
@@ -100,67 +104,67 @@ class NavigationRouterTest {
     }
 
     @Test
-    @DisplayName("toDashboard runs only dashboard navigation")
+    @DisplayName("DS6-5: toDashboard runs only dashboard navigation")
     void toDashboard_runsDashboardRunnable() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toDashboard();
+        facade.toDashboard();
 
         assertEquals(List.of("dashboard"), calls);
     }
 
     @Test
-    @DisplayName("toCourses runs only courses navigation")
+    @DisplayName("DS6-5: toCourses runs only courses navigation")
     void toCourses_runsCoursesRunnable() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toCourses();
+        facade.toCourses();
 
         assertEquals(List.of("courses"), calls);
     }
 
     @Test
-    @DisplayName("toStudyAvailability runs only study availability navigation")
+    @DisplayName("DS6-5: toStudyAvailability runs only study availability navigation")
     void toStudyAvailability_runsStudyAvailabilityRunnable() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toStudyAvailability();
+        facade.toStudyAvailability();
 
         assertEquals(List.of("study"), calls);
     }
 
     @Test
-    @DisplayName("toBigPicture runs only big picture navigation")
+    @DisplayName("DS6-5: toBigPicture runs only big picture navigation")
     void toBigPicture_runsBigPictureRunnable() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toBigPicture();
+        facade.toBigPicture();
 
         assertEquals(List.of("big-picture"), calls);
     }
 
     @Test
-    @DisplayName("toAssignmentsOpen runs prepareOpen before switching to assignments view")
+    @DisplayName("DS6-5: toAssignmentsOpen runs prepareOpen before switching to assignments view")
     void toAssignmentsOpen_runsPrepareOpenBeforeSwitch() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toAssignmentsOpen();
+        facade.toAssignmentsOpen();
 
         assertEquals(List.of("prepare-open", "switch-assignments"), calls);
     }
 
     @Test
-    @DisplayName("toAssignmentsAll runs prepareAll before switching to assignments view")
+    @DisplayName("DS6-5: toAssignmentsAll runs prepareAll before switching to assignments view")
     void toAssignmentsAll_runsPrepareAllBeforeSwitch() {
         List<String> calls = new ArrayList<>();
-        NavigationRouter router = createRouter(calls);
+        NavigationFacade facade = createFacade(calls);
 
-        router.toAssignmentsAll();
+        facade.toAssignmentsAll();
 
         assertEquals(List.of("prepare-all", "switch-assignments"), calls);
     }

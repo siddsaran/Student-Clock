@@ -8,7 +8,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("BigPictureTooltipTextFormatter")
+/**
+ * Story DS7, Task 3: Presenter tests for core user actions (BigPictureTooltipTextFormatter).
+ * MS1: US10 (View a Big Picture workload visualization).
+ */
+@DisplayName("DS7-3: BigPictureTooltipTextFormatter")
 class BigPictureTooltipTextFormatterTest {
 
     @Test
