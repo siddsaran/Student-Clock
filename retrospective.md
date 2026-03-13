@@ -1,4 +1,4 @@
-# MS2 Velocity Retrospective
+# Milestone 2 Velocity Retrospective
 
 *This retrospective calculates I1’s velocity and describes how that is applied to planning (re)planning Iteration 2.*
 
