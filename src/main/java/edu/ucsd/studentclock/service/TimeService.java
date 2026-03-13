@@ -9,9 +9,9 @@ import java.util.Objects;
  */
 public final class TimeService implements ITimeService {
 
-    private Clock clock;            // the active clock (real or mock)
-    private boolean usingMock;      // mode flag
-    private Instant lastInstant;    // monotonic guard (never go backwards)
+    private Clock clock; // the active clock (real or mock)
+    private boolean usingMock; // mode flag
+    private Instant lastInstant; // monotonic guard (never go backwards)
 
     public TimeService() {
         this.clock = Clock.systemDefaultZone();

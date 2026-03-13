@@ -47,8 +47,7 @@ public class AssignmentStatusCalculator {
 
         double expectedDone = Math.min(
                 1.0,
-                (double) elapsed.toMinutes() / total.toMinutes()
-        );
+                (double) elapsed.toMinutes() / total.toMinutes());
 
         return Math.max(0.0, expectedDone - actualDone);
     }

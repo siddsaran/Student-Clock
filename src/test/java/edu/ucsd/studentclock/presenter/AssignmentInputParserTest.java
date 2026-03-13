@@ -8,7 +8,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * DS6-2: Tests that form input is parsed in presenter layer.
- * Original bug: View did Integer.parseInt / Double.parseDouble before calling Presenter.
+ * Original bug: View did Integer.parseInt / Double.parseDouble before calling
+ * Presenter.
  */
 @DisplayName("AssignmentInputParser")
 class AssignmentInputParserTest {
@@ -29,16 +30,16 @@ class AssignmentInputParserTest {
         @Test
         @DisplayName("DS6-2: rejects invalid and throws from presenter layer")
         void invalidThrows() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                    AssignmentInputParser.parseDefaultLateDays("not-a-number"));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> AssignmentInputParser.parseDefaultLateDays("not-a-number"));
             assertTrue(ex.getMessage().contains("valid integer"));
         }
 
         @Test
         @DisplayName("DS6-2: rejects negative")
         void negativeThrows() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                    AssignmentInputParser.parseDefaultLateDays("-1"));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> AssignmentInputParser.parseDefaultLateDays("-1"));
             assertTrue(ex.getMessage().toLowerCase().contains("negative"));
         }
     }
@@ -57,16 +58,16 @@ class AssignmentInputParserTest {
         @Test
         @DisplayName("DS6-2: rejects invalid and throws from presenter layer")
         void invalidThrows() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                    AssignmentInputParser.parseHours("not-a-number"));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> AssignmentInputParser.parseHours("not-a-number"));
             assertTrue(ex.getMessage().contains("valid number"));
         }
 
         @Test
         @DisplayName("DS6-2: rejects negative")
         void negativeThrows() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                    AssignmentInputParser.parseHours("-1.5"));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> AssignmentInputParser.parseHours("-1.5"));
             assertTrue(ex.getMessage().toLowerCase().contains("negative"));
         }
     }

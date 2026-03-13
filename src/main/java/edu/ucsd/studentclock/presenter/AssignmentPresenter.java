@@ -18,7 +18,8 @@ import edu.ucsd.studentclock.view.AssignmentView;
 
 /**
  * Presenter for the Assignment screen.
- * Handles user actions and coordinates between AssignmentView and the assignment repository.
+ * Handles user actions and coordinates between AssignmentView and the
+ * assignment repository.
  */
 public class AssignmentPresenter extends AbstractPresenter<AssignmentView> implements IAssignmentScreenPresenter {
 
@@ -29,20 +30,12 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
     private static final String ASSIGNMENT_NOT_FOUND_PREFIX = "Assignment not found: ";
     private static final String AUTO_SERIES_ID_PREFIX = "series-";
 
-    private Runnable onBack;
-    private Runnable onCourses;
-    private Runnable onStudyAvailability;
-    private Runnable onDashboard;
-    private Runnable onBigPicture;
-
     private String courseFilter = AssignmentView.ALL_COURSES;
     private boolean showOnlyOpen = false;
 
     public AssignmentPresenter(Model model, AssignmentView view) {
         super(model, view);
-
         view.setPresenter(this);
-
         updateView();
     }
 
@@ -65,8 +58,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
                 showOnlyOpen,
                 courseFilter,
                 AssignmentView.ALL_COURSES,
-                model
-        );
+                model);
         view.showGroupedAssignments(groupedAssignments);
 
         Assignment selectedAssignment = model.getSelectedAssignment();
@@ -81,8 +73,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             LocalDateTime start,
             LocalDateTime deadline,
             int lateDays,
-            double estimate
-    ) {
+            double estimate) {
         createAssignment(name, course, start, deadline, lateDays, estimate, null);
     }
 
@@ -93,8 +84,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             LocalDateTime deadline,
             int lateDays,
             double estimate,
-            String seriesId
-    ) {
+            String seriesId) {
         int effectiveLateDays = lateDays;
         String effectiveSeriesId = ValidationUtils.normalizeNullable(seriesId);
 
@@ -145,8 +135,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             String seriesId,
             String seriesName,
             String defaultLateDaysText,
-            List<String> assignmentIds
-    ) {
+            List<String> assignmentIds) {
         String trimmedSeriesId = ValidationUtils.requireNonBlank(seriesId, SERIES_ID_REQUIRED_MESSAGE);
         String trimmedSeriesName = ValidationUtils.requireNonBlank(seriesName, SERIES_NAME_REQUIRED_MESSAGE);
         int defaultLateDays = AssignmentInputParser.parseDefaultLateDays(defaultLateDaysText);
@@ -170,7 +159,8 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
             throw new IllegalArgumentException("Selected assignments must be from the same course");
         }
 
-        model.createSeriesAndLinkAssignments(trimmedSeriesId, courseId, trimmedSeriesName, defaultLateDays, assignmentIds);
+        model.createSeriesAndLinkAssignments(trimmedSeriesId, courseId, trimmedSeriesName, defaultLateDays,
+                assignmentIds);
         updateView();
     }
 
@@ -267,15 +257,13 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
                     deadline,
                     selected.getDefaultLateDays(),
                     estimate,
-                    selected.getId()
-            );
+                    selected.getId());
             return;
         }
 
         String seriesName = ValidationUtils.requireNonBlank(
                 req.getNewSeriesNameText(),
-                "Series name is required when creating a new series"
-        );
+                "Series name is required when creating a new series");
         String seriesId = ValidationUtils.normalizeNullable(req.getNewSeriesIdText());
         if (seriesId == null) {
             seriesId = AUTO_SERIES_ID_PREFIX + UUID.randomUUID();
@@ -284,8 +272,7 @@ public class AssignmentPresenter extends AbstractPresenter<AssignmentView> imple
         int defaultLateDays = AssignmentInputParser.parseOptionalNonNegativeInt(
                 req.getNewSeriesDefaultLateDaysText(),
                 "Enter a valid integer for default late days",
-                "Default late days must be >= 0"
-        );
+                "Default late days must be >= 0");
 
         createSeries(seriesId, course, seriesName, defaultLateDays);
         createAssignment(name, course, start, deadline, defaultLateDays, estimate, seriesId);

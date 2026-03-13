@@ -44,7 +44,8 @@ class ModelTest {
         assignmentRepository = new AssignmentRepository(dataSource);
         workLogRepository = new edu.ucsd.studentclock.repository.WorkLogRepository(dataSource);
         assignmentWorkLogRepository = new edu.ucsd.studentclock.repository.AssignmentWorkLogRepository(dataSource);
-        model = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService());
+        model = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository,
+                assignmentWorkLogRepository, new TimeService());
     }
 
     @AfterEach
@@ -55,6 +56,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course allows it to be retrieved by ID")
     void addCourseAndGetCourseReturnsStoredCourse() {
         Course course = new Course("CSE 110", "Software Engineering");
         model.addCourse(course);
@@ -66,12 +68,14 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Looking up an unknown course ID returns empty")
     void getCourseWithUnknownIdReturnsEmpty() {
         Optional<Course> retrieved = model.getCourse("CSE 999");
         assertTrue(retrieved.isEmpty());
     }
 
     @Test
+    @DisplayName("getAllCourses returns every stored course")
     void getAllCoursesReturnsAllStoredCourses() {
         model.addCourse(new Course("CSE 110", "Software Engineering"));
         model.addCourse(new Course("CSE 101", "Intro to CS"));
@@ -83,36 +87,46 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("getAllCourses returns an empty list when no courses exist")
     void getAllCoursesWhenEmptyReturnsEmptyList() {
         List<Course> allCourses = model.getAllCourses();
         assertTrue(allCourses.isEmpty());
     }
 
     @Test
+    @DisplayName("Model constructor throws when course repository is null")
     void modelWithNullCourseRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(null, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(null, assignmentRepository, seriesRepository,
+                saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
+    @DisplayName("Model constructor throws when series repository is null")
     void modelWithNullSeriesRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, null, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, null, saRepository,
+                workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
+    @DisplayName("Model constructor throws when assignment repository is null")
     void modelWithNullRepositoryThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, null, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService()));
+        assertThrows(NullPointerException.class, () -> new Model(repository, null, seriesRepository, saRepository,
+                workLogRepository, assignmentWorkLogRepository, new TimeService()));
     }
 
     @Test
+    @DisplayName("Model constructor throws when time service is null")
     void modelWithNullTimeServiceThrows() {
-        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, null));
+        assertThrows(NullPointerException.class, () -> new Model(repository, assignmentRepository, seriesRepository,
+                saRepository, workLogRepository, assignmentWorkLogRepository, null));
     }
 
     @Test
     @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - createAssignment delegates to repository")
     void createAssignmentDelegatesToRepository() {
         model.addCourse("CSE 110", "Software Engineering");
-        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
 
         List<Assignment> assignments = model.getAllAssignments();
         assertEquals(1, assignments.size());
@@ -125,7 +139,8 @@ class ModelTest {
     @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - deleteAssignment delegates to repository")
     void deleteAssignmentDelegatesToRepository() {
         model.addCourse("CSE 110", "Software Engineering");
-        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
 
         List<Assignment> assignments = model.getAllAssignments();
         assertEquals(1, assignments.size());
@@ -139,7 +154,8 @@ class ModelTest {
     @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - markDone delegates to repository")
     void markDoneDelegatesToRepository() {
         model.addCourse("CSE 110", "Software Engineering");
-        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
 
         Assignment assignment = model.getAllAssignments().get(0);
         assertFalse(assignment.isDone());
@@ -154,7 +170,8 @@ class ModelTest {
     @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - clockIn and clockOut delegate to work session service")
     void clockInAndOutDelegatesToService() {
         model.addCourse("CSE 110", "Software Engineering");
-        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
 
         Assignment assignment = model.getAllAssignments().get(0);
 
@@ -171,7 +188,8 @@ class ModelTest {
     @org.junit.jupiter.api.DisplayName("DS6-3: Refactor presenters to mediate correctly - applyManualHours delegates to service")
     void applyManualHoursDelegatesToService() {
         model.addCourse("CSE 110", "Software Engineering");
-        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0), LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
+        model.createAssignment("PA1", "CSE 110", null, LocalDateTime.of(2026, 2, 1, 9, 0),
+                LocalDateTime.of(2026, 2, 5, 23, 59), 0, 5.0);
 
         Assignment assignment = model.getAllAssignments().get(0);
         assertEquals(0.0, assignment.getCumulativeHours());
@@ -183,6 +201,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course with valid ID and name stores trimmed values correctly")
     void addCourseWithValidIdAndNameStoresAndRetrieves() {
         model.addCourse("CSE 110", "Software Engineering");
 
@@ -193,6 +212,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course trims surrounding whitespace from ID and name")
     void addCourseWithTrimmedInputStoresTrimmedValues() {
         model.addCourse("  CSE 110  ", "  Software Engineering  ");
 
@@ -203,16 +223,19 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course with null ID throws IllegalArgumentException")
     void addCourseWithNullIdThrows() {
         assertThrows(IllegalArgumentException.class, () -> model.addCourse(null, "Name"));
     }
 
     @Test
+    @DisplayName("Adding a course with null name throws IllegalArgumentException")
     void addCourseWithNullNameThrows() {
         assertThrows(IllegalArgumentException.class, () -> model.addCourse("CSE 110", null));
     }
 
     @Test
+    @DisplayName("Adding a course with blank ID throws an exception mentioning id")
     void addCourseWithBlankIdThrows() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> model.addCourse("", "Software Engineering"));
@@ -220,6 +243,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course with whitespace-only ID throws an exception mentioning id")
     void addCourseWithWhitespaceOnlyIdThrows() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> model.addCourse("   ", "Software Engineering"));
@@ -227,6 +251,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course with blank name throws an exception mentioning name")
     void addCourseWithBlankNameThrows() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> model.addCourse("CSE 110", ""));
@@ -234,6 +259,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding a course with whitespace-only name throws an exception mentioning name")
     void addCourseWithWhitespaceOnlyNameThrows() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> model.addCourse("CSE 110", "   "));
@@ -241,6 +267,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Deleting a course also deletes its assignments")
     void deleteCourseDeletesAssignmentsForThatCourse() {
         model.addCourse("CSE 110", "Software Engineering");
 
@@ -270,6 +297,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Creating a series links only the selected assignments and applies default late days")
     void createSeriesAndLinkAssignmentsCreatesSeriesAndLinksSelectedAssignments() {
         model.addCourse("CSE 110", "Software Engineering");
 
@@ -293,7 +321,8 @@ class ModelTest {
         assignmentRepository.addAssignment(a2);
 
         Series series = new Series("pa-series", "CSE 110", "PAs", 2);
-        model.createSeriesAndLinkAssignments(series.getId(), series.getCourseId(), series.getName(), series.getDefaultLateDays(), List.of(a1.getId()));
+        model.createSeriesAndLinkAssignments(series.getId(), series.getCourseId(), series.getName(),
+                series.getDefaultLateDays(), List.of(a1.getId()));
 
         Optional<Series> storedSeries = model.getSeries("pa-series");
         assertTrue(storedSeries.isPresent());
@@ -312,6 +341,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("getSeriesByCourse returns only series belonging to that course")
     void getSeriesByCourseReturnsSeriesForThatCourse() {
         model.addCourse("CSE 110", "Software Engineering");
         model.addCourse("CSE 101", "Other");
@@ -329,6 +359,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Adding an assignment with a series ID stores the series link and default late days")
     void addSeriesThenAddAssignmentWithSeriesIdAndDefaultLateDaysStoresCorrectly() {
         model.addCourse("CSE 110", "Software Engineering");
         Series series = new Series("pa-series", "CSE 110", "PAs", 2);
@@ -354,6 +385,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Deleting a course is a no-op for null or blank IDs")
     void deleteCourseNoOpsOnNullOrBlank() {
         model.addCourse("CSE 110", "Software Engineering");
         model.deleteCourse(null);
@@ -364,6 +396,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Selected assignment can be set and retrieved")
     void selectedAssignmentRoundTrips() {
         Assignment a = new AssignmentBuilder()
                 .setName("PA1")
@@ -380,6 +413,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Setting total weekly hours persists study availability to the repository")
     void setTotalWeeklyHoursPersistsToRepository() {
         model.setTotalWeeklyHours(12);
         StudyAvailability loaded = saRepository.load().orElseThrow();
@@ -387,6 +421,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Setting availability and daily limit persists both values to the repository")
     void setAvailableAndDailyLimitPersistToRepository() {
         model.setTotalWeeklyHours(10);
 
@@ -400,6 +435,7 @@ class ModelTest {
     }
 
     @Test
+    @DisplayName("Model constructor loads existing study availability from the repository")
     void modelConstructorLoadsExistingAvailabilityWhenPresent() throws SQLException {
         StudyAvailability preset = new StudyAvailability();
         preset.setTotalWeeklyHours(7);
@@ -407,7 +443,8 @@ class ModelTest {
         preset.setDailyLimit(DayOfWeek.WEDNESDAY, 2);
         saRepository.save(preset);
 
-        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository, assignmentWorkLogRepository, new TimeService());
+        Model reloaded = new Model(repository, assignmentRepository, seriesRepository, saRepository, workLogRepository,
+                assignmentWorkLogRepository, new TimeService());
         StudyAvailability a = reloaded.getStudyAvailability();
         assertEquals(7, a.getTotalWeeklyHours());
         assertTrue(a.isAvailable(DayOfWeek.WEDNESDAY));

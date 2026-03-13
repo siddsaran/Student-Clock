@@ -12,7 +12,8 @@ import edu.ucsd.studentclock.model.AssignmentStatusCalculator;
 
 public final class AssignmentFilters {
 
-    private AssignmentFilters() {}
+    private AssignmentFilters() {
+    }
 
     public static List<Assignment> openAssignments(List<Assignment> assignments) {
         return assignments.stream()
@@ -24,8 +25,7 @@ public final class AssignmentFilters {
     public static List<Assignment> filterByCourse(
             List<Assignment> assignments,
             String courseFilter,
-            String allCoursesLabel
-    ) {
+            String allCoursesLabel) {
         if (courseFilter == null || courseFilter.isBlank() || allCoursesLabel.equals(courseFilter)) {
             return List.copyOf(assignments);
         }

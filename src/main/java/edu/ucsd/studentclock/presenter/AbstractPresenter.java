@@ -4,7 +4,6 @@ import edu.ucsd.studentclock.model.Model;
 import javafx.scene.Scene;
 import javafx.scene.layout.Region;
 
-
 public abstract class AbstractPresenter<V extends Region> {
     protected Model model;
     protected V view;
@@ -17,7 +16,7 @@ public abstract class AbstractPresenter<V extends Region> {
         if (view == null) {
             throw new NullPointerException("view must not be null");
         }
-        
+
         this.model = model;
         this.view = view;
         this.scene = new Scene(view, 1200, 800);
@@ -31,7 +30,8 @@ public abstract class AbstractPresenter<V extends Region> {
      * Runs the given runnable if non-null. Use for optional navigation callbacks.
      */
     protected static void runIfSet(Runnable r) {
-        if (r != null) r.run();
+        if (r != null)
+            r.run();
     }
 
     public Scene getScene() {
@@ -43,4 +43,3 @@ public abstract class AbstractPresenter<V extends Region> {
         return view;
     }
 }
-

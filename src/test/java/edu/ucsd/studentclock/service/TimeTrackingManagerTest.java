@@ -2,12 +2,14 @@ package edu.ucsd.studentclock.service;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentBuilder;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("TimeTrackingManager")
 class TimeTrackingManagerTest {
 
     private static Assignment makeAssignment(double estimatedHours) {
@@ -31,6 +33,7 @@ class TimeTrackingManagerTest {
     }
 
     @Test
+    @DisplayName("clockIn throws NullPointerException when assignment is null")
     void clockInWithNullThrows() {
         TimeService timeService = new TimeService();
         initMockTime(timeService);
@@ -41,6 +44,7 @@ class TimeTrackingManagerTest {
     }
 
     @Test
+    @DisplayName("clockIn throws IllegalStateException when assignment is already marked done")
     void clockInOnDoneAssignmentThrows() {
         TimeService timeService = new TimeService();
         initMockTime(timeService);
@@ -54,6 +58,7 @@ class TimeTrackingManagerTest {
     }
 
     @Test
+    @DisplayName("clockOut throws IllegalStateException when no active session exists")
     void clockOutWhenNotClockedInThrows() {
         TimeService timeService = new TimeService();
         initMockTime(timeService);
@@ -64,6 +69,7 @@ class TimeTrackingManagerTest {
     }
 
     @Test
+    @DisplayName("clockIn followed by clockOut updates cumulative and remaining hours")
     void clockInThenClockOut_updatesCumulativeAndRemaining() {
         TimeService timeService = new TimeService();
         LocalDateTime base = initMockTime(timeService);
@@ -102,6 +108,7 @@ class TimeTrackingManagerTest {
     }
 
     @Test
+    @DisplayName("clockIn throws when another assignment is already being tracked")
     void cannotClockInTwiceWithoutClockOut() {
         TimeService timeService = new TimeService();
         initMockTime(timeService);
@@ -113,13 +120,13 @@ class TimeTrackingManagerTest {
 
         manager.clockIn(a1);
 
-        IllegalStateException e =
-                assertThrows(IllegalStateException.class, () -> manager.clockIn(a2));
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> manager.clockIn(a2));
 
         assertTrue(e.getMessage().toLowerCase().contains("already"));
     }
 
     @Test
+    @DisplayName("Assignment is not automatically marked done when remaining hours reach zero")
     void assignmentNotDoneAutomaticallyWhenRemainingHitsZero() {
         TimeService timeService = new TimeService();
         LocalDateTime base = initMockTime(timeService);
@@ -140,7 +147,6 @@ class TimeTrackingManagerTest {
         assertEquals(0.0, a.getRemainingHours());
         assertEquals(a.getRemainingHours(), result.getRemainingHours());
 
-        // Manager does not auto-mark done (your current behavior)
         assertFalse(a.isDone());
         assertFalse(result.isDone());
     }

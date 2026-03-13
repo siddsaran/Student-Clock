@@ -16,8 +16,7 @@ public final class BigPictureTooltipPayloadFactory {
                         a.getEstimatedHours(),
                         a.getCumulativeHours(),
                         a.getRemainingHours(),
-                        a.isDone()
-                ))
+                        a.isDone()))
                 .collect(Collectors.toList());
 
         return new BigPictureTooltipPayload(items);

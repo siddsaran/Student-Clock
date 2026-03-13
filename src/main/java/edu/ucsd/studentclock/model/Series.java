@@ -4,7 +4,8 @@ import java.util.Objects;
 
 /**
  * A named group of related assignments under a course (e.g. "Midterm", "PAs").
- * Assignments reference a series by seriesId; Series does not hold the list of assignments.
+ * Assignments reference a series by seriesId; Series does not hold the list of
+ * assignments.
  */
 public final class Series {
 

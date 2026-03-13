@@ -1,6 +1,7 @@
 package edu.ucsd.studentclock.model;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
@@ -17,6 +18,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Default constructor initializes zero weekly hours with no available days")
     void defaultConstructorInitializesToZeroAndNoAvailability() {
         assertEquals(0, availability.getTotalWeeklyHours());
         for (DayOfWeek d : DayOfWeek.values()) {
@@ -29,6 +31,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Setting total weekly hours stores the value and updates unallocated hours")
     void setTotalWeeklyHoursStoresValue() {
         availability.setTotalWeeklyHours(8);
         assertEquals(8, availability.getTotalWeeklyHours());
@@ -37,11 +40,13 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Setting negative total weekly hours throws IllegalArgumentException")
     void setTotalWeeklyHoursNegativeThrows() {
         assertThrows(IllegalArgumentException.class, () -> availability.setTotalWeeklyHours(-1));
     }
 
     @Test
+    @DisplayName("Marking a day available sets availability without changing its daily limit")
     void setAvailableTrueMarksDayAvailable() {
         availability.setAvailable(DayOfWeek.MONDAY, true);
         assertTrue(availability.isAvailable(DayOfWeek.MONDAY));
@@ -49,6 +54,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Marking a day unavailable clears its daily limit")
     void setAvailableFalseClearsDailyLimit() {
         availability.setAvailable(DayOfWeek.MONDAY, true);
         availability.setDailyLimit(DayOfWeek.MONDAY, 3);
@@ -60,6 +66,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Setting a daily limit on an available day stores the limit")
     void setDailyLimitOnAvailableDayStoresHours() {
         availability.setAvailable(DayOfWeek.TUESDAY, true);
         availability.setDailyLimit(DayOfWeek.TUESDAY, 2);
@@ -67,6 +74,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Setting a negative daily limit throws IllegalArgumentException")
     void setDailyLimitNegativeThrows() {
         availability.setAvailable(DayOfWeek.WEDNESDAY, true);
         assertThrows(IllegalArgumentException.class,
@@ -74,6 +82,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Setting a positive daily limit on an unavailable day throws IllegalStateException")
     void setDailyLimitOnUnavailableDayWithPositiveHoursThrows() {
         assertFalse(availability.isAvailable(DayOfWeek.THURSDAY));
         assertThrows(IllegalStateException.class,
@@ -81,6 +90,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Total allocated hours sums limits across available days")
     void totalAllocatedHoursSumsAcrossDays() {
         availability.setTotalWeeklyHours(10);
 
@@ -96,6 +106,7 @@ class StudyAvailabilityTest {
     }
 
     @Test
+    @DisplayName("Validation returns an error when allocated hours exceed total weekly hours")
     void validateReturnsErrorWhenAllocatedExceedsWeekly() {
         availability.setTotalWeeklyHours(5);
 
@@ -109,24 +120,25 @@ class StudyAvailabilityTest {
         assertNotNull(availability.validate());
         assertEquals("Allocated hours exceed total weekly hours.", availability.validate());
     }
-    
+
     @Test
+    @DisplayName("Remaining weekly hours is zero when consumed hours equal total hours")
     void remainingHoursForWeek_consumedEqualsTotal_returnsZero() {
         availability.setTotalWeeklyHours(5);
         assertEquals(0, availability.getRemainingHoursForWeek(5));
     }
 
     @Test
+    @DisplayName("Remaining weekly hours is zero when consumed hours exceed total hours")
     void remainingHoursForWeek_consumedExceedsTotal_returnsZero() {
         availability.setTotalWeeklyHours(5);
         assertEquals(0, availability.getRemainingHoursForWeek(7));
     }
 
     @Test
+    @DisplayName("Remaining weekly hours returns the difference when consumed is below total")
     void remainingHoursForWeek_consumedLessThanTotal_returnsRemaining() {
         availability.setTotalWeeklyHours(5);
         assertEquals(2, availability.getRemainingHoursForWeek(3));
     }
-
-
 }

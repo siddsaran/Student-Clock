@@ -10,15 +10,15 @@ final class AssignmentInputParser {
 
     private static final String DEFAULT_ZERO = "0";
 
-    private AssignmentInputParser() {}
+    private AssignmentInputParser() {
+    }
 
     static int parseDefaultLateDays(String text) {
         return parseNonNegativeIntOrDefault(
                 text,
                 DEFAULT_ZERO,
                 "Default late days cannot be negative",
-                "Default late days must be a valid integer"
-        );
+                "Default late days must be a valid integer");
     }
 
     static int parseOptionalNonNegativeInt(String text, String invalidMessage, String negativeMessage) {
@@ -33,16 +33,14 @@ final class AssignmentInputParser {
         return parseNonNegativeDouble(
                 text,
                 "Enter a valid number for estimated hours",
-                "Estimated hours must be >= 0"
-        );
+                "Estimated hours must be >= 0");
     }
 
     private static int parseNonNegativeIntOrDefault(
             String text,
             String defaultValue,
             String negativeMessage,
-            String invalidMessage
-    ) {
+            String invalidMessage) {
         try {
             String normalized = normalizeOrDefault(text, defaultValue);
             int value = Integer.parseInt(normalized);

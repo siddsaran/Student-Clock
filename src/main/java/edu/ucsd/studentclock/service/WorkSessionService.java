@@ -23,8 +23,7 @@ public class WorkSessionService {
             ITimeService timeService,
             WorkLogRepository workLogRepository,
             AssignmentWorkLogRepository assignmentWorkLogRepository,
-            IAssignmentRepository assignmentRepository
-    ) {
+            IAssignmentRepository assignmentRepository) {
         if (timeService == null) {
             throw new NullPointerException("timeService must not be null");
         }
@@ -43,8 +42,7 @@ public class WorkSessionService {
         this.recorder = new WorkSessionRecorder(
                 workLogRepository,
                 assignmentWorkLogRepository,
-                assignmentRepository
-        );
+                assignmentRepository);
     }
 
     public void clockIn(Assignment assignment) {

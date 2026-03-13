@@ -13,8 +13,10 @@ import edu.ucsd.studentclock.model.Assignment;
  * Builds chart data points for a single course line in the Big Picture chart.
  *
  * Line changes only on: (1) assignment start → vertical jump up,
- * (2) work logged → diagonal down, (3) assignment marked finished → vertical drop to zero.
- * Series: next starts day after previous deadline; previous can overlap (late period),
+ * (2) work logged → diagonal down, (3) assignment marked finished → vertical
+ * drop to zero.
+ * Series: next starts day after previous deadline; previous can overlap (late
+ * period),
  * so remaining hours carry over and stack when new assignment is added.
  */
 final class BigPictureCourseLineBuilder {
@@ -31,42 +33,51 @@ final class BigPictureCourseLineBuilder {
         }
     }
 
-    private BigPictureCourseLineBuilder() {}
+    private BigPictureCourseLineBuilder() {
+    }
 
     /**
-     * Builds event-driven points for one course. Processes by day: start-of-day total,
+     * Builds event-driven points for one course. Processes by day: start-of-day
+     * total,
      * then starts (vertical jump up), then ends (vertical drop to zero), then
-     * end-of-day total. When both end and start same day, collapses to avoid drop-to-zero.
+     * end-of-day total. When both end and start same day, collapses to avoid
+     * drop-to-zero.
      */
     static List<ChartPoint> build(
             List<Assignment> courseAssignments,
             Map<Assignment, LocalDate[]> effectiveRanges,
             Function<LocalDate, Map<String, Double>> cumulativeByEndOfDay,
             LocalDate chartStart,
-            LocalDate chartEnd
-    ) {
+            LocalDate chartEnd) {
         List<ChartPoint> points = new ArrayList<>();
 
         LocalDate firstDay = null;
         LocalDate lastDay = null;
         for (Assignment a : courseAssignments) {
             LocalDate[] r = effectiveRanges.get(a);
-            if (r == null) continue;
-            if (firstDay == null || r[0].isBefore(firstDay)) firstDay = r[0];
-            if (lastDay == null || r[1].isAfter(lastDay)) lastDay = r[1];
+            if (r == null)
+                continue;
+            if (firstDay == null || r[0].isBefore(firstDay))
+                firstDay = r[0];
+            if (lastDay == null || r[1].isAfter(lastDay))
+                lastDay = r[1];
         }
-        if (firstDay == null || lastDay == null) return points;
+        if (firstDay == null || lastDay == null)
+            return points;
 
         long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
-        if (totalDays < 0) return points;
+        if (totalDays < 0)
+            return points;
 
         double courseTotal = 0.0;
         Map<String, Double> prevCumulative = Map.of();
 
         for (long d = 0; d <= totalDays; d++) {
             LocalDate day = chartStart.plusDays(d);
-            if (day.isBefore(firstDay)) continue;
-            if (day.isAfter(lastDay)) break;
+            if (day.isBefore(firstDay))
+                continue;
+            if (day.isAfter(lastDay))
+                break;
             String label = String.format("%02d/%02d", day.getMonthValue(), day.getDayOfMonth());
             Map<String, Double> cumulative = cumulativeByEndOfDay.apply(day);
 
@@ -76,9 +87,12 @@ final class BigPictureCourseLineBuilder {
 
             for (Assignment a : courseAssignments) {
                 LocalDate[] r = effectiveRanges.get(a);
-                if (r[0].equals(day)) startsToday.add(a);
-                if (r[1].equals(day)) endsToday.add(a);
-                if (!day.isBefore(r[0]) && !day.isAfter(r[1])) activeOnDay.add(a);
+                if (r[0].equals(day))
+                    startsToday.add(a);
+                if (r[1].equals(day))
+                    endsToday.add(a);
+                if (!day.isBefore(r[0]) && !day.isAfter(r[1]))
+                    activeOnDay.add(a);
             }
 
             double startOfDayRemaining = 0.0;
@@ -106,8 +120,10 @@ final class BigPictureCourseLineBuilder {
             }
 
             if (!endsToday.isEmpty() && !startsToday.isEmpty()) {
-                for (Assignment a : endsToday) courseTotal -= remainingAt(a, prevCumulative);
-                for (Assignment a : startsToday) courseTotal += a.getEstimatedHours();
+                for (Assignment a : endsToday)
+                    courseTotal -= remainingAt(a, prevCumulative);
+                for (Assignment a : startsToday)
+                    courseTotal += a.getEstimatedHours();
                 addPoint(points, label, courseTotal, activeOnDay);
             } else {
                 for (Assignment a : endsToday) {
@@ -143,7 +159,7 @@ final class BigPictureCourseLineBuilder {
     }
 
     private static void addPoint(List<ChartPoint> points, String label, double y,
-                                 List<Assignment> active) {
+            List<Assignment> active) {
         points.add(new ChartPoint(label, y, new ArrayList<>(active)));
     }
 }

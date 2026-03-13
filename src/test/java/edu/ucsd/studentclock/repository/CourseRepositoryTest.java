@@ -3,6 +3,7 @@ package edu.ucsd.studentclock.repository;
 import edu.ucsd.studentclock.model.Course;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("CourseRepository")
 class CourseRepositoryTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";
@@ -34,6 +36,7 @@ class CourseRepositoryTest {
     }
 
     @Test
+    @DisplayName("addCourse and getCourse store and retrieve a course by ID")
     void addCourseAndGetCourseReturnsStoredCourse() {
         Course course = new Course("CSE 110", "Software Engineering");
         repository.addCourse(course);
@@ -45,18 +48,21 @@ class CourseRepositoryTest {
     }
 
     @Test
+    @DisplayName("getCourse returns empty for an unknown ID")
     void getCourseWithUnknownIdReturnsEmpty() {
         Optional<Course> retrieved = repository.getCourse("CSE 999");
         assertTrue(retrieved.isEmpty());
     }
 
     @Test
+    @DisplayName("getCourse returns empty when ID is null")
     void getCourseWithNullIdReturnsEmpty() {
         Optional<Course> retrieved = repository.getCourse(null);
         assertTrue(retrieved.isEmpty());
     }
 
     @Test
+    @DisplayName("getAllCourses returns all stored courses")
     void getAllCoursesReturnsAllStoredCourses() {
         Course course1 = new Course("CSE 110", "Software Engineering");
         Course course2 = new Course("CSE 101", "Intro to CS");
@@ -70,12 +76,14 @@ class CourseRepositoryTest {
     }
 
     @Test
+    @DisplayName("getAllCourses returns an empty list when no courses exist")
     void getAllCoursesWhenEmptyReturnsEmptyList() {
         List<Course> allCourses = repository.getAllCourses();
         assertTrue(allCourses.isEmpty());
     }
 
     @Test
+    @DisplayName("addCourse replaces an existing course when the same ID is used")
     void addCourseWithSameIdReplacesExisting() {
         repository.addCourse(new Course("CSE 110", "Software Engineering"));
         repository.addCourse(new Course("CSE 110", "Different Name"));
@@ -86,14 +94,17 @@ class CourseRepositoryTest {
     }
 
     @Test
+    @DisplayName("addCourse throws NullPointerException when course is null")
     void addCourseWithNullThrows() {
         assertThrows(NullPointerException.class, () -> repository.addCourse(null));
     }
 
     @Test
+    @DisplayName("getAllCourses returns an unmodifiable list")
     void getAllCoursesReturnsUnmodifiableList() {
         repository.addCourse(new Course("CSE 110", "Software Engineering"));
         List<Course> allCourses = repository.getAllCourses();
-        assertThrows(UnsupportedOperationException.class, () -> allCourses.add(new Course("X", "Y")));
+        assertThrows(UnsupportedOperationException.class,
+                () -> allCourses.add(new Course("X", "Y")));
     }
 }

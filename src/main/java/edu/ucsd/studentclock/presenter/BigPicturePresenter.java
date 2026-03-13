@@ -20,7 +20,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
 
-public class BigPicturePresenter extends AbstractPresenter<BigPictureView> implements IBigPictureScreenPresenter {
+public class BigPicturePresenter extends AbstractPresenter<BigPictureView> {
 
     private final CourseColors courseColors = new CourseColors();
 
@@ -38,8 +38,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
     private static XYChart.Data<String, Number> createDataPoint(
             String label,
             double y,
-            List<Assignment> activeAssignments
-    ) {
+            List<Assignment> activeAssignments) {
         XYChart.Data<String, Number> point = new XYChart.Data<>(label, y);
         point.setExtraValue(activeAssignments);
         return point;
@@ -54,8 +53,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
             return;
         }
 
-        Map<Assignment, LocalDate[]> effectiveRanges =
-                BigPictureEffectiveRanges.computeEffectiveRanges(assignments);
+        Map<Assignment, LocalDate[]> effectiveRanges = BigPictureEffectiveRanges.computeEffectiveRanges(assignments);
 
         LocalDate chartStart = effectiveRanges.values().stream()
                 .map(range -> range[0])
@@ -91,8 +89,7 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                     effectiveRanges,
                     model::getCumulativeHoursByEndOf,
                     chartStart,
-                    chartEnd
-            );
+                    chartEnd);
 
             double yNudge = courseIndex * courseNudge;
             double courseMax = 0.0;
@@ -124,14 +121,12 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
         installDataPointTooltips(courseSeriesList);
     }
 
-
     private double buildBurndownSeries(
             List<Assignment> assignments,
             LocalDate chartStart,
             LocalDate chartEnd,
             double maxWorkSoFar,
-            XYChart.Series<String, Number> burndownSeries
-    ) {
+            XYChart.Series<String, Number> burndownSeries) {
         long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
         double totalWorkAtStart = assignments.stream()
                 .mapToDouble(Assignment::getEstimatedHours)
@@ -170,13 +165,13 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
 
     private void applySeriesStyles(
             XYChart.Series<String, Number> burndownSeries,
-            List<XYChart.Series<String, Number>> courseSeriesList
-    ) {
+            List<XYChart.Series<String, Number>> courseSeriesList) {
         if (burndownSeries.getNode() != null) {
             burndownSeries.getNode().setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
         }
         burndownSeries.nodeProperty().addListener((obs, o, n) -> {
-            if (n != null) n.setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
+            if (n != null)
+                n.setStyle("-fx-stroke-width: 2; -fx-stroke-dash-array: 6 6;");
         });
 
         for (XYChart.Series<String, Number> series : courseSeriesList) {
@@ -186,7 +181,8 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
                 series.getNode().setStyle(style);
             }
             series.nodeProperty().addListener((obs, o, n) -> {
-                if (n != null) n.setStyle(style);
+                if (n != null)
+                    n.setStyle(style);
             });
         }
     }
@@ -195,48 +191,48 @@ public class BigPicturePresenter extends AbstractPresenter<BigPictureView> imple
         Platform.runLater(() -> {
             for (XYChart.Series<String, Number> series : courseSeriesList) {
                 for (XYChart.Data<String, Number> point : series.getData()) {
-                if (point.getNode() == null) {
-                    continue;
-                }
-
-                @SuppressWarnings("unchecked")
-                List<Assignment> matches = (List<Assignment>) point.getExtraValue();
-
-                if (matches == null || matches.isEmpty()) {
-                    continue;
-                }
-
-                StringBuilder tooltipText = new StringBuilder();
-                for (Assignment assignment : matches) {
-                    tooltipText.append(assignment.getName())
-                            .append(" (").append(assignment.getCourseId()).append(")\n")
-                            .append("Due: ").append(assignment.getDeadline().toLocalDate()).append("\n")
-                            .append("Estimated: ")
-                            .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getEstimatedHours()))
-                            .append("\n")
-                            .append("Completed: ")
-                            .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getCumulativeHours()))
-                            .append("\n")
-                            .append("Remaining: ")
-                            .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getRemainingHours()))
-                            .append("\n");
-
-                    if (assignment.isDone()) {
-                        tooltipText.append("Status: DONE\n");
+                    if (point.getNode() == null) {
+                        continue;
                     }
-                    tooltipText.append("\n");
-                }
 
-                Tooltip tooltip = new Tooltip(tooltipText.toString().trim());
-                tooltip.setShowDelay(Duration.ZERO);
-                tooltip.setHideDelay(Duration.ZERO);
-                tooltip.setShowDuration(Duration.seconds(60));
+                    @SuppressWarnings("unchecked")
+                    List<Assignment> matches = (List<Assignment>) point.getExtraValue();
 
-                point.getNode().setPickOnBounds(true);
-                point.getNode().setMouseTransparent(false);
-                point.getNode().setStyle("-fx-cursor: hand;");
+                    if (matches == null || matches.isEmpty()) {
+                        continue;
+                    }
 
-                Tooltip.install(point.getNode(), tooltip);
+                    StringBuilder tooltipText = new StringBuilder();
+                    for (Assignment assignment : matches) {
+                        tooltipText.append(assignment.getName())
+                                .append(" (").append(assignment.getCourseId()).append(")\n")
+                                .append("Due: ").append(assignment.getDeadline().toLocalDate()).append("\n")
+                                .append("Estimated: ")
+                                .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getEstimatedHours()))
+                                .append("\n")
+                                .append("Completed: ")
+                                .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getCumulativeHours()))
+                                .append("\n")
+                                .append("Remaining: ")
+                                .append(TimeFormatUtils.formatHoursAsHHMM(assignment.getRemainingHours()))
+                                .append("\n");
+
+                        if (assignment.isDone()) {
+                            tooltipText.append("Status: DONE\n");
+                        }
+                        tooltipText.append("\n");
+                    }
+
+                    Tooltip tooltip = new Tooltip(tooltipText.toString().trim());
+                    tooltip.setShowDelay(Duration.ZERO);
+                    tooltip.setHideDelay(Duration.ZERO);
+                    tooltip.setShowDuration(Duration.seconds(60));
+
+                    point.getNode().setPickOnBounds(true);
+                    point.getNode().setMouseTransparent(false);
+                    point.getNode().setStyle("-fx-cursor: hand;");
+
+                    Tooltip.install(point.getNode(), tooltip);
                 }
             }
         });

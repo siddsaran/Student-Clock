@@ -7,7 +7,6 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,8 +19,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
     private final ITimeService timeService;
 
-    private final DateTimeFormatter clockFmt =
-            DateTimeFormatter.ofPattern("MMMM d, yyyy — h:mm a");
+    private final DateTimeFormatter clockFmt = DateTimeFormatter.ofPattern("MMMM d, yyyy — h:mm a");
 
     private final Timeline ticker;
 
@@ -79,8 +77,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
         double workNext7Days = computeRemainingWorkNext7Days(
                 AssignmentFilters.openAssignments(model.getAllAssignments()),
-                now
-        );
+                now);
         AssignmentStatus overallStatus = statusFrom(workNext7Days, remainingStudyHours);
         view.setStudyStatus(overallStatus);
 
@@ -126,30 +123,6 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
         return sum;
     }
 
-    private int computeWeeklyHoursLeftFromToday(StudyAvailability sa, LocalDateTime now) {
-        int weekly = sa.getTotalWeeklyHours();
-        if (weekly <= 0) return 0;
-
-        int availableDaysInWeek = 0;
-        for (DayOfWeek d : DayOfWeek.values()) {
-            if (sa.isAvailable(d)) availableDaysInWeek++;
-        }
-        if (availableDaysInWeek == 0) return 0;
-
-        int perAvailableDay = weekly / availableDaysInWeek;
-
-        DayOfWeek today = now.getDayOfWeek();
-
-        int remainingAvailableDays = 0;
-        for (DayOfWeek d : DayOfWeek.values()) {
-            if (d.getValue() >= today.getValue() && sa.isAvailable(d)) {
-                remainingAvailableDays++;
-            }
-        }
-
-        return perAvailableDay * remainingAvailableDays;
-    }
-
     private AssignmentStatus statusFrom(double work, int available) {
         if (available <= 0) {
             return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
@@ -157,9 +130,12 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
         double ratio = work / (double) available;
 
-        if (ratio >= 1.0) return AssignmentStatus.RED;
-        if (ratio >= 0.80) return AssignmentStatus.ORANGE;
-        if (ratio >= 0.60) return AssignmentStatus.YELLOW;
+        if (ratio >= 1.0)
+            return AssignmentStatus.RED;
+        if (ratio >= 0.80)
+            return AssignmentStatus.ORANGE;
+        if (ratio >= 0.60)
+            return AssignmentStatus.YELLOW;
         return AssignmentStatus.GREEN;
     }
 

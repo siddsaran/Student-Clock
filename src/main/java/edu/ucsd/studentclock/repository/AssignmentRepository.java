@@ -136,20 +136,6 @@ public class AssignmentRepository implements IAssignmentRepository {
             statement.setString(1, trimmedCourseId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    String id = resultSet.getString("id");
-                    String name = resultSet.getString("name");
-                    String cid = resultSet.getString("courseID");
-                    LocalDateTime start =
-                            LocalDateTime.parse(resultSet.getString("start"));
-                    LocalDateTime deadline =
-                            LocalDateTime.parse(resultSet.getString("deadline"));
-                    int lateDays = resultSet.getInt("lateDaysAllowed");
-                    
-                    // for testing purposes
-                    double estimatedHours = 0.0;
-                    double remainingHours = 0.0;
-                    boolean done = false;
-
                     assignmentList.add(mapRow(resultSet));
                 }
             }
@@ -200,18 +186,6 @@ public class AssignmentRepository implements IAssignmentRepository {
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(SELECT_ALL_SQL)) {
             while (resultSet.next()) {
-                String id = resultSet.getString("id");
-                String name = resultSet.getString("name");
-                String cid = resultSet.getString("courseID");
-                LocalDateTime start = LocalDateTime.parse(resultSet.getString("start"));
-                LocalDateTime deadline = LocalDateTime.parse(resultSet.getString("deadline"));
-                int lateDays = resultSet.getInt("lateDaysAllowed");
-
-                // for testing purposes
-                double estimatedHours = 0.0;
-                double remainingHours = 0.0;
-                boolean done = false;
-
                 assignmentList.add(mapRow(resultSet));
             }
             return List.copyOf(assignmentList);

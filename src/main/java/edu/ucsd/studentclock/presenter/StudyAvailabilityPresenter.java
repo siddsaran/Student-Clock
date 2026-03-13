@@ -10,18 +10,12 @@ import edu.ucsd.studentclock.view.StudyAvailabilityView;
  * Presenter for the Study Availability screen.
  */
 public class StudyAvailabilityPresenter
-        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter{
+        extends AbstractPresenter<StudyAvailabilityView> implements IStudyAvailabilityScreenPresenter {
 
     private Runnable onBack;
 
-    /**
-     * Creates a StudyAvailabilityPresenter.
-     *
-     * @param model shared application model
-     * @param view study availability view
-     */
     public StudyAvailabilityPresenter(Model model,
-                                      StudyAvailabilityView view) {
+            StudyAvailabilityView view) {
         super(model, view);
         view.setPresenter(this);
 
@@ -42,8 +36,7 @@ public class StudyAvailabilityPresenter
         StudyAvailability availability = model.getStudyAvailability();
 
         view.setWeeklyHoursText(
-                String.valueOf(availability.getTotalWeeklyHours())
-        );
+                String.valueOf(availability.getTotalWeeklyHours()));
 
         for (DayOfWeek d : DayOfWeek.values()) {
             view.setDaySelected(d, availability.isAvailable(d));
@@ -97,7 +90,8 @@ public class StudyAvailabilityPresenter
     }
 
     public void onBack() {
-        if (onBack != null) onBack.run();
+        if (onBack != null)
+            onBack.run();
     }
 
     /** Used by PresenterManager */

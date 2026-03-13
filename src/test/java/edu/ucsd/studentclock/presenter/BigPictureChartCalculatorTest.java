@@ -15,116 +15,280 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BigPictureChartCalculator")
 class BigPictureChartCalculatorTest {
 
-    @Test
-    void build_createsTwoSeries_andBurndownHasTwoPoints() {
-        Assignment a = new AssignmentBuilder()
-                .setName("A")
-                .setCourseId("CSE 110")
-                .setStart(LocalDate.of(2026, 2, 1).atStartOfDay())
-                .setDeadline(LocalDate.of(2026, 2, 3).atTime(23, 59))
-                .setLateDaysAllowed(0)
-                .setEstimatedHours(10.0)
-                .build();
+        private Assignment makeAssignment(
+                        String name,
+                        String courseId,
+                        LocalDate start,
+                        LocalDate deadline,
+                        int lateDays,
+                        double estimatedHours) {
+                return new AssignmentBuilder()
+                                .setName(name)
+                                .setCourseId(courseId)
+                                .setStart(start.atStartOfDay())
+                                .setDeadline(deadline.atTime(23, 59))
+                                .setLateDaysAllowed(lateDays)
+                                .setEstimatedHours(estimatedHours)
+                                .build();
+        }
 
-        Map<Assignment, LocalDate[]> ranges =
-                BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+        @Test
+        @DisplayName("build creates workload and burndown series for a single assignment")
+        void build_createsTwoSeries_andBurndownHasTwoPoints() {
+                Assignment a = makeAssignment(
+                                "A",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 3),
+                                0,
+                                10.0);
 
-        LocalDate chartStart = ranges.get(a)[0];
-        LocalDate chartEnd = ranges.get(a)[1];
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
-        // Provider: no work logged at all
-        CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
+                LocalDate chartStart = ranges.get(a)[0];
+                LocalDate chartEnd = ranges.get(a)[1];
 
-        BigPictureChartCalculator calc = new BigPictureChartCalculator();
-        BigPictureChartModel model =
-                calc.build(List.of(a), ranges, chartStart, chartEnd, provider);
+                CumulativeHoursProvider provider = day -> new HashMap<>();
 
-        assertNotNull(model.getWorkloadSeries());
-        assertNotNull(model.getBurndownSeries());
+                BigPictureChartCalculator calc = new BigPictureChartCalculator();
+                BigPictureChartModel model = calc.build(List.of(a), ranges, chartStart, chartEnd, provider);
 
-        assertEquals("Workload", model.getWorkloadSeries().getName());
-        assertEquals("IdealBurndown", model.getBurndownSeries().getName());
+                assertNotNull(model.getWorkloadSeries());
+                assertNotNull(model.getBurndownSeries());
 
-        assertEquals(2, model.getBurndownSeries().getData().size(), "burndown should have 2 endpoints");
-    }
+                assertEquals("Workload", model.getWorkloadSeries().getName());
+                assertEquals("IdealBurndown", model.getBurndownSeries().getName());
 
-    @Test
-    void build_maxWorkPositiveWhenAssignmentExists() {
-        Assignment a = new AssignmentBuilder()
-                .setName("A")
-                .setCourseId("CSE 110")
-                .setStart(LocalDate.of(2026, 2, 1).atStartOfDay())
-                .setDeadline(LocalDate.of(2026, 2, 2).atTime(23, 59))
-                .setLateDaysAllowed(0)
-                .setEstimatedHours(5.0)
-                .build();
+                assertEquals(2, model.getBurndownSeries().getData().size());
+                assertFalse(model.getWorkloadSeries().getData().isEmpty());
+        }
 
-        Map<Assignment, LocalDate[]> ranges =
-                BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+        @Test
+        @DisplayName("build handles empty assignments without failing")
+        void build_emptyAssignments_returnsValidModel() {
+                BigPictureChartCalculator calc = new BigPictureChartCalculator();
 
-        CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
+                BigPictureChartModel model = calc.build(
+                                List.of(),
+                                Map.of(),
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 3),
+                                day -> Map.of());
 
-        BigPictureChartModel model =
-                new BigPictureChartCalculator().build(
-                        List.of(a),
-                        ranges,
-                        ranges.get(a)[0],
-                        ranges.get(a)[1],
-                        provider
-                );
+                assertNotNull(model);
+                assertNotNull(model.getWorkloadSeries());
+                assertNotNull(model.getBurndownSeries());
+                assertEquals(0.0, model.getMaxWork(), 1e-9);
+        }
 
-        // This is intentionally not "trivial": it checks the calculator produces a meaningful bound.
-        assertTrue(model.getMaxWork() >= 0.0, "maxWork should be non-negative");
-    }
+        @Test
+        @DisplayName("build sets maxWork to a meaningful positive value for non-empty workload")
+        void build_maxWorkMatchesPeakWorkload() {
+                Assignment a = makeAssignment(
+                                "A",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 2),
+                                0,
+                                5.0);
 
-    @Test
-    void memoizedProvider_callsDelegateOncePerDay() {
-        final int[] calls = {0};
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
-        CumulativeHoursProvider delegate = day -> {
-            calls[0]++;
-            return new HashMap<String, Double>();
-        };
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a),
+                                ranges,
+                                ranges.get(a)[0],
+                                ranges.get(a)[1],
+                                day -> new HashMap<>());
 
-        MemoizedCumulativeHoursProvider memo = new MemoizedCumulativeHoursProvider(delegate);
+                assertEquals(5.0, model.getMaxWork(), 1e-9);
+        }
 
-        LocalDate d = LocalDate.of(2026, 2, 1);
-        memo.getCumulativeHoursByEndOf(d);
-        memo.getCumulativeHoursByEndOf(d);
-        memo.getCumulativeHoursByEndOf(d);
+        @Test
+        @DisplayName("build reflects logged work in workload series")
+        void build_loggedWorkReducesWorkloadPoints() {
+                Assignment a = makeAssignment(
+                                "A",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 3),
+                                0,
+                                10.0);
 
-        assertEquals(1, calls[0], "same day should hit delegate once due to memoization");
-    }
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
 
-    @Test
-    void workloadPoint_storesTooltipPayloadInExtraValue() {
-        Assignment a = new AssignmentBuilder()
-                .setName("A")
-                .setCourseId("CSE 110")
-                .setStart(LocalDate.of(2026, 2, 1).atStartOfDay())
-                .setDeadline(LocalDate.of(2026, 2, 2).atTime(23, 59))
-                .setLateDaysAllowed(0)
-                .setEstimatedHours(5.0)
-                .build();
+                LocalDate workDay = LocalDate.of(2026, 2, 2);
+                CumulativeHoursProvider provider = day -> !day.isBefore(workDay) ? Map.of(a.getId(), 4.0) : Map.of();
 
-        Map<Assignment, LocalDate[]> ranges =
-                BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a),
+                                ranges,
+                                ranges.get(a)[0],
+                                ranges.get(a)[1],
+                                provider);
 
-        CumulativeHoursProvider provider = day -> new HashMap<String, Double>();
+                boolean foundReducedPoint = model.getWorkloadSeries().getData().stream()
+                                .anyMatch(p -> Math.abs(p.getYValue().doubleValue() - 6.0) < 1e-9);
 
-        BigPictureChartModel model =
-                new BigPictureChartCalculator().build(
-                        List.of(a),
-                        ranges,
-                        ranges.get(a)[0],
-                        ranges.get(a)[1],
-                        provider
-                );
+                assertTrue(foundReducedPoint);
+        }
 
-        assertFalse(model.getWorkloadSeries().getData().isEmpty());
+        @Test
+        @DisplayName("build creates burndown endpoints from starting work to zero")
+        void build_burndownStartsAtTotalAndEndsAtZero() {
+                Assignment a = makeAssignment(
+                                "A",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 3),
+                                0,
+                                8.0);
 
-        Object extra = model.getWorkloadSeries().getData().get(0).getExtraValue();
-        assertTrue(extra instanceof BigPictureTooltipPayload,
-                "workload points should store BigPictureTooltipPayload as extraValue");
-    }
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a),
+                                ranges,
+                                ranges.get(a)[0],
+                                ranges.get(a)[1],
+                                day -> Map.of());
+
+                assertEquals(2, model.getBurndownSeries().getData().size());
+
+                double firstY = model.getBurndownSeries().getData().get(0).getYValue().doubleValue();
+                double secondY = model.getBurndownSeries().getData().get(1).getYValue().doubleValue();
+
+                assertEquals(8.0, firstY, 1e-9);
+                assertEquals(0.0, secondY, 1e-9);
+        }
+
+        @Test
+        @DisplayName("workload points store tooltip payload in extraValue")
+        void workloadPoint_storesTooltipPayloadInExtraValue() {
+                Assignment a = makeAssignment(
+                                "A",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 2),
+                                0,
+                                5.0);
+
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a),
+                                ranges,
+                                ranges.get(a)[0],
+                                ranges.get(a)[1],
+                                day -> new HashMap<>());
+
+                assertFalse(model.getWorkloadSeries().getData().isEmpty());
+
+                Object extra = model.getWorkloadSeries().getData().get(0).getExtraValue();
+                assertTrue(extra instanceof BigPictureTooltipPayload);
+        }
+
+        @Test
+        @DisplayName("tooltip payload contains assignment data for workload point")
+        void workloadPoint_tooltipPayloadContainsAssignmentItem() {
+                Assignment a = makeAssignment(
+                                "PA1",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 2),
+                                0,
+                                5.0);
+
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a));
+
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a),
+                                ranges,
+                                ranges.get(a)[0],
+                                ranges.get(a)[1],
+                                day -> Map.of());
+
+                Object extra = model.getWorkloadSeries().getData().stream()
+                                .map(point -> point.getExtraValue())
+                                .filter(BigPictureTooltipPayload.class::isInstance)
+                                .findFirst()
+                                .orElse(null);
+
+                assertNotNull(extra);
+
+                BigPictureTooltipPayload payload = (BigPictureTooltipPayload) extra;
+                assertFalse(payload.getItems().isEmpty());
+                assertEquals("PA1", payload.getItems().get(0).getName());
+                assertEquals("CSE 110", payload.getItems().get(0).getCourseId());
+        }
+
+        @Test
+        @DisplayName("memoized provider calls delegate once for the same day")
+        void memoizedProvider_callsDelegateOncePerDay() {
+                final int[] calls = { 0 };
+
+                CumulativeHoursProvider delegate = day -> {
+                        calls[0]++;
+                        return new HashMap<>();
+                };
+
+                MemoizedCumulativeHoursProvider memo = new MemoizedCumulativeHoursProvider(delegate);
+
+                LocalDate d = LocalDate.of(2026, 2, 1);
+                memo.getCumulativeHoursByEndOf(d);
+                memo.getCumulativeHoursByEndOf(d);
+                memo.getCumulativeHoursByEndOf(d);
+
+                assertEquals(1, calls[0]);
+        }
+
+        @Test
+        @DisplayName("memoized provider calls delegate again for a different day")
+        void memoizedProvider_callsDelegateForDifferentDays() {
+                final int[] calls = { 0 };
+
+                CumulativeHoursProvider delegate = day -> {
+                        calls[0]++;
+                        return new HashMap<>();
+                };
+
+                MemoizedCumulativeHoursProvider memo = new MemoizedCumulativeHoursProvider(delegate);
+
+                memo.getCumulativeHoursByEndOf(LocalDate.of(2026, 2, 1));
+                memo.getCumulativeHoursByEndOf(LocalDate.of(2026, 2, 2));
+                memo.getCumulativeHoursByEndOf(LocalDate.of(2026, 2, 1));
+
+                assertEquals(2, calls[0]);
+        }
+
+        @Test
+        @DisplayName("build combines multiple assignments into one workload series")
+        void build_multipleAssignmentsProducesHigherPeakWork() {
+                Assignment a1 = makeAssignment(
+                                "A1",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 3),
+                                0,
+                                4.0);
+
+                Assignment a2 = makeAssignment(
+                                "A2",
+                                "CSE 110",
+                                LocalDate.of(2026, 2, 2),
+                                LocalDate.of(2026, 2, 4),
+                                0,
+                                3.0);
+
+                Map<Assignment, LocalDate[]> ranges = BigPictureEffectiveRanges.computeEffectiveRanges(List.of(a1, a2));
+
+                BigPictureChartModel model = new BigPictureChartCalculator().build(
+                                List.of(a1, a2),
+                                ranges,
+                                LocalDate.of(2026, 2, 1),
+                                LocalDate.of(2026, 2, 4),
+                                day -> Map.of());
+
+                assertTrue(model.getMaxWork() >= 7.0 - 1e-9);
+        }
 }

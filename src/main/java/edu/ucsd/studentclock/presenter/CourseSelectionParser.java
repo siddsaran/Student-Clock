@@ -6,7 +6,8 @@ package edu.ucsd.studentclock.presenter;
  */
 final class CourseSelectionParser {
 
-    private CourseSelectionParser() {}
+    private CourseSelectionParser() {
+    }
 
     /**
      * Extracts course id from display string "id - name", or null if invalid.

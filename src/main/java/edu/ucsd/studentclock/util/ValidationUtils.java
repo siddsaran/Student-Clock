@@ -5,12 +5,11 @@ package edu.ucsd.studentclock.util;
  */
 public final class ValidationUtils {
 
-    private ValidationUtils() {}
-
     /**
-     * Trims the value; if null or blank after trim, throws IllegalArgumentException with the given message.
+     * Trims the value; if null or blank after trim, throws IllegalArgumentException
+     * with the given message.
      *
-     * @param value input string (may be null)
+     * @param value          input string (may be null)
      * @param messageIfBlank message for the exception when value is null or blank
      * @return the trimmed value (never null or blank)
      */

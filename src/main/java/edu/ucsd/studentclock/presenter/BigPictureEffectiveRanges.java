@@ -13,15 +13,18 @@ import edu.ucsd.studentclock.model.Assignment;
  * Pure logic for computing effective (start, end) dates for Big Picture chart.
  *
  * Chart behavior: line changes only on (1) assignment start → vertical jump,
- * (2) work logged → diagonal down, (3) assignment marked finished → vertical drop.
+ * (2) work logged → diagonal down, (3) assignment marked finished → vertical
+ * drop.
  * Reaching the due date does NOT change the line unless late is not allowed.
  *
- * Series: next assignment starts day after previous deadline; previous can overlap
+ * Series: next assignment starts day after previous deadline; previous can
+ * overlap
  * (late period), so remaining hours carry over and stack with new assignment.
  */
 final class BigPictureEffectiveRanges {
 
-    private BigPictureEffectiveRanges() {}
+    private BigPictureEffectiveRanges() {
+    }
 
     static final class DateRange {
         private final LocalDate start;
@@ -32,14 +35,21 @@ final class BigPictureEffectiveRanges {
             this.end = end;
         }
 
-        LocalDate start() { return start; }
-        LocalDate end() { return end; }
+        LocalDate start() {
+            return start;
+        }
+
+        LocalDate end() {
+            return end;
+        }
     }
 
     /**
      * Computes effective (start, end) date for each assignment for chart display.
-     * Effective end = deadline + lateDaysAllowed. For series assignments, effective start
-     * is the previous assignment's effective end so they start automatically after it (order by deadline).
+     * Effective end = deadline + lateDaysAllowed. For series assignments, effective
+     * start
+     * is the previous assignment's effective end so they start automatically after
+     * it (order by deadline).
      *
      * @param assignments active assignments (non-done)
      * @return map of assignment to effective date range (start, end)
@@ -66,7 +76,7 @@ final class BigPictureEffectiveRanges {
                     LocalDate effStart = a.getStart().toLocalDate();
                     LocalDate baseEnd = a.getDeadline().toLocalDate().plusDays(a.getLateDaysAllowed());
                     LocalDate effEnd = a.getLateDaysAllowed() > 0 ? chartEnd : baseEnd;
-                    out.put(a, new LocalDate[]{effStart, effEnd});
+                    out.put(a, new LocalDate[] { effStart, effEnd });
                 }
             } else {
                 list.sort(Comparator.comparing(Assignment::getDeadline));
@@ -84,7 +94,7 @@ final class BigPictureEffectiveRanges {
                                 ? nextStartsAfterPrevDue
                                 : storedStart;
                     }
-                    out.put(a, new LocalDate[]{effStart, effEnd});
+                    out.put(a, new LocalDate[] { effStart, effEnd });
                     prevDeadline = a.getDeadline().toLocalDate();
                 }
             }

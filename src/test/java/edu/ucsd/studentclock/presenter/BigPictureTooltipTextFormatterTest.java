@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class BigPictureTooltipTextFormatterTest {
 
     @Test
+    @DisplayName("format returns empty string for null or empty payload")
     void format_returnsEmptyForNullOrEmptyPayload() {
         BigPictureTooltipTextFormatter f = new BigPictureTooltipTextFormatter();
         assertEquals("", f.format(null));
@@ -19,15 +20,14 @@ class BigPictureTooltipTextFormatterTest {
     }
 
     @Test
+    @DisplayName("format includes assignment name, course, and due date")
     void format_includesAssignmentNameAndCourse() {
         BigPictureTooltipTextFormatter f = new BigPictureTooltipTextFormatter();
 
-        BigPictureTooltipItem item =
-                new BigPictureTooltipItem(
-                        "HW1", "CSE 110",
-                        LocalDate.of(2026, 2, 10),
-                        5.0, 2.0, 3.0, false
-                );
+        BigPictureTooltipItem item = new BigPictureTooltipItem(
+                "HW1", "CSE 110",
+                LocalDate.of(2026, 2, 10),
+                5.0, 2.0, 3.0, false);
 
         String text = f.format(new BigPictureTooltipPayload(List.of(item)));
 

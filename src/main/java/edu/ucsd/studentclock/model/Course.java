@@ -3,15 +3,16 @@ package edu.ucsd.studentclock.model;
 import java.util.Objects;
 
 /**
- * An enrolled course (e.g. CSE 110). Assignments and series reference a course by its id;
- * the Model/Repository hold assignments that reference this Course. Dashboard and Big Picture
+ * An enrolled course (e.g. CSE 110). Assignments and series reference a course
+ * by its id;
+ * the Model/Repository hold assignments that reference this Course. Dashboard
+ * and Big Picture
  * use Course for grouping and display.
  */
 public final class Course {
 
     // unique identifier and display the label
     private final String id, name;
-
 
     public Course(String id, String name) {
         if (id == null) {

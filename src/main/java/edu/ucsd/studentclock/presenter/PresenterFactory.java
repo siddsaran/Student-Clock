@@ -17,8 +17,7 @@ public final class PresenterFactory {
             edu.ucsd.studentclock.repository.IAssignmentRepository assignmentRepository,
             edu.ucsd.studentclock.repository.IStudyAvailabilityRepository studyAvailabilityRepository,
             edu.ucsd.studentclock.repository.WorkLogRepository workLogRepository,
-            edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository
-    ) {
+            edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository) {
         this.model = model;
     }
 
