@@ -12,11 +12,14 @@ final class BigPictureTooltipTextFormatter {
         StringBuilder sb = new StringBuilder();
         for (BigPictureTooltipItem item : payload.getItems()) {
             sb.append(item.getName())
-              .append(" (").append(item.getCourseId()).append(")\n")
-              .append("Due: ").append(item.getDueDate()).append("\n")
-              .append("Estimated: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getEstimatedHours())).append("\n")
-              .append("Completed: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getCompletedHours())).append("\n")
-              .append("Remaining: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getRemainingHours())).append("\n");
+                    .append(" (").append(item.getCourseId()).append(")\n")
+                    .append("Due: ").append(item.getDueDate()).append("\n")
+                    .append("Estimated: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getEstimatedHours()))
+                    .append("\n")
+                    .append("Completed: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getCompletedHours()))
+                    .append("\n")
+                    .append("Remaining: ").append(TimeFormatUtils.formatHoursAsHHMM(item.getRemainingHours()))
+                    .append("\n");
 
             if (item.isDone()) {
                 sb.append("Status: DONE\n");

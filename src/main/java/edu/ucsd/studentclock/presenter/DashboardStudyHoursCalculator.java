@@ -11,16 +11,20 @@ import edu.ucsd.studentclock.model.StudyAvailability;
 
 public final class DashboardStudyHoursCalculator {
 
-    private DashboardStudyHoursCalculator() {}
+    private DashboardStudyHoursCalculator() {
+    }
 
     public static int computeWeeklyHoursLeftFromToday(StudyAvailability sa, LocalDateTime now) {
         int weekly = sa.getTotalWeeklyHours();
-        if (weekly <= 0) return 0;
+        if (weekly <= 0)
+            return 0;
         int availableDaysInWeek = 0;
         for (DayOfWeek d : DayOfWeek.values()) {
-            if (sa.isAvailable(d)) availableDaysInWeek++;
+            if (sa.isAvailable(d))
+                availableDaysInWeek++;
         }
-        if (availableDaysInWeek == 0) return 0;
+        if (availableDaysInWeek == 0)
+            return 0;
         int perAvailableDay = weekly / availableDaysInWeek;
         DayOfWeek today = now.getDayOfWeek();
         int remainingAvailableDays = 0;
@@ -37,8 +41,10 @@ public final class DashboardStudyHoursCalculator {
         LocalDate end = today.plusDays(7);
         double sum = 0;
         for (Assignment a : all) {
-            if (a.isDone()) continue;
-            if (a.getDeadline() == null) continue;
+            if (a.isDone())
+                continue;
+            if (a.getDeadline() == null)
+                continue;
             LocalDate due = a.getDeadline().toLocalDate();
             if (!due.isBefore(today) && !due.isAfter(end)) {
                 sum += a.getRemainingHours();
@@ -52,9 +58,12 @@ public final class DashboardStudyHoursCalculator {
             return work > 0 ? AssignmentStatus.RED : AssignmentStatus.GREEN;
         }
         double ratio = work / (double) available;
-        if (ratio >= 1.0) return AssignmentStatus.RED;
-        if (ratio >= 0.80) return AssignmentStatus.ORANGE;
-        if (ratio >= 0.60) return AssignmentStatus.YELLOW;
+        if (ratio >= 1.0)
+            return AssignmentStatus.RED;
+        if (ratio >= 0.80)
+            return AssignmentStatus.ORANGE;
+        if (ratio >= 0.60)
+            return AssignmentStatus.YELLOW;
         return AssignmentStatus.GREEN;
     }
 }

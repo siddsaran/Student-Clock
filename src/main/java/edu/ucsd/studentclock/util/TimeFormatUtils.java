@@ -1,11 +1,10 @@
 package edu.ucsd.studentclock.util;
 
 /**
- * Formats hours (as decimal) into HH:MM display format for consistent display throughout the app.
+ * Formats hours (as decimal) into HH:MM display format for consistent display
+ * throughout the app.
  */
 public final class TimeFormatUtils {
-
-    private TimeFormatUtils() {}
 
     /**
      * Converts decimal hours to HH:MM format (e.g., 2.5 -> "02:30", 12 -> "12:00").

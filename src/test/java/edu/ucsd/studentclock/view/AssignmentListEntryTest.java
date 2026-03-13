@@ -2,12 +2,14 @@ package edu.ucsd.studentclock.view;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentBuilder;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("AssignmentListEntry")
 class AssignmentListEntryTest {
 
     private Assignment makeAssignment() {
@@ -22,8 +24,10 @@ class AssignmentListEntryTest {
     }
 
     @Test
+    @DisplayName("Header entry is marked as header and stores header text")
     void headerEntry_isHeaderAndHasHeaderText() {
         AssignmentListEntry h = AssignmentListEntry.forHeader("CSE 110");
+
         assertTrue(h.isHeader());
         assertEquals("CSE 110", h.getHeaderText());
         assertNull(h.getAssignment());
@@ -31,6 +35,7 @@ class AssignmentListEntryTest {
     }
 
     @Test
+    @DisplayName("Row without tag stores assignment and is not a header")
     void rowWithoutTag_isNotHeaderAndStoresAssignment() {
         Assignment a = makeAssignment();
         AssignmentListEntry row = AssignmentListEntry.forRowWithoutTag(a);
@@ -41,6 +46,7 @@ class AssignmentListEntryTest {
     }
 
     @Test
+    @DisplayName("Row with tag stores assignment, tag name, and tag color")
     void rowWithTag_isNotHeaderAndStoresAssignmentTagAndColor() {
         Assignment a = makeAssignment();
         AssignmentListEntry row = AssignmentListEntry.forRow(a, "Programming Assignments", "#4A90D9");
@@ -52,30 +58,42 @@ class AssignmentListEntryTest {
     }
 
     @Test
+    @DisplayName("Row without tag has null tag color")
     void rowWithoutTag_hasNullTagColor() {
         Assignment a = makeAssignment();
         AssignmentListEntry row = AssignmentListEntry.forRowWithoutTag(a);
+
         assertNull(row.getTagColor());
     }
 
     @Test
+    @DisplayName("Creating header with null text throws NullPointerException")
     void forHeader_nullThrows() {
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forHeader(null));
+        assertThrows(NullPointerException.class,
+                () -> AssignmentListEntry.forHeader(null));
     }
 
     @Test
+    @DisplayName("Creating row with null assignment throws NullPointerException")
     void forRow_nullAssignmentThrows() {
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRowWithoutTag(null));
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(null, "x", "#4A90D9"));
+        assertThrows(NullPointerException.class,
+                () -> AssignmentListEntry.forRowWithoutTag(null));
+
+        assertThrows(NullPointerException.class,
+                () -> AssignmentListEntry.forRow(null, "x", "#4A90D9"));
     }
 
     @Test
+    @DisplayName("Creating row with null tag name throws NullPointerException")
     void forRow_nullTagThrows() {
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), null, "#4A90D9"));
+        assertThrows(NullPointerException.class,
+                () -> AssignmentListEntry.forRow(makeAssignment(), null, "#4A90D9"));
     }
 
     @Test
+    @DisplayName("Creating row with null tag color throws NullPointerException")
     void forRow_nullTagColorThrows() {
-        assertThrows(NullPointerException.class, () -> AssignmentListEntry.forRow(makeAssignment(), "PAs", null));
+        assertThrows(NullPointerException.class,
+                () -> AssignmentListEntry.forRow(makeAssignment(), "PAs", null));
     }
 }

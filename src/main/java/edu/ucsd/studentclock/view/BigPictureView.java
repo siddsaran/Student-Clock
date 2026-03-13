@@ -1,6 +1,5 @@
 package edu.ucsd.studentclock.view;
 
-import edu.ucsd.studentclock.presenter.IBigPictureScreenPresenter;
 import edu.ucsd.studentclock.util.TimeFormatUtils;
 import javafx.util.StringConverter;
 import javafx.geometry.Insets;
@@ -12,7 +11,6 @@ import javafx.scene.layout.BorderPane;
 
 public class BigPictureView extends BorderPane {
 
-    private IBigPictureScreenPresenter presenter;
     private final LineChart<String, Number> chart;
 
     public BigPictureView() {
@@ -52,9 +50,5 @@ public class BigPictureView extends BorderPane {
 
     public LineChart<String, Number> getChart() {
         return chart;
-    }
-
-    public void setPresenter(IBigPictureScreenPresenter presenter) {
-        this.presenter = presenter;
     }
 }

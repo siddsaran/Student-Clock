@@ -1,9 +1,8 @@
 package edu.ucsd.studentclock.presenter;
 
-import org.junit.jupiter.api.DisplayName;
-
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentBuilder;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -14,7 +13,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("BigPictureTooltipPayloadFactory")
 class BigPictureTooltipPayloadFactoryTest {
 
-    private Assignment makeAssignment(String name, String courseId, double estimated, double cumulative, double remaining, boolean done) {
+    private Assignment makeAssignment(
+            String name,
+            String courseId,
+            double estimated,
+            double cumulative,
+            double remaining,
+            boolean done) {
         return new AssignmentBuilder()
                 .setName(name)
                 .setCourseId(courseId)
@@ -29,17 +34,22 @@ class BigPictureTooltipPayloadFactoryTest {
     }
 
     @Test
+    @DisplayName("fromAssignments returns payload with empty items for empty input")
     void fromAssignments_emptyListReturnsPayloadWithEmptyItems() {
         BigPictureTooltipPayloadFactory factory = new BigPictureTooltipPayloadFactory();
+
         BigPictureTooltipPayload payload = factory.fromAssignments(List.of());
+
         assertNotNull(payload);
         assertTrue(payload.getItems().isEmpty());
     }
 
     @Test
+    @DisplayName("fromAssignments maps all fields from a single assignment")
     void fromAssignments_singleAssignmentMapsAllFields() {
         BigPictureTooltipPayloadFactory factory = new BigPictureTooltipPayloadFactory();
         Assignment a = makeAssignment("PA1", "CSE 110", 5.0, 2.0, 3.0, false);
+
         BigPictureTooltipPayload payload = factory.fromAssignments(List.of(a));
 
         assertEquals(1, payload.getItems().size());
@@ -53,10 +63,12 @@ class BigPictureTooltipPayloadFactoryTest {
     }
 
     @Test
+    @DisplayName("fromAssignments preserves input order when mapping multiple assignments")
     void fromAssignments_multipleAssignmentsMapsInOrder() {
         BigPictureTooltipPayloadFactory factory = new BigPictureTooltipPayloadFactory();
         Assignment a1 = makeAssignment("PA1", "CSE 110", 5.0, 2.0, 3.0, false);
         Assignment a2 = makeAssignment("Quiz", "CSE 101", 1.0, 0.5, 0.5, false);
+
         BigPictureTooltipPayload payload = factory.fromAssignments(List.of(a1, a2));
 
         assertEquals(2, payload.getItems().size());

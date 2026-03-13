@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * An assignment entry for a class. Each assignment will have an arbitrary id and be linked
- * to a course. Multiple assignment objects can link to a single course. An assignment links
+ * An assignment entry for a class. Each assignment will have an arbitrary id
+ * and be linked
+ * to a course. Multiple assignment objects can link to a single course. An
+ * assignment links
  * to just ONE course.
  *
  */
@@ -38,8 +40,7 @@ public class Assignment {
             double estimatedHours,
             double remainingHours,
             double cumulativeHours,
-            boolean done
-    ) {
+            boolean done) {
         this.id = id;
         this.name = name;
         this.courseId = courseId;
@@ -53,17 +54,49 @@ public class Assignment {
         this.done = done;
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public String getCourseId() { return courseId; }
-    public String getSeriesId() { return seriesId; }
-    public LocalDateTime getStart() { return start; }
-    public LocalDateTime getDeadline() { return deadline; }
-    public int getLateDaysAllowed() { return lateDaysAllowed; }
-    public double getEstimatedHours() { return estimatedHours; }
-    public double getRemainingHours() { return remainingHours; }
-    public boolean isDone() { return done; }
-    public double getCumulativeHours() { return cumulativeHours; }
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
+    }
+
+    public LocalDateTime getStart() {
+        return start;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public int getLateDaysAllowed() {
+        return lateDaysAllowed;
+    }
+
+    public double getEstimatedHours() {
+        return estimatedHours;
+    }
+
+    public double getRemainingHours() {
+        return remainingHours;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
+
+    public double getCumulativeHours() {
+        return cumulativeHours;
+    }
 
     public void setRemainingHours(double remainingHours) {
         this.remainingHours = clampHoursAtZero(remainingHours);
@@ -96,8 +129,10 @@ public class Assignment {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         return Objects.equals(id, ((Assignment) o).id);
     }
 

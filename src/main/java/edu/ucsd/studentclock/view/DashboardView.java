@@ -41,6 +41,7 @@ public class DashboardView extends BorderPane {
 
     private Map<Assignment, String> rowStyles = Map.of();
 
+    @SuppressWarnings({ "unchecked", "deprecation" })
     public DashboardView() {
 
         setPadding(new Insets(20));

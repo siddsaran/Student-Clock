@@ -12,10 +12,10 @@ public class ClockOutResult {
     private final boolean done;
 
     public ClockOutResult(String assignmentId,
-                          double sessionHours,
-                          double cumulativeHours,
-                          double remainingHours,
-                          boolean done) {
+            double sessionHours,
+            double cumulativeHours,
+            double remainingHours,
+            boolean done) {
         this.assignmentId = assignmentId;
         this.sessionHours = sessionHours;
         this.cumulativeHours = cumulativeHours;

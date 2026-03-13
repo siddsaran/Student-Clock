@@ -8,7 +8,7 @@ import java.time.Instant;
 /**
  * Manages time tracking for a single active assignment.
  * Responsibility: track clock-in/out state and compute session duration.
- * Time source is injected via ITimeService 
+ * Time source is injected via ITimeService
  */
 public class TimeTrackingManager {
 
@@ -16,7 +16,6 @@ public class TimeTrackingManager {
     private Assignment activeAssignment;
     private Instant clockInInstant;
 
-    // SRP fix: remove default constructor that creates TimeService.
     public TimeTrackingManager(ITimeService timeService) {
         if (timeService == null) {
             throw new NullPointerException("timeService must not be null");
@@ -35,8 +34,7 @@ public class TimeTrackingManager {
 
         if (activeAssignment != null) {
             throw new IllegalStateException(
-                    "Already clocked into assignment: " + activeAssignment.getName()
-            );
+                    "Already clocked into assignment: " + activeAssignment.getName());
         }
 
         if (assignment.isDone()) {
@@ -66,8 +64,7 @@ public class TimeTrackingManager {
                 hoursWorked,
                 activeAssignment.getCumulativeHours(),
                 activeAssignment.getRemainingHours(),
-                activeAssignment.isDone()
-        );
+                activeAssignment.isDone());
 
         // clear active session
         activeAssignment = null;

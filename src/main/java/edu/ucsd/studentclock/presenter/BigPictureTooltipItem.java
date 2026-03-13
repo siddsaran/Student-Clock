@@ -19,8 +19,7 @@ public final class BigPictureTooltipItem {
             double estimatedHours,
             double completedHours,
             double remainingHours,
-            boolean done
-    ) {
+            boolean done) {
         this.name = name;
         this.courseId = courseId;
         this.dueDate = dueDate;
@@ -30,11 +29,31 @@ public final class BigPictureTooltipItem {
         this.done = done;
     }
 
-    public String getName() { return name; }
-    public String getCourseId() { return courseId; }
-    public LocalDate getDueDate() { return dueDate; }
-    public double getEstimatedHours() { return estimatedHours; }
-    public double getCompletedHours() { return completedHours; }
-    public double getRemainingHours() { return remainingHours; }
-    public boolean isDone() { return done; }
+    public String getName() {
+        return name;
+    }
+
+    public String getCourseId() {
+        return courseId;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public double getEstimatedHours() {
+        return estimatedHours;
+    }
+
+    public double getCompletedHours() {
+        return completedHours;
+    }
+
+    public double getRemainingHours() {
+        return remainingHours;
+    }
+
+    public boolean isDone() {
+        return done;
+    }
 }

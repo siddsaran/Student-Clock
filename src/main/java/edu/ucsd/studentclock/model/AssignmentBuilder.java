@@ -11,9 +11,9 @@ public class AssignmentBuilder {
     private LocalDateTime deadline;
     private int lateDaysAllowed;
     private double estimatedHours;
-    private String id = null;           
+    private String id = null;
     private String seriesId = null;
-    private Double remainingHours = null; 
+    private Double remainingHours = null;
     private double cumulativeHours = 0.0;
     private boolean done = false;
 
@@ -75,7 +75,7 @@ public class AssignmentBuilder {
     /**
      * Validates all required fields and returns a new Assignment
      *
-     * @throws NullPointerException if any required field is null
+     * @throws NullPointerException     if any required field is null
      * @throws IllegalArgumentException if any field value is invalid
      */
     public Assignment build() {
@@ -115,7 +115,6 @@ public class AssignmentBuilder {
                 estimatedHours,
                 resolvedRemainingHours,
                 cumulativeHours,
-                done
-        );
+                done);
     }
 }

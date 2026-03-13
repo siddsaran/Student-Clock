@@ -52,8 +52,7 @@ class AssignmentListGrouperRegressionTest {
                 saRepo,
                 new WorkLogRepository(dataSource),
                 new AssignmentWorkLogRepository(dataSource),
-                new TimeService()
-        );
+                new TimeService());
     }
 
     @AfterEach
@@ -66,8 +65,7 @@ class AssignmentListGrouperRegressionTest {
     private Assignment makeAssignment(
             String name,
             String courseId,
-            boolean done
-    ) {
+            boolean done) {
         return new AssignmentBuilder()
                 .setName(name)
                 .setCourseId(courseId)
@@ -88,12 +86,11 @@ class AssignmentListGrouperRegressionTest {
         assignmentRepo.addAssignment(makeAssignment("Done", "CSE 110", true));
 
         List<AssignmentListEntry> rows = AssignmentListGrouper.buildGroupedList(
-                        assignmentRepo.getAllAssignments(),
-                        true,
-                        "All Courses",
-                        "All Courses",
-                        model
-                ).stream()
+                assignmentRepo.getAllAssignments(),
+                true,
+                "All Courses",
+                "All Courses",
+                model).stream()
                 .filter(entry -> !entry.isHeader())
                 .collect(Collectors.toList());
 
@@ -111,12 +108,11 @@ class AssignmentListGrouperRegressionTest {
         assignmentRepo.addAssignment(makeAssignment("HW1", "CSE 120", false));
 
         List<AssignmentListEntry> rows = AssignmentListGrouper.buildGroupedList(
-                        assignmentRepo.getAllAssignments(),
-                        false,
-                        "CSE 110",
-                        "All Courses",
-                        model
-                ).stream()
+                assignmentRepo.getAllAssignments(),
+                false,
+                "CSE 110",
+                "All Courses",
+                model).stream()
                 .filter(entry -> !entry.isHeader())
                 .collect(Collectors.toList());
 

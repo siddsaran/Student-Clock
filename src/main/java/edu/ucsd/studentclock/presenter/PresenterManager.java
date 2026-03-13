@@ -10,58 +10,45 @@ import javafx.stage.Stage;
  */
 public class PresenterManager {
 
-    /**
-     * Defines navigation interactions between Course and Assignment presenters.
-     *
-     * @param stage application stage
-     * @param appName application name
-     * @param mainLayout shared layout with nav bar
-     * @param dashboardPresenter presenter for dashboard
-     * @param coursePresenter presenter for course screen
-     * @param assignmentPresenter presenter for assignment screen
-     * @param studyAvailabilityPresenter presenter for study availability
-     * @param bigPicturePresenter presenter for big picture
-     */
-    public void defineInteractions(Stage stage,
-                                   String appName,
-                                   MainLayoutView mainLayout,
-                                   DashboardPresenter dashboardPresenter,
-                                   CoursePresenter coursePresenter,
-                                   AssignmentPresenter assignmentPresenter,
-                                   StudyAvailabilityPresenter studyAvailabilityPresenter,
-                                   BigPicturePresenter bigPicturePresenter) {
+        public void defineInteractions(Stage stage,
+                        String appName,
+                        MainLayoutView mainLayout,
+                        DashboardPresenter dashboardPresenter,
+                        CoursePresenter coursePresenter,
+                        AssignmentPresenter assignmentPresenter,
+                        StudyAvailabilityPresenter studyAvailabilityPresenter,
+                        BigPicturePresenter bigPicturePresenter) {
 
-        PresenterSwitcher switcher = new PresenterSwitcher(stage, appName, mainLayout);
+                PresenterSwitcher switcher = new PresenterSwitcher(stage, appName, mainLayout);
 
-        // Centralized navigation rules
-        NavigationRouter router = new NavigationRouter(
-                () -> switcher.switchTo(dashboardPresenter),
-                () -> switcher.switchTo(coursePresenter),
-                () -> switcher.switchTo(studyAvailabilityPresenter),
-                () -> switcher.switchTo(bigPicturePresenter),
-                () -> switcher.switchTo(assignmentPresenter),
-                assignmentPresenter::showAllAssignments,
-                assignmentPresenter::showOpenAssignments
-        );
+                // Centralized navigation rules
+                NavigationRouter router = new NavigationRouter(
+                                () -> switcher.switchTo(dashboardPresenter),
+                                () -> switcher.switchTo(coursePresenter),
+                                () -> switcher.switchTo(studyAvailabilityPresenter),
+                                () -> switcher.switchTo(bigPicturePresenter),
+                                () -> switcher.switchTo(assignmentPresenter),
+                                assignmentPresenter::showAllAssignments,
+                                assignmentPresenter::showOpenAssignments);
 
-        // Global nav bar - same on every page
-        mainLayout.getDashboardButton().setOnAction(e -> router.toDashboard());
-        mainLayout.getCoursesButton().setOnAction(e -> router.toCourses());
-        mainLayout.getAssignmentsButton().setOnAction(e -> router.toAssignmentsAll());
-        mainLayout.getStudyAvailabilityButton().setOnAction(e -> router.toStudyAvailability());
-        mainLayout.getBigPictureButton().setOnAction(e -> router.toBigPicture());
+                // Global nav bar - same on every page
+                mainLayout.getDashboardButton().setOnAction(e -> router.toDashboard());
+                mainLayout.getCoursesButton().setOnAction(e -> router.toCourses());
+                mainLayout.getAssignmentsButton().setOnAction(e -> router.toAssignmentsAll());
+                mainLayout.getStudyAvailabilityButton().setOnAction(e -> router.toStudyAvailability());
+                mainLayout.getBigPictureButton().setOnAction(e -> router.toBigPicture());
 
-        // Study Availability specific navigation (Back button)
-        StudyAvailabilityView studyAvailabilityView =
-                (StudyAvailabilityView) studyAvailabilityPresenter.getView();
-        studyAvailabilityView.getBackButton().setOnAction(e -> router.toCourses());
+                // Study Availability specific navigation (Back button)
+                StudyAvailabilityView studyAvailabilityView = (StudyAvailabilityView) studyAvailabilityPresenter
+                                .getView();
+                studyAvailabilityView.getBackButton().setOnAction(e -> router.toCourses());
 
-        // Dashboard-specific actions (Show Open, Big Picture buttons on dashboard)
-        DashboardView dashboardView = (DashboardView) dashboardPresenter.getView();
-        dashboardView.getShowOpenButton().setOnAction(e -> router.toAssignmentsOpen());
-        dashboardView.getBigPictureButton().setOnAction(e -> router.toBigPicture());
+                // Dashboard-specific actions (Show Open, Big Picture buttons on dashboard)
+                DashboardView dashboardView = (DashboardView) dashboardPresenter.getView();
+                dashboardView.getShowOpenButton().setOnAction(e -> router.toAssignmentsOpen());
+                dashboardView.getBigPictureButton().setOnAction(e -> router.toBigPicture());
 
-        // Initial screen
-        switcher.switchTo(dashboardPresenter);
-    }
+                // Initial screen
+                switcher.switchTo(dashboardPresenter);
+        }
 }

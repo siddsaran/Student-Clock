@@ -50,7 +50,9 @@ class AssignmentListGrouperTest {
         seriesRepo = new SeriesRepository(dataSource);
         var saRepo = new StudyAvailabilityRepository(dataSource);
         assignmentRepo = new AssignmentRepository(dataSource);
-        model = new Model(courseRepo, assignmentRepo, seriesRepo, saRepo, new edu.ucsd.studentclock.repository.WorkLogRepository(dataSource), new edu.ucsd.studentclock.repository.AssignmentWorkLogRepository(dataSource), new TimeService());
+        model = new Model(courseRepo, assignmentRepo, seriesRepo, saRepo,
+                new edu.ucsd.studentclock.repository.WorkLogRepository(dataSource),
+                new edu.ucsd.studentclock.repository.AssignmentWorkLogRepository(dataSource), new TimeService());
     }
 
     @AfterEach
@@ -89,8 +91,7 @@ class AssignmentListGrouperTest {
                     false,
                     "All Courses",
                     "All Courses",
-                    model
-            );
+                    model);
 
             AssignmentListEntry rowEntry = entries.stream()
                     .filter(e -> !e.isHeader() && e.getAssignment() != null)
@@ -117,8 +118,7 @@ class AssignmentListGrouperTest {
                     false,
                     "All Courses",
                     "All Courses",
-                    model
-            );
+                    model);
 
             List<AssignmentListEntry> rows = entries.stream()
                     .filter(e -> !e.isHeader() && e.getTagColor() != null)
@@ -140,8 +140,7 @@ class AssignmentListGrouperTest {
                     false,
                     "All Courses",
                     "All Courses",
-                    model
-            );
+                    model);
 
             AssignmentListEntry rowEntry = entries.stream()
                     .filter(e -> !e.isHeader() && e.getAssignment() != null)
@@ -172,8 +171,7 @@ class AssignmentListGrouperTest {
                     true,
                     "All Courses",
                     "All Courses",
-                    model
-            );
+                    model);
 
             List<AssignmentListEntry> rows = entries.stream()
                     .filter(e -> !e.isHeader() && e.getAssignment() != null)

@@ -27,8 +27,7 @@ public final class BigPictureChartCalculator {
             Map<Assignment, LocalDate[]> effectiveRanges,
             LocalDate chartStart,
             LocalDate chartEnd,
-            CumulativeHoursProvider cumulativeHoursProvider
-    ) {
+            CumulativeHoursProvider cumulativeHoursProvider) {
         XYChart.Series<String, Number> workloadSeries = new XYChart.Series<>();
         workloadSeries.setName("Workload");
 
@@ -42,8 +41,7 @@ public final class BigPictureChartCalculator {
                 chartEnd,
                 cumulativeHoursProvider,
                 workloadSeries,
-                burndownSeries
-        );
+                burndownSeries);
 
         return new BigPictureChartModel(workloadSeries, burndownSeries, maxWork);
     }
@@ -55,8 +53,7 @@ public final class BigPictureChartCalculator {
             LocalDate chartEnd,
             CumulativeHoursProvider cumulativeHoursProvider,
             XYChart.Series<String, Number> workloadSeries,
-            XYChart.Series<String, Number> burndownSeries
-    ) {
+            XYChart.Series<String, Number> burndownSeries) {
         long totalDays = ChronoUnit.DAYS.between(chartStart, chartEnd);
         double runningWorkload = 0.0;
         double maxWorkload = 0.0;

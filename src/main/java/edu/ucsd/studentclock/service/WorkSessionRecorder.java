@@ -19,8 +19,7 @@ public final class WorkSessionRecorder {
     public WorkSessionRecorder(
             WorkLogRepository workLogRepository,
             AssignmentWorkLogRepository assignmentWorkLogRepository,
-            IAssignmentRepository assignmentRepository
-    ) {
+            IAssignmentRepository assignmentRepository) {
         if (workLogRepository == null) {
             throw new NullPointerException("workLogRepository must not be null");
         }

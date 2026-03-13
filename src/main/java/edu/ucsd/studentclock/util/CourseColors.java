@@ -9,16 +9,16 @@ import java.util.Map;
 public final class CourseColors {
 
     private static final String[] PALETTE = {
-            "#87CEEB",  // Sky Blue
-            "#9370DB",  // Purple
-            "#32CD32",  // Green
-            "#FF6347",  // Tomato
-            "#FFD700",  // Gold
-            "#20B2AA",  // Light Sea Green
-            "#FF69B4",  // Hot Pink
-            "#4169E1",  // Royal Blue
-            "#FF8C00",  // Dark Orange
-            "#6B8E23",  // Olive Drab
+            "#87CEEB",
+            "#9370DB", 
+            "#32CD32", 
+            "#FF6347", 
+            "#FFD700", 
+            "#20B2AA", 
+            "#FF69B4", 
+            "#4169E1", 
+            "#FF8C00", 
+            "#6B8E23", 
     };
 
     private final Map<String, String> courseToColor = new LinkedHashMap<>();

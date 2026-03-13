@@ -11,8 +11,7 @@ public final class BigPictureChartModel {
     public BigPictureChartModel(
             XYChart.Series<String, Number> workloadSeries,
             XYChart.Series<String, Number> burndownSeries,
-            double maxWork
-    ) {
+            double maxWork) {
         this.workloadSeries = workloadSeries;
         this.burndownSeries = burndownSeries;
         this.maxWork = maxWork;

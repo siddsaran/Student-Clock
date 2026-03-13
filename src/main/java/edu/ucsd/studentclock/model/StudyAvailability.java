@@ -95,7 +95,8 @@ public final class StudyAvailability {
      * Returns remaining study hours for the week.
      * Formula: remaining = weeklyCommitted - totalLoggedThisWeek
      *
-     * @param totalLoggedThisWeek total hours logged this week (manual or clock-recorded)
+     * @param totalLoggedThisWeek total hours logged this week (manual or
+     *                            clock-recorded)
      * @return remaining hours for the week, or 0 if already exceeded
      */
     public double getRemainingHoursForWeek(double totalLoggedThisWeek) {

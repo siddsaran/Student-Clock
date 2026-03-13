@@ -33,8 +33,7 @@ public final class AssignmentListGrouper {
             boolean showOnlyOpen,
             String courseFilter,
             String allCoursesLabel,
-            Model model
-    ) {
+            Model model) {
         List<Assignment> assignments = List.copyOf(allAssignments);
 
         if (showOnlyOpen) {

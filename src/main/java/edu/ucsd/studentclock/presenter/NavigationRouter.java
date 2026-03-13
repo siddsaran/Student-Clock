@@ -23,8 +23,7 @@ public final class NavigationRouter {
             Runnable toBigPicture,
             Runnable switchToAssignments,
             Runnable prepareAssignmentsAll,
-            Runnable prepareAssignmentsOpen
-    ) {
+            Runnable prepareAssignmentsOpen) {
         this.toDashboard = requireNonNull(toDashboard, "toDashboard");
         this.toCourses = requireNonNull(toCourses, "toCourses");
         this.toStudyAvailability = requireNonNull(toStudyAvailability, "toStudyAvailability");
@@ -75,4 +74,3 @@ public final class NavigationRouter {
         return r;
     }
 }
-

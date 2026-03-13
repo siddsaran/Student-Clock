@@ -69,12 +69,9 @@ public class StudyAvailabilityView extends VBox {
         getChildren().add(cb);
     }
 
-    /** Called by the presenter constructor */
     public void setPresenter(IStudyAvailabilityScreenPresenter presenter) {
         this.presenter = presenter;
     }
-
-    // ---- View API used by presenter ----
 
     public String getWeeklyHoursText() {
         return weeklyHoursField.getText();

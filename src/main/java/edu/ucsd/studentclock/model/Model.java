@@ -28,13 +28,13 @@ public class Model {
     /**
      * Creates a Model with the given repositories and time service.
      *
-     * @param courseRepository course repository
-     * @param assignmentRepository assignment repository
-     * @param seriesRepository series repository
+     * @param courseRepository            course repository
+     * @param assignmentRepository        assignment repository
+     * @param seriesRepository            series repository
      * @param studyAvailabilityRepository study availability repository
-     * @param workLogRepository work log repository
+     * @param workLogRepository           work log repository
      * @param assignmentWorkLogRepository assignment work log repository
-     * @param timeService time service (must not be null)
+     * @param timeService                 time service (must not be null)
      */
     public Model(
             ICourseRepository courseRepository,
@@ -43,8 +43,7 @@ public class Model {
             IStudyAvailabilityRepository studyAvailabilityRepository,
             edu.ucsd.studentclock.repository.WorkLogRepository workLogRepository,
             edu.ucsd.studentclock.repository.AssignmentWorkLogRepository assignmentWorkLogRepository,
-            ITimeService timeService
-    ) {
+            ITimeService timeService) {
         if (courseRepository == null) {
             throw new NullPointerException("courseRepository must not be null");
         }
@@ -75,8 +74,7 @@ public class Model {
         this.assignmentWorkLogRepository = assignmentWorkLogRepository;
         this.timeService = timeService;
         this.workSessionService = new edu.ucsd.studentclock.service.WorkSessionService(
-                timeService, workLogRepository, assignmentWorkLogRepository, assignmentRepository
-        );
+                timeService, workLogRepository, assignmentWorkLogRepository, assignmentRepository);
 
         this.studyAvailability = studyAvailabilityRepository.load().orElseGet(StudyAvailability::new);
     }
@@ -90,12 +88,14 @@ public class Model {
     }
 
     /**
-     * Takes user input (id and name), trims whitespace, validates, creates a Course, and adds it to storage.
-     * Rejects null id or name (NPE from Course) and blank-after-trim id or name (IAE).
+     * Takes user input (id and name), trims whitespace, validates, creates a
+     * Course, and adds it to storage.
+     * Rejects null id or name (NPE from Course) and blank-after-trim id or name
+     * (IAE).
      *
-     * @param id course id (trimmed; must not be null or blank)
+     * @param id   course id (trimmed; must not be null or blank)
      * @param name course display name (trimmed; must not be null or blank)
-     * @throws NullPointerException if id or name is null (from Course)
+     * @throws NullPointerException     if id or name is null (from Course)
      * @throws IllegalArgumentException if id or name is blank after trimming
      */
     public void addCourse(String id, String name) {
@@ -132,20 +132,20 @@ public class Model {
     /**
      * Creates a series and links selected existing assignments to it.
      *
-     * @param seriesId series id
-     * @param courseId course id
-     * @param name series name
+     * @param seriesId        series id
+     * @param courseId        course id
+     * @param name            series name
      * @param defaultLateDays default late days
-     * @param assignmentIds selected assignment ids to link
+     * @param assignmentIds   selected assignment ids to link
      */
-    public void createSeriesAndLinkAssignments(String seriesId, String courseId, String name, int defaultLateDays, List<String> assignmentIds) {
+    public void createSeriesAndLinkAssignments(String seriesId, String courseId, String name, int defaultLateDays,
+            List<String> assignmentIds) {
         Series series = new Series(seriesId, courseId, name, defaultLateDays);
         seriesRepository.addSeries(series);
         assignmentRepository.setSeriesForAssignments(
                 series.getId(),
                 series.getDefaultLateDays(),
-                assignmentIds
-        );
+                assignmentIds);
     }
 
     public StudyAvailability getStudyAvailability() {
@@ -153,7 +153,8 @@ public class Model {
     }
 
     /**
-     * Removes the course with the given id. No-op if id is null or blank after trim.
+     * Removes the course with the given id. No-op if id is null or blank after
+     * trim.
      *
      * @param id the course id to delete
      */
@@ -179,7 +180,8 @@ public class Model {
         return assignmentRepository.getAllAssignments();
     }
 
-    public void createAssignment(String name, String courseId, String seriesId, java.time.LocalDateTime start, java.time.LocalDateTime deadline, int lateDaysAllowed, double estimatedHours) {
+    public void createAssignment(String name, String courseId, String seriesId, java.time.LocalDateTime start,
+            java.time.LocalDateTime deadline, int lateDaysAllowed, double estimatedHours) {
         Assignment assignment = new AssignmentBuilder()
                 .setName(name)
                 .setCourseId(courseId)

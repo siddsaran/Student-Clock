@@ -10,7 +10,8 @@ import edu.ucsd.studentclock.view.AssignmentCreateRequest;
 
 /**
  * Contract for the assignment screen presenter as used by AssignmentView.
- * Allows the view to depend on an abstraction rather than the concrete presenter.
+ * Allows the view to depend on an abstraction rather than the concrete
+ * presenter.
  */
 public interface IAssignmentScreenPresenter {
 
@@ -25,19 +26,19 @@ public interface IAssignmentScreenPresenter {
     ClockOutResult clockOut(String assignmentId);
 
     void createAssignment(String name,
-                          String course,
-                          LocalDateTime start,
-                          LocalDateTime deadline,
-                          int lateDays,
-                          double estimate);
+            String course,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDays,
+            double estimate);
 
     void createAssignment(String name,
-                          String course,
-                          LocalDateTime start,
-                          LocalDateTime deadline,
-                          int lateDays,
-                          double estimate,
-                          String seriesId);
+            String course,
+            LocalDateTime start,
+            LocalDateTime deadline,
+            int lateDays,
+            double estimate,
+            String seriesId);
 
     void createSeries(String seriesId, String courseId, String seriesName, int defaultLateDays);
 
@@ -46,9 +47,9 @@ public interface IAssignmentScreenPresenter {
     void deleteAssignment(Assignment assignment);
 
     void createSeriesAndLinkSelected(String seriesId,
-                                     String seriesName,
-                                     String defaultLateDaysText,
-                                     List<String> assignmentIds);
+            String seriesName,
+            String defaultLateDaysText,
+            List<String> assignmentIds);
 
     void applyManualHours(String assignmentId, String hoursText);
 

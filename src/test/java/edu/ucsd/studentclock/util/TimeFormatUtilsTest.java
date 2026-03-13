@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TimeFormatUtilsTest {
 
     @Test
+    @DisplayName("Integer hour values format as HH:MM with zero minutes")
     void formatHoursAsHHMM_integerHours() {
         assertEquals("02:00", TimeFormatUtils.formatHoursAsHHMM(2.0));
         assertEquals("12:00", TimeFormatUtils.formatHoursAsHHMM(12.0));
@@ -16,6 +17,7 @@ class TimeFormatUtilsTest {
     }
 
     @Test
+    @DisplayName("Fractional hours convert correctly to minutes")
     void formatHoursAsHHMM_fractionalHours() {
         assertEquals("02:30", TimeFormatUtils.formatHoursAsHHMM(2.5));
         assertEquals("01:30", TimeFormatUtils.formatHoursAsHHMM(1.5));
@@ -23,6 +25,7 @@ class TimeFormatUtilsTest {
     }
 
     @Test
+    @DisplayName("Hour values are rounded to the nearest minute")
     void formatHoursAsHHMM_roundsCorrectly() {
         assertEquals("02:30", TimeFormatUtils.formatHoursAsHHMM(2.5));
         assertEquals("01:29", TimeFormatUtils.formatHoursAsHHMM(1.49));
@@ -30,12 +33,14 @@ class TimeFormatUtilsTest {
     }
 
     @Test
+    @DisplayName("Negative hour values clamp to 00:00")
     void formatHoursAsHHMM_negativeClampsToZero() {
         assertEquals("00:00", TimeFormatUtils.formatHoursAsHHMM(-1.5));
         assertEquals("00:00", TimeFormatUtils.formatHoursAsHHMM(-0.1));
     }
 
     @Test
+    @DisplayName("Formatted time pads hours and minutes with leading zeros")
     void formatHoursAsHHMM_padsWithLeadingZeros() {
         assertEquals("00:05", TimeFormatUtils.formatHoursAsHHMM(5.0 / 60));
         assertEquals("09:00", TimeFormatUtils.formatHoursAsHHMM(9.0));

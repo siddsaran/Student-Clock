@@ -25,6 +25,5 @@ public class SqlDataSource implements IDataSource {
             throw new RuntimeException("Failed to connect to the database", e);
         }
     }
-    
-    
+
 }
