@@ -2,6 +2,7 @@ package edu.ucsd.studentclock.presenter;
 
 import edu.ucsd.studentclock.model.Assignment;
 import edu.ucsd.studentclock.model.AssignmentBuilder;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("BigPictureEffectiveRanges")
 class BigPictureEffectiveRangesTest {
 
     @Test

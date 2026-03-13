@@ -72,7 +72,7 @@ public class DashboardPresenter extends AbstractPresenter<DashboardView> impleme
 
         StudyAvailability sa = model.getStudyAvailability();
 
-        int availableFromToday = computeWeeklyHoursLeftFromToday(sa, now);
+        int availableFromToday = DashboardStudyHoursCalculator.computeWeeklyHoursLeftFromToday(sa, now);
         double totalLoggedThisWeek = model.getTotalHoursLoggedInWeek(now.toLocalDate());
         int remainingStudyHours = Math.max(0, availableFromToday - (int) Math.round(totalLoggedThisWeek));
         view.setStudyHoursRemaining(remainingStudyHours);

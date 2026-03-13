@@ -111,19 +111,19 @@ class StudyAvailabilityTest {
     }
     
     @Test
-    void CountDownSameVal(){
+    void remainingHoursForWeek_consumedEqualsTotal_returnsZero() {
         availability.setTotalWeeklyHours(5);
         assertEquals(0, availability.getRemainingHoursForWeek(5));
     }
 
     @Test
-    void CountDownCurrentLarger(){
+    void remainingHoursForWeek_consumedExceedsTotal_returnsZero() {
         availability.setTotalWeeklyHours(5);
         assertEquals(0, availability.getRemainingHoursForWeek(7));
     }
 
     @Test
-    void CountDownNormal(){
+    void remainingHoursForWeek_consumedLessThanTotal_returnsRemaining() {
         availability.setTotalWeeklyHours(5);
         assertEquals(2, availability.getRemainingHoursForWeek(3));
     }
