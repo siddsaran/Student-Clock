@@ -27,11 +27,11 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for AssignmentListGrouper.
- * DS6-2: series rows receive presenter-provided tag colors.
- * Regression: showOnlyOpen excludes completed assignments.
+ * Story DS6, Task 2: Tests for AssignmentListGrouper.
+ * Series rows receive presenter-provided tag colors.
+ * MS1: US3 (Group related assignments into a series), US9 (View all open assignments).
  */
-@DisplayName("AssignmentListGrouper")
+@DisplayName("DS6-2: AssignmentListGrouper")
 class AssignmentListGrouperTest {
 
     private static final String JDBC_MEMORY_URL = "jdbc:sqlite::memory:";

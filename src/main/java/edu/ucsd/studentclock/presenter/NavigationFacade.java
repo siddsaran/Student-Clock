@@ -1,11 +1,11 @@
 package edu.ucsd.studentclock.presenter;
 
 /**
- * Centralizes navigation rules between high-level screens.
+ * Facade that centralizes navigation rules between high-level screens.
  *
  * This class is intentionally free of JavaFX so it can be tested headlessly.
  */
-public final class NavigationRouter {
+public final class NavigationFacade {
 
     private final Runnable toDashboard;
     private final Runnable toCourses;
@@ -16,7 +16,7 @@ public final class NavigationRouter {
     private final Runnable prepareAssignmentsAll;
     private final Runnable prepareAssignmentsOpen;
 
-    public NavigationRouter(
+    public NavigationFacade(
             Runnable toDashboard,
             Runnable toCourses,
             Runnable toStudyAvailability,
